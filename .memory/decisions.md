@@ -56,3 +56,17 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 **Décision** : Option X retenue par le décideur le 2026-10-17. Le binaire llamafile sera téléchargé depuis les releases upstream (version à figer après vérification factuelle). `main/` reste en référence documentaire, jamais compilé pour la v1.
 
 **Conséquences** : un script de téléchargement avec vérification de checksum SHA-256 sera nécessaire (voir `dev/tools/VENDOR_STRATEGY.md`). Le binaire téléchargé sera gitignoré, comme `main/`. Aucune compilation n'est requise pour la v1.
+
+## [2026-10-17] Base llamafile : version 0.10.6, asset thin, stratégie de vendorisation
+
+**Contexte** : la décision Option X (binaire pré-compilé upstream) est actée. La vérification factuelle a établi que `0.10.6` (15 septembre 2026) est la dernière release stable, avec checksums SHA-256 publiés par l'API GitHub.
+
+**Décisions actées** :
+
+1. **Version** : `0.10.6`.
+2. **Asset runtime v1** : `llamafile-0.10.6-thin` (CPU only, robustesse maximale, fichier plus petit).
+3. **Asset obligatoire** : `zipalign-0.10.6`.
+4. **Détection GPU + bascule** : reportée en v2, documentée comme objectif futur.
+5. **Vendorisation** : binaires dans `dev/tools/vendor/llamafile/` (gitignoré), configuration dans `dev/tools/llamafile_config.json` (versionné), vérification SHA-256 obligatoire, échec → arrêt sans exécution.
+
+**Conséquences** : la prochaine étape est de créer `llamafile_config.json` puis `bootstrap.py`. Aucune compilation n'est requise. Le pipeline Python pourra assembler un `.llamafile` à partir du thin + zipalign + GGUF.

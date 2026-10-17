@@ -19,6 +19,8 @@ dist/
 # Dépendance externe — NE JAMAIS versionner ni pousser sur GitHub
 # Règle du projet : main/ est un fork externe en lecture seule.
 main/
+# Binaires vendorisés (téléchargés par dev/tools/bootstrap.py)
+dev/tools/vendor/
 
 # OS / IDE
 .DS_Store
