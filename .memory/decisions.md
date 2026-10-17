@@ -76,9 +76,28 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 **Contexte** : le cadrage est terminé. La première ligne de code du projet est `dev/tools/bootstrap.py` (script de téléchargement et vérification des binaires llamafile). Le décideur a tranché le style et la structure.
 
 **Décisions** :
+
 1. Style : Python stdlib uniquement (urllib, hashlib, json, pathlib, sys). Aucune dépendance externe.
 2. Config : `dev/tools/llamafile_config.json`, JSON plat avec version + dict d'assets.
 3. Structure : d'abord un squelette avec fonctions signature + docstrings + corps TODO, puis implémentation fonction par fonction avec tests.
 4. Comportement : téléchargement des assets required=true, vérification SHA-256 obligatoire, échec → arrêt propre (code non-zéro), aucune exécution du binaire téléchargé.
 
 **Conséquences** : la prochaine tâche implémentera `load_config()` (la plus simple, sans I/O réseau), puis `compute_sha256()` et `download()` séparément. Le décideur exécutera le script lui-même pour tester.
+
+## [2026-10-17] Contrat bootstrap.py formalisé avant implémentation
+
+**Contexte** : la revue du squelette de `bootstrap.py` a identifié plusieurs contrats manquants (validation de config, gestion des fichiers existants, comportement d'erreur, compatibilité Python). Le décideur a tranché ces contrats avant d'implémenter, pour éviter d'écrire du code qui marche « à peu près ».
+
+**Décisions** :
+1. Contrat complet documenté dans `dev/tools/BOOTSTRAP_CONTRACT.md` (référence pour toute l'implémentation).
+2. Comportement fichier existant corrompu : strict (échec explicite, pas de réparation automatique).
+3. Gestion de version : aucune (l'utilisateur nettoie manuellement si besoin).
+4. HTTPError traité avant URLError pour préserver le code HTTP.
+5. Timeout réseau : 60 secondes.
+6. Python 3.10+ (pas de hashlib.file_digest).
+7. Fonctions non implémentées : raise NotImplementedError au lieu de pass.
+8. Codes de sortie : 0 (succès), 1 (asset failed), 2 (config error).
+9. Implémentation en 5 étapes distinctes, une par commit : load_config, compute_sha256+verify_sha256, download, process_asset, main.
+10. Aucun `--force`, aucune parallélisation, aucune exécution du binaire dans la v1.
+
+**Conséquences** : la prochaine tâche implémentera `load_config()` seule, avec ses validations strictes. Le script complet sera fonctionnel après la 5e étape.
