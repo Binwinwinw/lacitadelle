@@ -29,7 +29,7 @@ Message d'erreur clair (URL, code HTTP, cause), pas de fichier partiel laissé s
 
 ### E — Checksum invalide ?
 
-Refus immédiat, suppression du fichier téléchargé, message d'erreur indiquant checksum attendu vs calculé, code de sortie non-zéro. Aucune exécution du binaire non-vérifié.
+Si un fichier existant a un mauvais checksum, il est supprimé et retéléchargé une seule fois. Si le retéléchargement échoue aussi (checksum KO ou erreur réseau), échec explicite avec message indiquant l'échec de la réparation. Pas de boucle de retry.
 
 ## Composants à créer (prochaine étape)
 
