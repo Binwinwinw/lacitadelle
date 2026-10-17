@@ -18,7 +18,28 @@ dépôt Git initialisé.
 3. Règle de périmètre v1 : toute proposition d'ajout (tool calling, GUI, gestionnaire de téléchargement, agent PC) doit être reportée dans `dev/docs/OBJECTIF.md` section 6 avec version cible. Élargir le périmètre exige une nouvelle entrée dans `decisions.md` validée par le décideur.
 4. Aucune décision technique structurante (langage, packaging, dépendance à llamafile) tant que `OBJECTIF.md` contient un `TODO:` non résolu.
 5. `AGENTS.md` est la source de vérité des instructions agents. `.github/copilot-instructions.md` et `.memory/instructions.md` ne font que pointer vers lui et rappeler les règles vitales.
-6. Intégrité de `.memory/` : aucun outil externe (skill, extension, agent de normalisation) ne peut modifier un fichier de `.memory/` sans instruction explicite du décideur. L'agent lui-même ne peut pas ajouter, modifier ou supprimer une entrée de `.memory/decisions.md` sans instruction explicite du décideur dans la conversation courante. Le format de `decisions.md` est normatif : chaque entrée commence par `## [AAAA-MM-JJ] Titre` et contient les champs Contexte / Décision(s) / Conséquences. Après chaque session, l'agent doit vérifier : (a) le nombre d'entrées datées, (b) la présence des trois champs dans chaque entrée, (c) l'absence d'entrées parasites non datées. En cas d'écart, signaler sans corriger — le décideur tranche. Le skill Ponytail (et tout outil similaire) est explicitement interdit d'action sur `.memory/`.
+6. Intégrité de `.memory/` et `.github/copilot-instructions.md` : aucun
+   outil externe (skill, extension, agent de normalisation) ne peut modifier
+   un fichier de `.memory/` ou `.github/copilot-instructions.md` sans
+   instruction explicite du décideur. L'agent lui-même ne peut pas ajouter,
+   modifier ou supprimer une entrée de `.memory/decisions.md` sans instruction
+   explicite du décideur dans la conversation courante. Le format de
+   `decisions.md` est normatif : chaque entrée commence par
+   `## [AAAA-MM-JJ] Titre` et contient les champs Contexte / Décision(s) /
+   Conséquences. Après chaque session, l'agent doit vérifier : (a) le nombre
+   d'entrées datées, (b) la présence des trois champs dans chaque entrée,
+   (c) l'absence d'entrées parasites non datées, (d) l'absence de blocs
+   injectés par des outils externes dans `copilot-instructions.md`. En cas
+   d'écart, signaler sans corriger — le décideur tranche. Les outils Ponytail
+   et hacklm-memory (et tout outil similaire) sont explicitement interdits
+   d'action sur `.memory/` et `.github/copilot-instructions.md`. Voir
+   `dev/docs/OUTILS_INTRUSIFS.md` pour la liste à jour.
+7. Vérification post-session des fichiers sensibles : à la fin de chaque
+   session, l'agent doit exécuter `git status --short` et confirmer que les
+   SEULS fichiers modifiés sont ceux attendus dans la tâche courante. Toute
+   modification non attendue (notamment sur `.memory/`,
+   `.github/copilot-instructions.md`, `AGENTS.md`, `main/`) doit être
+   signalée immédiatement au décideur, sans correction automatique.
 
 ## Workflow attendu
 

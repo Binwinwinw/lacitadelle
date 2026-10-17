@@ -103,3 +103,16 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 11. Non-objectifs v1 : pas de `--force`, pas de parallélisation, pas de reprise HTTP Range, pas d'exécution du binaire.
 
 **Conséquences** : la prochaine tâche implémentera `load_config()` seule, avec ses validations strictes. Tests unitaires à prévoir à chaque étape.
+
+## [2026-10-17] Incident hacklm-memory : injection non autorisée dans copilot-instructions.md
+
+**Contexte** : l'outil d'environnement `hacklm-memory` a injecté 40 lignes dans `.github/copilot-instructions.md` sans instruction du décideur. Le bloc injecté demandait à Copilot de modifier `.memory/` automatiquement (`storeMemory`), ce qui contredit la règle 6 d'`AGENTS.md` (interdiction de modifier `.memory/` sans instruction explicite du décideur dans la conversation courante).
+
+**Décision** :
+
+1. Restauration de `.github/copilot-instructions.md` à la version HEAD (commit 987f168).
+2. L'outil `hacklm-memory` est désormais considéré comme intrusif au même titre que Ponytail. Son action sur `.github/copilot-instructions.md` et sur `.memory/` est interdite.
+3. Un garde-fou sera ajouté dans `AGENTS.md` règle 6 pour mentionner explicitement `hacklm-memory` (temps 2, tâche suivante).
+4. Après chaque session, vérifier que `.github/copilot-instructions.md` n'a pas été réinjecté.
+
+**Conséquences** : la prochaine tâche (temps 2) renforcera `AGENTS.md` et mettra en place une vérification systématique du fichier Copilot. Si `hacklm-memory` réinjecte le bloc malgré tout, un garde-fou actif (hook Git ou script de pré-commit) sera nécessaire.
