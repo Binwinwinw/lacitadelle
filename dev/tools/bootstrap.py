@@ -180,6 +180,16 @@ def verify_sha256(path: Path, expected: str) -> None:
         )
 
 
+def _cleanup_partial(path: Path) -> None:
+    """Supprime un fichier partiel s'il existe. Ignore les erreurs."""
+    try:
+        if path.exists():
+            path.unlink()
+    except OSError:
+        # On ignore : le nettoyage est best-effort.
+        pass
+
+
 def download(url: str, dest: Path) -> None:
     """Télécharge `url` vers `dest` en streaming.
 
@@ -189,7 +199,36 @@ def download(url: str, dest: Path) -> None:
     Raises:
         BootstrapError: sur HTTPError, URLError, ou timeout.
     """
-    raise NotImplementedError("download à implémenter")
+    # S'assurer que le dossier parent existe
+    dest.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "LaCitadelle-bootstrap/1.0"},
+        )
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as response:
+            with dest.open("wb") as f:
+                while chunk := response.read(CHUNK_SIZE):
+                    f.write(chunk)
+    except urllib.error.HTTPError as e:
+        # HTTPError hérite de URLError : traiter en premier pour préserver
+        # le code HTTP dans le message.
+        _cleanup_partial(dest)
+        raise BootstrapError(
+            f"Erreur HTTP lors du téléchargement de {url} : "
+            f"{e.code} {e.reason}"
+        ) from e
+    except urllib.error.URLError as e:
+        _cleanup_partial(dest)
+        raise BootstrapError(
+            f"Erreur réseau lors du téléchargement de {url} : {e.reason}"
+        ) from e
+    except (TimeoutError, OSError) as e:
+        _cleanup_partial(dest)
+        raise BootstrapError(
+            f"Erreur d'E/S lors du téléchargement de {url} : {e}"
+        ) from e
 
 
 def process_asset(name: str, meta: dict[str, Any]) -> None:
