@@ -55,7 +55,87 @@ def load_config() -> dict[str, Any]:
     Raises:
         BootstrapError: si le fichier est absent, invalide, ou viole le schéma.
     """
-    raise NotImplementedError("load_config à implémenter")
+    if not CONFIG_PATH.is_file():
+        raise BootstrapError(
+            f"Configuration absente : {CONFIG_PATH}. "
+            f"Le fichier dev/tools/llamafile_config.json est requis."
+        )
+
+    try:
+        with CONFIG_PATH.open("r", encoding="utf-8") as f:
+            config = json.load(f)
+    except json.JSONDecodeError as e:
+        raise BootstrapError(
+            f"Configuration JSON invalide ({CONFIG_PATH}) : {e}"
+        ) from e
+
+    if not isinstance(config, dict):
+        raise BootstrapError(
+            f"Configuration invalide : la racine doit être un objet JSON, "
+            f"trouvé {type(config).__name__}."
+        )
+
+    # Clé version obligatoire, non vide
+    version = config.get("version")
+    if not isinstance(version, str) or not version.strip():
+        raise BootstrapError(
+            "Configuration invalide : 'version' doit être une chaîne non vide."
+        )
+
+    # Clé assets obligatoire, dict non vide
+    assets = config.get("assets")
+    if not isinstance(assets, dict) or not assets:
+        raise BootstrapError(
+            "Configuration invalide : 'assets' doit être un objet JSON non vide."
+        )
+
+    # Validation de chaque asset
+    for name, meta in assets.items():
+        if not isinstance(name, str) or not name.strip():
+            raise BootstrapError(
+                f"Configuration invalide : nom d'asset vide ou non-chaîne."
+            )
+        if not isinstance(meta, dict):
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : la valeur doit être un objet JSON."
+            )
+
+        url = meta.get("url")
+        if not isinstance(url, str) or not url.startswith("https://"):
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : 'url' doit être une "
+                f"chaîne commençant par 'https://' (trouvé : {url!r})."
+            )
+
+        sha256 = meta.get("sha256")
+        if not isinstance(sha256, str) or len(sha256) != SHA256_LEN:
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : 'sha256' doit faire "
+                f"{SHA256_LEN} caractères (trouvé : {len(sha256) if isinstance(sha256, str) else 'non-chaîne'})."
+            )
+        if not all(c in "0123456789abcdefABCDEF" for c in sha256):
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : 'sha256' doit être hexadécimal."
+            )
+
+        filename = meta.get("filename")
+        if not isinstance(filename, str) or not filename.strip():
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : 'filename' doit être une chaîne non vide."
+            )
+        if "/" in filename or "\\" in filename or ".." in filename:
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : 'filename' ne doit pas "
+                f"contenir '/', '\\' ou '..' (trouvé : {filename!r})."
+            )
+
+        required = meta.get("required")
+        if not isinstance(required, bool):
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : 'required' doit être un booléen strict."
+            )
+
+    return config
 
 
 def compute_sha256(path: Path) -> str:
@@ -89,14 +169,14 @@ def download(url: str, dest: Path) -> None:
 
 
 def process_asset(name: str, meta: dict[str, Any]) -> None:
-     """Traite un asset : télécharge si absent, répare si corrompu, vérifie.
+    """Traite un asset : télécharge si absent, répare si corrompu, vérifie.
 
-     Cycle (mode réparateur) :
-        1. Fichier final présent + checksum OK → rien à faire.
-        2. Fichier final présent + checksum KO → suppression + téléchargement
-            vers temporaire + vérification + publication atomique.
-        3. Fichier final absent → téléchargement vers temporaire + vérification
-            + publication atomique.
+    Cycle (mode réparateur) :
+      1. Fichier final présent + checksum OK → rien à faire.
+      2. Fichier final présent + checksum KO → suppression + téléchargement
+         vers temporaire + vérification + publication atomique.
+      3. Fichier final absent → téléchargement vers temporaire + vérification
+         + publication atomique.
 
     Raises:
         BootstrapError: sur tout échec.
