@@ -86,18 +86,20 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 
 ## [2026-10-17] Contrat bootstrap.py formalisé avant implémentation
 
-**Contexte** : la revue du squelette de `bootstrap.py` a identifié plusieurs contrats manquants (validation de config, gestion des fichiers existants, comportement d'erreur, compatibilité Python). Le décideur a tranché ces contrats avant d'implémenter, pour éviter d'écrire du code qui marche « à peu près ».
+**Contexte** : la revue du squelette de `bootstrap.py` a identifié plusieurs contrats manquants (validation de config, gestion des fichiers existants, comportement d'erreur, compatibilité Python). Le décideur a tranché ces contrats avant d'implémenter.
 
 **Décisions** :
-1. Contrat complet documenté dans `dev/tools/BOOTSTRAP_CONTRACT.md` (référence pour toute l'implémentation).
-2. Comportement fichier existant corrompu : strict (échec explicite, pas de réparation automatique).
-3. Gestion de version : aucune (l'utilisateur nettoie manuellement si besoin).
-4. HTTPError traité avant URLError pour préserver le code HTTP.
-5. Timeout réseau : 60 secondes.
-6. Python 3.10+ (pas de hashlib.file_digest).
-7. Fonctions non implémentées : raise NotImplementedError au lieu de pass.
-8. Codes de sortie : 0 (succès), 1 (asset failed), 2 (config error).
-9. Implémentation en 5 étapes distinctes, une par commit : load_config, compute_sha256+verify_sha256, download, process_asset, main.
-10. Aucun `--force`, aucune parallélisation, aucune exécution du binaire dans la v1.
 
-**Conséquences** : la prochaine tâche implémentera `load_config()` seule, avec ses validations strictes. Le script complet sera fonctionnel après la 5e étape.
+1. Contrat complet dans `dev/tools/BOOTSTRAP_CONTRACT.md` (référence pour l'implémentation).
+2. Fichier existant corrompu : **mode réparateur** — suppression + retéléchargement une seule fois + vérification. Échec explicite si la réparation échoue. Pas de boucle de retry.
+3. Gestion de version dans le script : aucune (nettoyage manuel de vendor/ si changement de version).
+4. `filename` distinct de la clé logique (traçabilité : le nom physique contient la version).
+5. `HTTPError` traité avant `URLError` (préserver le code HTTP).
+6. Timeout réseau : 60 secondes.
+7. Python 3.10+ (pas de `hashlib.file_digest`).
+8. Fonctions non implémentées : `raise NotImplementedError` au lieu de `pass`.
+9. Codes de sortie : 0 (succès), 1 (asset échoué), 2 (config invalide).
+10. Implémentation en 5 étapes, une par commit : `load_config`, `compute_sha256`+`verify_sha256`, `download`, `process_asset`, `main`.
+11. Non-objectifs v1 : pas de `--force`, pas de parallélisation, pas de reprise HTTP Range, pas d'exécution du binaire.
+
+**Conséquences** : la prochaine tâche implémentera `load_config()` seule, avec ses validations strictes. Tests unitaires à prévoir à chaque étape.

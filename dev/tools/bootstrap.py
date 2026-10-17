@@ -89,13 +89,14 @@ def download(url: str, dest: Path) -> None:
 
 
 def process_asset(name: str, meta: dict[str, Any]) -> None:
-    """Traite un asset : télécharge si absent, vérifie le checksum.
+     """Traite un asset : télécharge si absent, répare si corrompu, vérifie.
 
-    Cycle :
-      1. Fichier final présent + checksum OK → rien à faire.
-      2. Fichier final présent + checksum KO → BootstrapError.
-      3. Fichier final absent → télécharger vers temporaire,
-         vérifier, publier atomiquement.
+     Cycle (mode réparateur) :
+        1. Fichier final présent + checksum OK → rien à faire.
+        2. Fichier final présent + checksum KO → suppression + téléchargement
+            vers temporaire + vérification + publication atomique.
+        3. Fichier final absent → téléchargement vers temporaire + vérification
+            + publication atomique.
 
     Raises:
         BootstrapError: sur tout échec.
