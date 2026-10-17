@@ -1,0 +1,29 @@
+{
+  "version": "0.10.6",
+  "release_date": "2026-09-15",
+  "source": "https://github.com/mozilla-ai/llamafile/releases/tag/0.10.6",
+  "verified_on": "2026-10-17",
+  "assets": {
+    "llamafile-thin": {
+      "url": "https://github.com/mozilla-ai/llamafile/releases/download/0.10.6/llamafile-0.10.6-thin",
+      "sha256": "756bf97febae557084e8ced9bde7a1cb0c7f6ce778530d582afa219406237a50",
+      "filename": "llamafile-0.10.6-thin",
+      "required": true,
+      "purpose": "Runtime CPU-only pour assembler le .llamafile final (v1)"
+    },
+    "zipalign": {
+      "url": "https://github.com/mozilla-ai/llamafile/releases/download/0.10.6/zipalign-0.10.6",
+      "sha256": "7eac59c658226027b365d92131babf06341f746fb20c0db33115bbdf5c5c6c4b",
+      "filename": "zipalign-0.10.6",
+      "required": true,
+      "purpose": "Outil d'intégration du GGUF dans le .llamafile final"
+    },
+    "llamafile-full": {
+      "url": "https://github.com/mozilla-ai/llamafile/releases/download/0.10.6/llamafile-0.10.6",
+      "sha256": "d579f61dcd3a306f518e6d90e599d77793ed5f09543023d09c96ad35fcfa63f0",
+      "filename": "llamafile-0.10.6",
+      "required": false,
+      "purpose": "Runtime complet avec libs GPU (usage futur v2, non téléchargé en v1)"
+    }
+  }
+}

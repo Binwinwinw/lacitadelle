@@ -70,3 +70,15 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 5. **Vendorisation** : binaires dans `dev/tools/vendor/llamafile/` (gitignoré), configuration dans `dev/tools/llamafile_config.json` (versionné), vérification SHA-256 obligatoire, échec → arrêt sans exécution.
 
 **Conséquences** : la prochaine étape est de créer `llamafile_config.json` puis `bootstrap.py`. Aucune compilation n'est requise. Le pipeline Python pourra assembler un `.llamafile` à partir du thin + zipalign + GGUF.
+
+## [2026-10-17] Premier code : bootstrap.py en stdlib, structure squelette
+
+**Contexte** : le cadrage est terminé. La première ligne de code du projet est `dev/tools/bootstrap.py` (script de téléchargement et vérification des binaires llamafile). Le décideur a tranché le style et la structure.
+
+**Décisions** :
+1. Style : Python stdlib uniquement (urllib, hashlib, json, pathlib, sys). Aucune dépendance externe.
+2. Config : `dev/tools/llamafile_config.json`, JSON plat avec version + dict d'assets.
+3. Structure : d'abord un squelette avec fonctions signature + docstrings + corps TODO, puis implémentation fonction par fonction avec tests.
+4. Comportement : téléchargement des assets required=true, vérification SHA-256 obligatoire, échec → arrêt propre (code non-zéro), aucune exécution du binaire téléchargé.
+
+**Conséquences** : la prochaine tâche implémentera `load_config()` (la plus simple, sans I/O réseau), puis `compute_sha256()` et `download()` séparément. Le décideur exécutera le script lui-même pour tester.
