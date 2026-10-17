@@ -48,3 +48,11 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 4. RÈGLE NON-NÉGOCIABLE : `main/` ne doit JAMAIS apparaître sur GitHub. Le `.gitignore` garantit cette exclusion. Aucune exception sans décision explicite du décideur consignée dans ce fichier.
 
 **Conséquences** : la mise sous Git est découpée en deux temps. Temps 1 (local) : `git init`, vérifications `git status`, `git add .`, commit. Temps 2 (réseau) : `git remote add origin`, `git push -u origin main`. Chaque temps est une tâche séparée, exécutée sur instruction explicite du décideur.
+
+## [2026-10-17] Chantier base llamafile — 1 décision ouverte
+
+**Contexte** : projet sous Git et sur GitHub, socle documentaire terminé, prochaine étape = construction du pipeline de fabrication `.llamafile`. Question préalable : où récupérer le binaire llamafile qui sert de base à l'assemblage.
+
+**Décision(s)** : en attente. Trois options documentées dans `dev/docs/BASE_LLAMAFILE.md` (X : binaire pré-compilé, Y : compilation depuis `main/`, Z : hybride).
+
+**Conséquences** : aucun code ne peut être écrit tant que cette décision n'est pas prise. Le pipeline Python dépend directement du binaire choisi.
