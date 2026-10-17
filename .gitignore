@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Modèles
+*.gguf
+*.safetensors
+
+# Artefacts llamafile générés
+*.llamafile
+
+# Dépendance externe — NE JAMAIS versionner ni pousser sur GitHub
+# Règle du projet : main/ est un fork externe en lecture seule.
+main/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs (bruit système / IDE — voir cleanup.log)
+*.log
