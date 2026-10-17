@@ -111,3 +111,40 @@ Si une exception survient pendant le téléchargement, supprimer le fichier temp
 4. `process_asset()` — temporaire, vérification, publication atomique, mode réparateur.
 5. `main()` — filtrage, orchestration, codes de sortie.
 6. Tests d'intégration (étape ultérieure).
+
+## Limites connues (v1)
+
+1. **Nettoyage best-effort des temporaires** : en cas d'échec de
+   téléchargement ou de vérification, `_cleanup_partial()` supprime le
+   fichier temporaire (`.tmp-<filename>-<pid>`). Si la suppression
+   échoue (fichier verrouillé par un antivirus, par exemple), un
+   temporaire orphelin reste sur disque. **Il ne sera pas nettoyé
+   automatiquement au prochain run** (le script ne cherche que le
+   fichier final, pas les `.tmp-*`). Suppression manuelle nécessaire
+   dans ce cas. Pas de risque de corruption silencieuse du fichier
+   final, mais accumulation possible de temporaires orphelins.
+
+2. **`KeyboardInterrupt` non intercepté** : si l'utilisateur fait
+   Ctrl+C pendant le téléchargement, le fichier temporaire
+   (`.tmp-<filename>-<pid>`) reste sur disque. **Il ne sera pas
+   nettoyé automatiquement au prochain run.** Suppression manuelle
+   nécessaire. Le fichier final n'est pas affecté. Pas de blocage,
+   mais accumulation possible de temporaires orphelins.
+
+3. **Encodage des accents sur Windows** : le script utilise des
+   accents dans ses messages (`déjà`, `téléchargé`, etc.). Sur certains
+   terminaux Windows configurés en code page non-UTF-8, cela peut
+   produire des erreurs d'affichage ou des `UnicodeEncodeError`.
+   Solution : `set PYTHONIOENCODING=utf-8` avant de lancer le script,
+   ou `chcp 65001` pour passer le terminal en UTF-8.
+
+4. **Pas de reprise HTTP Range** : si un téléchargement est interrompu
+   au milieu, le prochain run le reprend depuis zéro. Pour ~44 Mo,
+   c'est acceptable. V2 pourra ajouter la reprise.
+
+5. **Pas de nettoyage des temporaires orphelins** : le script ne
+   scanne pas `VENDOR_DIR` à la recherche de fichiers `.tmp-*` laissés
+   par des exécutions précédentes. Si des temporaires orphelins
+   s'accumulent, suppression manuelle : `rm dev/tools/vendor/llamafile/.tmp-*`
+   (Unix) ou `del dev\tools\vendor\llamafile\.tmp-*` (Windows).
+   Amélioration v2 : nettoyage automatique au démarrage.

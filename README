@@ -1,0 +1,44 @@
+# La Citadelle
+
+Application de poche sous forme de fichier `.llamafile` unique, avec
+modèle 1B-3B embarqué, interface texte, destinée à un public
+non-technique. La Citadelle s'inspire de
+[mozilla-ai/llamafile](https://github.com/mozilla-ai/llamafile) pour
+la fabrication de llamafiles personnalisés.
+
+Voir `dev/docs/OBJECTIF.md` pour le périmètre v1, et `AGENTS.md` pour
+les instructions de développement.
+
+## Bootstrap des dépendances
+
+Avant la première utilisation, télécharger et vérifier les binaires
+llamafile nécessaires :
+
+    python dev/tools/bootstrap.py
+
+Cette commande télécharge :
+
+- `llamafile-0.10.6-thin` (~44 Mo) — runtime CPU-only
+- `zipalign-0.10.6` (~850 Ko) — outil d'assemblage
+
+Les fichiers sont stockés dans `dev/tools/vendor/llamafile/`, qui est
+gitignoré. Le premier lancement télécharge ~44 Mo. Les lancements
+suivants vérifient les checksums et ne retéléchargent pas les fichiers
+valides.
+
+Si un fichier est corrompu, le script le supprime et le retélécharge
+(mode réparateur). Voir `dev/tools/BOOTSTRAP_CONTRACT.md` pour les
+détails et les limites connues.
+
+## État du projet
+
+- Socle documentaire : complet (voir `dev/docs/`)
+- Bootstrap des binaires : fonctionnel
+- Fabrication du `.llamafile` : à venir (voir `dev/docs/OBJECTIF.md`)
+
+## Structure du dépôt
+
+- `main/` — dépôt upstream llamafile (lecture seule, non versionné)
+- `dev/` — code et documentation de La Citadelle
+- `.memory/` — mémoire projet (décisions, instructions)
+- `AGENTS.md` — source de vérité des instructions agents

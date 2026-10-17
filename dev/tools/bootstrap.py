@@ -11,6 +11,10 @@ Usage :
     python dev/tools/bootstrap.py
 
 Aucune dépendance externe. Python 3.10+ requis.
+
+Note Windows : si les accents dans les messages provoquent une
+UnicodeEncodeError, lancer `set PYTHONIOENCODING=utf-8` avant
+(ou `chcp 65001` pour passer le terminal en UTF-8).
 """
 
 from __future__ import annotations
