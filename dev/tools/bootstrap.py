@@ -143,17 +143,41 @@ def compute_sha256(path: Path) -> str:
 
     Retourne la représentation hexadécimale en minuscules.
     Compatible Python 3.10 (pas de hashlib.file_digest).
+
+    Raises:
+        BootstrapError: si le fichier est absent ou illisible.
     """
-    raise NotImplementedError("compute_sha256 à implémenter")
+    if not path.is_file():
+        raise BootstrapError(
+            f"Fichier absent pour calcul SHA-256 : {path}"
+        )
+    sha = hashlib.sha256()
+    try:
+        with path.open("rb") as f:
+            while chunk := f.read(CHUNK_SIZE):
+                sha.update(chunk)
+    except OSError as e:
+        raise BootstrapError(
+            f"Erreur de lecture pour calcul SHA-256 ({path}) : {e}"
+        ) from e
+    return sha.hexdigest()
 
 
 def verify_sha256(path: Path, expected: str) -> None:
     """Vérifie le SHA-256 d'un fichier.
 
+    Comparaison insensible à la casse (le SHA-256 en config peut être
+    en majuscules, on normalise en minuscules).
+
     Raises:
         BootstrapError: si le checksum ne correspond pas.
     """
-    raise NotImplementedError("verify_sha256 à implémenter")
+    actual = compute_sha256(path)
+    if actual.lower() != expected.lower():
+        raise BootstrapError(
+            f"Checksum invalide pour {path} : "
+            f"attendu {expected}, calculé {actual}"
+        )
 
 
 def download(url: str, dest: Path) -> None:
