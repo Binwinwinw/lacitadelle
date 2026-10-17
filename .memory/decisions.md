@@ -49,10 +49,10 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 
 **Conséquences** : la mise sous Git est découpée en deux temps. Temps 1 (local) : `git init`, vérifications `git status`, `git add .`, commit. Temps 2 (réseau) : `git remote add origin`, `git push -u origin main`. Chaque temps est une tâche séparée, exécutée sur instruction explicite du décideur.
 
-## [2026-10-17] Chantier base llamafile — 1 décision ouverte
+## [2026-10-17] Base llamafile : Option X (binaire pré-compilé upstream)
 
-**Contexte** : projet sous Git et sur GitHub, socle documentaire terminé, prochaine étape = construction du pipeline de fabrication `.llamafile`. Question préalable : où récupérer le binaire llamafile qui sert de base à l'assemblage.
+**Contexte** : le pipeline v1 doit produire un `.llamafile` à partir d'un GGUF et d'un binaire llamafile de base. Trois options étaient documentées dans `dev/docs/BASE_LLAMAFILE.md` (X : binaire pré-compilé, Y : compilation depuis `main/`, Z : hybride).
 
-**Décision(s)** : en attente. Trois options documentées dans `dev/docs/BASE_LLAMAFILE.md` (X : binaire pré-compilé, Y : compilation depuis `main/`, Z : hybride).
+**Décision** : Option X retenue par le décideur le 2026-10-17. Le binaire llamafile sera téléchargé depuis les releases upstream (version à figer après vérification factuelle). `main/` reste en référence documentaire, jamais compilé pour la v1.
 
-**Conséquences** : aucun code ne peut être écrit tant que cette décision n'est pas prise. Le pipeline Python dépend directement du binaire choisi.
+**Conséquences** : un script de téléchargement avec vérification de checksum SHA-256 sera nécessaire (voir `dev/tools/VENDOR_STRATEGY.md`). Le binaire téléchargé sera gitignoré, comme `main/`. Aucune compilation n'est requise pour la v1.

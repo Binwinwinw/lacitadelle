@@ -29,8 +29,21 @@ Source : binaire pré-compilé pour le build v1, `main/` conservé comme référ
 Avantages : simplicité de X pour la v1, documentation de Y disponible sans l'exécuter.
 Inconvénients : deux sources de vérité à maintenir.
 
-## TODO — Décision du décideur
+## Décision du décideur
+**Option X retenue** (binaire pré-compilé depuis les releases upstream) le 2026-10-17.
 
-## TODO — Version de llamafile retenue
+Justification : simplicité pour la v1, pas de chaîne de compilation à maintenir,
+périmètre Python-first respecté. L'option Y (compilation) reste disponible pour
+une version future si des patches deviennent nécessaires. `main/` reste en
+référence documentaire (lecture seule) sans être compilé.
 
-## TODO — Conséquences sur le pipeline Python
+## Version de llamafile retenue
+TODO — à préciser après vérification factuelle de la dernière release stable
+(voir Tâche 2). Version, URL de l'asset, checksum SHA-256 à figer.
+
+## Conséquences sur le pipeline Python
+Le pipeline Python devra :
+1. Télécharger le binaire llamafile de la version retenue.
+2. Vérifier son checksum SHA-256.
+3. L'utiliser comme base pour assembler un `.llamafile` avec un GGUF.
+Le binaire téléchargé ne sera PAS versionné dans Git (voir dev/tools/VENDOR_STRATEGY.md).
