@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
@@ -241,15 +242,103 @@ def process_asset(name: str, meta: dict[str, Any]) -> None:
       3. Fichier final absent → téléchargement vers temporaire + vérification
          + publication atomique.
 
+    Une seule tentative de réparation. Pas de boucle de retry.
+
     Raises:
         BootstrapError: sur tout échec.
     """
-    raise NotImplementedError("process_asset à implémenter")
+    url = meta["url"]
+    expected_sha = meta["sha256"]
+    filename = meta["filename"]
+    final_path = VENDOR_DIR / filename
+    temp_path = VENDOR_DIR / f".tmp-{filename}-{os.getpid()}"
+
+    # Cas 1 : fichier final présent
+    if final_path.is_file():
+        try:
+            verify_sha256(final_path, expected_sha)
+            print(f"[OK] {name} : déjà présent et valide ({filename})")
+            return
+        except BootstrapError:
+            # Mode réparateur : suppression + retéléchargement
+            print(
+                f"[REPARATION] {name} : checksum invalide, "
+                f"réparation en cours ({filename})",
+                file=sys.stderr,
+            )
+            try:
+                final_path.unlink()
+            except OSError as e:
+                raise BootstrapError(
+                    f"Impossible de supprimer le fichier corrompu "
+                    f"{final_path} : {e}"
+                ) from e
+
+    # Cas 2/3 : téléchargement vers temporaire
+    print(f"[DOWNLOAD] {name} : téléchargement depuis {url}")
+    try:
+        download(url, temp_path)
+        verify_sha256(temp_path, expected_sha)
+    except BootstrapError as e:
+        # Nettoyage du temporaire en cas d'échec
+        _cleanup_partial(temp_path)
+        raise BootstrapError(
+            f"Réparation échouée pour {name} ({filename}) : {e}"
+        ) from e
+
+    # Publication atomique
+    try:
+        temp_path.rename(final_path)
+    except OSError as e:
+        _cleanup_partial(temp_path)
+        raise BootstrapError(
+            f"Impossible de publier {final_path} : {e}"
+        ) from e
+
+    print(f"[OK] {name} : téléchargé et vérifié ({filename})")
 
 
 def main() -> int:
     """Point d'entrée. Retourne le code de sortie."""
-    raise NotImplementedError("main à implémenter")
+    try:
+        config = load_config()
+    except BootstrapError as e:
+        print(f"ERREUR [config] : {e}", file=sys.stderr)
+        return EXIT_CONFIG_ERROR
+
+    assets = config["assets"]
+    required = [
+        (name, meta) for name, meta in assets.items()
+        if meta.get("required", False) is True
+    ]
+
+    if not required:
+        print("Aucun asset requis dans la configuration.")
+        return EXIT_OK
+
+    print(f"Bootstrap : {len(required)} asset(s) requis à traiter.")
+    print(f"Destination : {VENDOR_DIR}")
+    print()
+
+    failures = []
+    for name, meta in required:
+        try:
+            process_asset(name, meta)
+        except BootstrapError as e:
+            failures.append((name, str(e)))
+            print(f"ERREUR [{name}] : {e}", file=sys.stderr)
+
+    print()
+    if failures:
+        print(
+            f"Résumé : {len(required) - len(failures)} OK, "
+            f"{len(failures)} échec(s)",
+            file=sys.stderr,
+        )
+        return EXIT_ASSET_FAILED
+
+    print(f"Résumé : {len(required)} asset(s) traité(s) avec succès.")
+    return EXIT_OK
 
 
 if __name__ == "__main__":
