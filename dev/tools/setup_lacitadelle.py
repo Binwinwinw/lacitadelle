@@ -68,7 +68,7 @@ EXIT_BUILD_ERROR = 3
 
 # Paramètres du .args (contenu acté dans BUILD_LLAMAFILE.md)
 ARGS_CONTENT = [
-    "-m ../dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf",
+    "-m dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf",
     "--port 8080",
     "-c 4096",
     "--temp 0.7",
