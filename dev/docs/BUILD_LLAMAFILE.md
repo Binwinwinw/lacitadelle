@@ -55,16 +55,17 @@ Options :
 **Décision actée sur le mécanisme** : URL directe vers un GGUF précis sur
 HuggingFace; URL et checksum dans `dev/tools/llamafile_config.json`.
 
-URL proposée (à confirmer par le décideur avant implémentation) :
-`https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf`
+URL fixe immuable :
+`https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/4b9aca3fb9c8fcace456430347c2fc34752e515f/Qwen3-1.7B-Q4_K_M.gguf`
 
 SHA-256 :
 `16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207`.
 
 Vérification technique le 2026-10-17 : le fichier existe sur HuggingFace,
-l'URL répond en HEAD 200 sans télécharger le GGUF, et son identifiant LFS
-correspond au checksum ci-dessus. L'URL utilise la branche mutable `main`;
-la source exacte reste à confirmer par le décideur.
+l'URL immuable répond en HEAD 200 sans télécharger le GGUF, et son
+identifiant LFS correspond au checksum ci-dessus. Le commit SHA de la branche
+`main` a été récupéré pour figer la source et éliminer le risque de mutation
+dans le temps entre le build et l'exécution.
 
 ### Décision 3 — Comment assembler le .llamafile ?
 
@@ -73,7 +74,7 @@ Le script `build_llamafile.py` (à créer) orchestrera :
 
 1. Vérifier la présence du runtime et de zipalign (via bootstrap).
 2. Télécharger le GGUF si absent depuis l'URL source confirmée et vérifier
-  son checksum.
+   son checksum.
 3. Créer un fichier `.args` avec les arguments par défaut.
 4. Empaqueter le tout avec zipalign.
 5. Nommer et placer le `.llamafile` final (à définir).
@@ -93,8 +94,10 @@ Valeurs proposées (à confirmer avant implémentation) :
 - `--port 8080`.
 - `-c 4096`.
 - `--temp 0.7`.
-- `-t auto` (nombre de cœurs disponibles; la documentation actuelle
-  indique `-t N` et ne documente pas `auto`, à valider avant usage).
+- `-t : valeur numérique explicite (`-t N`selon la documentation
+officielle). Aucun mode`auto` n'est documenté dans la doc upstream, et
+  aucun défaut intelligent n'a été trouvé ; la valeur doit donc être
+  validée manuellement avant usage.
 - Pas de prompt système pour la v1.
 
 Note : la documentation officielle llamafile exige le préfixe `/zip/`

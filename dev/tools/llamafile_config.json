@@ -26,7 +26,7 @@
       "purpose": "Runtime complet avec libs GPU (usage futur v2, non téléchargé en v1)"
     },
     "qwen3-1.7b-q4km": {
-      "url": "https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf",
+      "url": "https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/4b9aca3fb9c8fcace456430347c2fc34752e515f/Qwen3-1.7B-Q4_K_M.gguf",
       "sha256": "16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207",
       "filename": "Qwen3-1.7B-Q4_K_M.gguf",
       "required": false,
