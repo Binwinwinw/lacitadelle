@@ -6,9 +6,11 @@ La v1 de La Citadelle doit produire un fichier `.llamafile` unique
 contenant :
 
 - le runtime `llamafile-0.10.6-thin` (déjà téléchargé par le bootstrap),
-- un modèle GGUF (à choisir),
-- des arguments par défaut (à définir),
-- éventuellement un prompt système (à définir).
+- le modèle GGUF Qwen3-1.7B Q4_K_M (source exacte proposée ci-dessous,
+  confirmation en attente),
+- des arguments minimaux pour la v1 (valeurs à confirmer avant
+  implémentation),
+- aucun prompt système pour la v1.
 
 L'assemblage se fait avec `zipalign-0.10.6` (déjà téléchargé par le
 bootstrap). Voir `dev/tools/BOOTSTRAP_CONTRACT.md` pour les détails
@@ -20,20 +22,25 @@ du bootstrap.
 
 Contraintes :
 
-- Taille : 1B-3B paramètres, quantifié Q4_K_M ou Q5_K_M (~600-800 Mo).
+- Taille : le GGUF Qwen3-1.7B Q4_K_M sélectionné mesure 1 282 439 456
+  octets selon les métadonnées HuggingFace.
 - Licence permissive (Apache 2.0, MIT, ou équivalent, usage commercial OK).
 - Bon en français (public cible francophone).
 - Disponible sur HuggingFace avec des GGUF prêts à l'emploi.
 
 Candidats :
 
-- **Qwen3-1.7B** : Apache 2.0, multilingue, bon en français, ~1 Go Q4_K_M.
+- **Qwen3-1.7B** : Apache 2.0, multilingue, bon en français; fichier
+  Q4_K_M de 1 282 439 456 octets (environ 1,28 Go décimaux).
 - **Phi-3-mini** : MIT, 3.8B, excellent en raisonnement, ~2 Go Q4_K_M.
 - **SmolLM2-1.7B** : Apache 2.0, HuggingFace, bon compromis taille/qualité.
 - **TinyLlama-1.1B** : Apache 2.0, très petit, qualité limitée.
 - **Gemma-2-2B** : licence restrictive (Gemma), usage commercial à vérifier.
 
-TODO — décision du décideur :
+**Décision actée** : Qwen3-1.7B, quantifié Q4_K_M (Apache 2.0, ~1,1 Go
+selon l'estimation initiale, bon en français, disponible sur HuggingFace).
+Les métadonnées Hugging Face consultées le 2026-10-17 indiquent une taille
+de `1 282 439 456` octets (`~1,28 Go` décimaux, `~1,19 Gio`).
 
 ### Décision 2 — Où récupérer le GGUF ?
 
@@ -45,7 +52,19 @@ Options :
 - **Script qui interroge l'API HuggingFace** pour trouver le bon GGUF.
   Plus flexible (upgrade automatique), mais dépend de l'API.
 
-TODO — décision du décideur :
+**Décision actée sur le mécanisme** : URL directe vers un GGUF précis sur
+HuggingFace; URL et checksum dans `dev/tools/llamafile_config.json`.
+
+URL proposée (à confirmer par le décideur avant implémentation) :
+`https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf`
+
+SHA-256 :
+`16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207`.
+
+Vérification technique le 2026-10-17 : le fichier existe sur HuggingFace,
+l'URL répond en HEAD 200 sans télécharger le GGUF, et son identifiant LFS
+correspond au checksum ci-dessus. L'URL utilise la branche mutable `main`;
+la source exacte reste à confirmer par le décideur.
 
 ### Décision 3 — Comment assembler le .llamafile ?
 
@@ -53,30 +72,38 @@ Méthode unique : `zipalign` avec les 3 fichiers (runtime, GGUF, args).
 Le script `build_llamafile.py` (à créer) orchestrera :
 
 1. Vérifier la présence du runtime et de zipalign (via bootstrap).
-2. Télécharger le GGUF si absent (mécanisme à définir selon Décision 2).
+2. Télécharger le GGUF si absent depuis l'URL source confirmée et vérifier
+  son checksum.
 3. Créer un fichier `.args` avec les arguments par défaut.
 4. Empaqueter le tout avec zipalign.
 5. Nommer et placer le `.llamafile` final (à définir).
 
-TODO — décision du décideur sur le nom et l'emplacement du fichier final :
+**Décision actée** : assemblage avec `zipalign` (déjà dans
+`dev/tools/vendor/llamafile/`).
+
+Nom et emplacement proposés : `dist/citadelle.llamafile` (à confirmer par
+le décideur).
 
 ### Décision 4 — Que mettre dans le .args par défaut ?
 
-Paramètres à définir :
+**Décision actée** : args minimaux pour la v1.
+Valeurs proposées (à confirmer avant implémentation) :
 
-- `--port` (port HTTP, 8080 par défaut ?).
-- `-c` (taille du contexte, 2048 ou 4096 ?).
-- `-t` (threads, nombre de cœurs disponibles ?).
-- `--temp` (température, 0.7 ?).
-- `--prompt` ou fichier `.prompt` (prompt système).
-- Autres paramètres (flash-attn, mmap, etc.).
+- `-m /zip/Qwen3-1.7B-Q4_K_M.gguf` (obligatoire; modèle embarqué).
+- `--port 8080`.
+- `-c 4096`.
+- `--temp 0.7`.
+- `-t auto` (nombre de cœurs disponibles; la documentation actuelle
+  indique `-t N` et ne documente pas `auto`, à valider avant usage).
+- Pas de prompt système pour la v1.
 
-TODO — décision du décideur sur chaque paramètre :
+Note : la documentation officielle llamafile exige le préfixe `/zip/`
+dans le fichier `.args` pour référencer les fichiers embarqués.
 
 ## Contraintes techniques
 
-- Le `.llamafile` final fait ~650-850 Mo (runtime ~44 Mo + GGUF
-  ~600-800 Mo).
+- Le `.llamafile` final est estimé à environ 1,33 Go décimaux (runtime
+  ~44 Mo + GGUF de 1 282 439 456 octets), hors variations d'assemblage.
 - Il doit être exécutable sur Windows 10+, macOS, Linux, BSD (voir
   plateformes supportées dans BASE_LLAMAFILE.md).
 - Il ne doit PAS dépendre de Python chez l'utilisateur final.
@@ -90,8 +117,8 @@ TODO — décision du décideur sur chaque paramètre :
 
 ## Étapes une fois les décisions prises
 
-1. Créer `dev/tools/build_llamafile_config.json` (ou ajouter au config
-   existant) avec l'URL et le checksum du GGUF choisi.
+1. Confirmer la source exacte; l'URL et le checksum proposés sont inscrits
+   dans `dev/tools/llamafile_config.json` avec `required=false`.
 2. Implémenter `dev/tools/build_llamafile.py`.
 3. Tester : produire un `.llamafile`, vérifier qu'il se lance et répond
    à une requête simple.

@@ -6,6 +6,20 @@ des champs explicites (Contexte, Décision(s), Conséquences).
 Aucun outil externe n'est autorisé à reformater, fusionner ou normaliser ce fichier
 sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable n°6).
 
+## [2026-10-17] Modèle Qwen3-1.7B Q4_K_M pour le .llamafile v1
+
+**Contexte** : le cadrage du build `.llamafile` a identifié 4 décisions à prendre. Le décideur a tranché la première : le modèle GGUF.
+
+**Décision** :
+
+1. Modèle : Qwen3-1.7B, quantifié Q4_K_M (Apache 2.0, ~1,1 Go selon l'estimation initiale).
+2. Source : HuggingFace, URL directe proposée : `https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf` (à confirmer par le décideur). Le fichier et son identifiant LFS correspondant au SHA-256 ont été vérifiés par métadonnées, sans téléchargement.
+3. Checksum SHA-256 : `16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207`.
+4. Asset ajouté dans `llamafile_config.json` avec `required=false` (non téléchargé par `bootstrap.py`, réservé à `build_llamafile.py`).
+5. Le `.args` devra référencer le modèle avec le préfixe `/zip/` (obligatoire pour les fichiers embarqués dans un llamafile).
+
+**Conséquences** : les métadonnées HuggingFace indiquent une taille de 1 282 439 456 octets (`~1,28 Go` décimaux, `~1,19 Gio`); avec le runtime d'environ 44 Mo, le `.llamafile` final est estimé à environ 1,33 Go décimaux. `build_llamafile.py` pourra être implémenté une fois les 3 autres décisions (confirmation de la source exacte, nom/emplacement final, args détaillés) confirmées. Les args minimaux proposés sont `-m /zip/Qwen3-1.7B-Q4_K_M.gguf`, `--port 8080`, `-c 4096`, `--temp 0.7` et `-t auto`; la documentation actuelle indique `-t N` et ne documente pas `auto`, donc cette valeur reste à valider avant implémentation.
+
 ## [2026-10-17] Objectif v1 : Pocket Chat (llamafile + modèle embarqué, interface texte)
 
 **Contexte** : llamafile fournit le format exécutable unique et le runtime C++. Python ne peut pas produire un exécutable multi-OS unique. La Citadelle utilise donc Python comme outil de FABRICATION, pas comme runtime livré.
