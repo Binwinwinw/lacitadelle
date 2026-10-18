@@ -84,3 +84,39 @@ par l'utilisateur). V2+ : purge, archivage, chiffrement éventuel.
 - Fonctions : init_db, ensure_default_user, create_session,
   add_message, get_messages.
 - Utilisé par le futur client texte.
+
+## Évolutions futures (V2+)
+
+### Lancement automatique de llamafile par le client
+
+En V1, le client ne lance pas llamafile : l'utilisateur lance
+`dist/lacitadelle.llamafile.exe` dans un terminal séparé, puis
+`python dev/tools/client.py` dans un autre. Ce choix sépare les
+responsabilités (serveur d'inférence vs client conversationnel) et
+permet à l'utilisateur de voir les logs du serveur.
+
+En V2+, on pourrait envisager un lancement automatique par le
+client. Cela nécessiterait :
+
+- Le lancement du processus `lacitadelle.llamafile.exe` avec les
+  arguments adéquats.
+- L'attente que le serveur HTTP soit prêt (polling sur `/v1/models`
+  jusqu'à succès, avec timeout).
+- La capture des logs (stdout/stderr) pour les remonter dans
+  l'interface utilisateur.
+- La gestion du cycle de vie (kill propre à la sortie du client,
+  gestion des ports occupés, détection d'une instance déjà lancée).
+- La gestion des erreurs de lancement (binaire manquant, permissions).
+
+Ces fonctionnalités sont hors périmètre V1. Le mode actuel
+(lancement manuel) est le comportement documenté et supporté pour
+toutes les versions jusqu'à ce qu'une décision explicite acte le
+changement.
+
+### Multi-utilisateurs (login)
+
+La table `users` existe avec `username UNIQUE`. En V1, un
+utilisateur par défaut (`lacitadelle`) est utilisé. En V2+, on
+pourra ajouter une authentification et filtrer les sessions par
+`user_id` (via `list_sessions_for_user(user_id)`). L'architecture
+actuelle supporte cette évolution sans modification du schéma.
