@@ -12,6 +12,7 @@ dist/
 # Modèles
 *.gguf
 *.safetensors
+citadelle_data/
 
 # Artefacts llamafile générés
 *.llamafile
