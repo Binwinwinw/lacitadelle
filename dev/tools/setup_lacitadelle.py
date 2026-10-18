@@ -70,7 +70,7 @@ EXIT_BUILD_ERROR = 3
 ARGS_CONTENT = [
     "-m dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf",
     "--port 8080",
-    "-c 4096",
+    "-c 8192",
     "--temp 0.7",
     "-t 4",
 ]

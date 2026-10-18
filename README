@@ -30,6 +30,43 @@ Si un fichier est corrompu, le script le supprime et le retélécharge
 (mode réparateur). Voir `dev/tools/BOOTSTRAP_CONTRACT.md` pour les
 détails et les limites connues.
 
+## Modes d'utilisation
+
+### 1. Interface web (test rapide)
+
+Lancez `lancer.bat` (ou `dist\lacitadelle.llamafile.exe`).
+Ouvrez `http://localhost:8080` dans votre navigateur.
+
+**Limitation connue** : l'interface web envoie tout l'historique
+de la conversation au serveur à chaque message. Pour les
+conversations longues, le contexte (`-c 8192`) peut être saturé.
+Dans ce cas, créez une nouvelle conversation ou relancez le
+serveur. **L'interface web est un outil de test, pas le mode
+d'utilisation recommandé.**
+
+`-c 8192` augmente la mémoire du KV cache (environ le double de
+`-c 4096`). Cette valeur convient aux machines disposant de 8 à 16 Go
+de RAM. Si votre machine en a moins, réduisez manuellement `-c` dans
+le fichier `.args` avant de reconstruire le `.llamafile.exe`.
+
+### 2. Client conversationnel avec mémoire (recommandé)
+
+Terminal 1 : lancez le serveur.
+
+    dist\lacitadelle.llamafile.exe
+
+Terminal 2 : lancez le client.
+
+    python dev/tools/client.py
+
+Le client :
+
+- Persiste les conversations dans SQLite (`citadelle_data/memory.db`).
+- Limite les messages envoyés au modèle (`MAX_CONTEXT_MESSAGES = 15`).
+- Permet de reprendre des conversations précédentes (`/list`, `/load`).
+
+**C'est le mode d'utilisation recommandé** pour un usage quotidien.
+
 ## État du projet
 
 - Socle documentaire : complet (voir `dev/docs/`)
