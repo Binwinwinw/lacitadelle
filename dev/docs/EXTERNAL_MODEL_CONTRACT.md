@@ -23,12 +23,12 @@ La v0 de La Citadelle embarquait le modèle Qwen3-1.7B Q4_K_M dans le
    téléchargé une fois par bootstrap (asset `qwen3-1.7b-q4km`,
    `required: true`).
 3. Le .args contient un chemin RELATIF vers le GGUF :
-   `-m ../vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf` (chemin exact
+   `-m ../dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf` (chemin exact
    à calculer selon l'emplacement final du .llamafile, voir Tâche 2.3).
 4. Politique de conservation : les versions futures ne suppriment pas
    les modèles précédents sans confirmation explicite de l'utilisateur.
-5. Nom de sortie : `dist/citadelle.llamafile.exe` sous Windows,
-   `dist/citadelle.llamafile` sous POSIX, avec `chmod +x` si applicable.
+5. Nom de sortie : `dist/lacitadelle.llamafile.exe` sous Windows,
+   `dist/lacitadelle.llamafile` sous POSIX, avec `chmod +x` si applicable.
 6. Point d'entrée : `dev/tools/setup_lacitadelle.py` (renommage de
    `build_llamafile.py`). Détecte la plateforme en premier, orchestre
    bootstrap + build + renommage.

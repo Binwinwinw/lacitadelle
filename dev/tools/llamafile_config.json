@@ -29,8 +29,8 @@
       "url": "https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/4b9aca3fb9c8fcace456430347c2fc34752e515f/Qwen3-1.7B-Q4_K_M.gguf",
       "sha256": "16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207",
       "filename": "Qwen3-1.7B-Q4_K_M.gguf",
-      "required": false,
-      "purpose": "Modèle Qwen3-1.7B Q4_K_M pour le .llamafile v1 (téléchargé par build_llamafile.py, pas par bootstrap.py)"
+      "required": true,
+      "purpose": "Modèle Qwen3-1.7B Q4_K_M pour le mode external (téléchargé par bootstrap.py)"
     }
   }
 }

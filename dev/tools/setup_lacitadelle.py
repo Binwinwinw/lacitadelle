@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""build_llamafile : fabrique un fichier .llamafile autonome.
+"""setup_lacitadelle : fabrique un llamafile en mode external.
 
-Orchestre l'assemblage du runtime llamafile-thin, du modèle GGUF
-Qwen3-1.7B Q4_K_M et d'un fichier .args, via zipalign.
+Orchestre l'assemblage du runtime llamafile-thin et d'un fichier .args,
+via zipalign. Le modèle GGUF reste externe au .llamafile.
 
 Voir dev/tools/BUILD_SCRIPT_CONTRACT.md pour le contrat complet.
 
 Usage :
-    python dev/tools/build_llamafile.py
+    python dev/tools/setup_lacitadelle.py
 
 Aucune dépendance externe. Python 3.10+ requis.
 
@@ -17,10 +17,10 @@ avant invocation. Le script gère cette copie automatiquement.
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -32,12 +32,28 @@ from bootstrap import (
     VENDOR_DIR,
 )
 
+
+def detect_platform() -> str:
+    """Détecte la plateforme d'exécution."""
+    if sys.platform == "win32":
+        return "windows"
+    elif sys.platform in ("darwin", "linux"):
+        return "posix"
+    else:
+        return "unknown"
+
+
+PLATFORM = detect_platform()
+
 # Chemins
 TOOLS_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = TOOLS_DIR.parent.parent
 DIST_DIR = PROJECT_ROOT / "dist"
 DIST_TMP_DIR = DIST_DIR / "_tmp" / "citadelle"
-FINAL_LLAMAFILE = DIST_DIR / "citadelle.llamafile"
+if PLATFORM == "windows":
+    FINAL_LLAMAFILE = DIST_DIR / "lacitadelle.llamafile.exe"
+else:
+    FINAL_LLAMAFILE = DIST_DIR / "lacitadelle.llamafile"
 
 # Noms d'assets attendus
 RUNTIME_NAME = "llamafile-thin"
@@ -52,7 +68,7 @@ EXIT_BUILD_ERROR = 3
 
 # Paramètres du .args (contenu acté dans BUILD_LLAMAFILE.md)
 ARGS_CONTENT = [
-    "-m /zip/Qwen3-1.7B-Q4_K_M.gguf",
+    "-m ../dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf",
     "--port 8080",
     "-c 4096",
     "--temp 0.7",
@@ -110,11 +126,11 @@ def build_llamafile(
     """Assemble le .llamafile final via zipalign.
 
     Responsabilités :
-      1. Copier le runtime vers output_path (base exécutable).
-      2. Copier zipalign_path vers un zipalign.exe temporaire si Windows.
-      3. Invoquer zipalign -j0 <output> <gguf> <args>.
-      4. Vérifier que output_path existe et a une taille > runtime seul.
-      5. Lever BuildError en cas d'échec.
+    1. Copier le runtime vers output_path (base exécutable).
+    2. Copier zipalign_path vers un zipalign.exe temporaire si Windows.
+    3. Invoquer zipalign -j0 <output> <args> sans embarquer le GGUF.
+    4. Vérifier que la taille finale reste inférieure à 50 Mo.
+    5. Lever BuildError en cas d'échec.
 
     Raises:
         BuildError: si un fichier manque ou si zipalign échoue.
@@ -153,12 +169,11 @@ def build_llamafile(
             ) from e
         zipalign_invocation = tmp_zipalign
 
-    # Invoquer zipalign
+    # Le GGUF reste externe : seul le fichier .args est embarqué.
     cmd = [
         str(zipalign_invocation),
         "-j0",
         str(output_path),
-        str(gguf_path),
         str(args_path),
     ]
     print(f"[BUILD] {' '.join(cmd)}")
@@ -185,6 +200,11 @@ def build_llamafile(
         raise BuildError(
             f"Taille finale ({final_size}) ≤ runtime seul ({runtime_size}). "
             f"zipalign n'a probablement pas intégré les fichiers."
+        )
+    if final_size > 50_000_000:
+        raise BuildError(
+            f"Taille finale ({final_size}) supérieure à la limite du mode external "
+            f"(50 000 000 octets). Le GGUF ne doit pas être embarqué."
         )
 
     print(f"[OK] Build terminé : {output_path} ({final_size} octets)")
@@ -235,7 +255,7 @@ def main() -> int:
         print(f"overwriting existing: {FINAL_LLAMAFILE}")
 
     # 5. Construire dans un fichier temporaire, puis publier
-    tmp_output = DIST_TMP_DIR / "citadelle.llamafile.tmp"
+    tmp_output = DIST_TMP_DIR / f"{FINAL_LLAMAFILE.name}.tmp"
     try:
         build_llamafile(
             runtime_path=runtime_path,
@@ -257,6 +277,8 @@ def main() -> int:
         if FINAL_LLAMAFILE.is_file():
             FINAL_LLAMAFILE.unlink()
         shutil.move(str(tmp_output), str(FINAL_LLAMAFILE))
+        if PLATFORM == "posix":
+            os.chmod(FINAL_LLAMAFILE, 0o755)
     except OSError as e:
         print(f"ERREUR [publication] : {e}", file=sys.stderr)
         return EXIT_BUILD_ERROR
