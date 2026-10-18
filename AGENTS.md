@@ -40,6 +40,14 @@ dépôt Git initialisé.
    modification non attendue (notamment sur `.memory/`,
    `.github/copilot-instructions.md`, `AGENTS.md`, `main/`) doit être
    signalée immédiatement au décideur, sans correction automatique.
+8. Interdiction de réécrire l'historique Git : aucun `git commit
+--amend`, `git rebase`, `git push --force` ou `git push
+--force-with-lease` ne peut être exécuté sans autorisation explicite
+   du décideur dans la conversation courante. Si un commit doit être
+   corrigé, créer un NOUVEAU commit par-dessus (ex. "fix: correction
+   X"), pas un amend. Si un fichier a été oublié dans un commit
+   précédent, créer un NOUVEAU commit, pas un amend. Toute violation
+   de cette règle doit être signalée immédiatement au décideur.
 
 ## Workflow attendu
 

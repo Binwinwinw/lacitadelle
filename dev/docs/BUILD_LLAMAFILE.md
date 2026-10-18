@@ -94,10 +94,11 @@ Valeurs proposées (à confirmer avant implémentation) :
 - `--port 8080`.
 - `-c 4096`.
 - `--temp 0.7`.
-- `-t : valeur numérique explicite (`-t N`selon la documentation
-officielle). Aucun mode`auto` n'est documenté dans la doc upstream, et
-  aucun défaut intelligent n'a été trouvé ; la valeur doit donc être
-  validée manuellement avant usage.
+- `-t N` : valeur numérique explicite (N = nombre de threads). Aucun
+  mode `auto` n'est documenté dans la doc upstream, et aucun défaut
+  intelligent n'a été trouvé ; la valeur N doit donc être validée
+  manuellement avant usage. Proposition pour la v1 : `-t 4` (compromis
+  raisonnable sur la plupart des machines), à ajuster après test.
 - Pas de prompt système pour la v1.
 
 Note : la documentation officielle llamafile exige le préfixe `/zip/`

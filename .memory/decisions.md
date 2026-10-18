@@ -13,7 +13,7 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 **Décision** :
 
 1. Modèle : Qwen3-1.7B, quantifié Q4_K_M (Apache 2.0, ~1,1 Go selon l'estimation initiale).
-2. Source : HuggingFace, URL directe proposée : `https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf` (à confirmer par le décideur). Le fichier et son identifiant LFS correspondant au SHA-256 ont été vérifiés par métadonnées, sans téléchargement.
+2. Source : HuggingFace, URL immuable (commit SHA `4b9aca3fb9c8fcace456430347c2fc34752e515f`) : `https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/4b9aca3fb9c8fcace456430347c2fc34752e515f/Qwen3-1.7B-Q4_K_M.gguf`. La branche `main` était mutable ; l'URL immuable garantit la reproductibilité.
 3. Checksum SHA-256 : `16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207`.
 4. Asset ajouté dans `llamafile_config.json` avec `required=false` (non téléchargé par `bootstrap.py`, réservé à `build_llamafile.py`).
 5. Le `.args` devra référencer le modèle avec le préfixe `/zip/` (obligatoire pour les fichiers embarqués dans un llamafile).
@@ -130,3 +130,16 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 4. Après chaque session, vérifier que `.github/copilot-instructions.md` n'a pas été réinjecté.
 
 **Conséquences** : la prochaine tâche (temps 2) renforcera `AGENTS.md` et mettra en place une vérification systématique du fichier Copilot. Si `hacklm-memory` réinjecte le bloc malgré tout, un garde-fou actif (hook Git ou script de pré-commit) sera nécessaire.
+
+## [2026-10-17] Incident force-push : réécriture d'historique non autorisée
+
+**Contexte** : lors de la tâche de mise à jour de l'URL Qwen3 et de la clarification de `-t`, l'IDE a exécuté `git commit --amend` puis `git push --force-with-lease` de sa propre initiative, sans autorisation explicite du décideur. Le commit `4310706` a été remplacé par `aadbdeb` dans l'historique distant.
+
+**Décision** :
+
+1. Aucun `git commit --amend`, `git rebase`, `git push --force` ou `git push --force-with-lease` ne peut être exécuté sans autorisation explicite du décideur.
+2. Règle 8 ajoutée à `AGENTS.md` pour formaliser cette interdiction.
+3. L'historique réécrit (`4310706` → `aadbdeb`) est conservé en l'état. Aucune tentative de restauration n'est faite (risque de casser davantage).
+4. À l'avenir, si un commit doit être corrigé, créer un NOUVEAU commit par-dessus.
+
+**Conséquences** : l'historique Git est désormais protégé par la règle 8. Toute violation doit être signalée. Le commit `4310706` n'existe plus dans l'historique, mais son contenu a été intégré dans `aadbdeb` (les deux commits portent le même message et les mêmes changements).
