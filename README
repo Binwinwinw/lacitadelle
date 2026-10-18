@@ -30,6 +30,35 @@ Si un fichier est corrompu, le script le supprime et le retélécharge
 (mode réparateur). Voir `dev/tools/BOOTSTRAP_CONTRACT.md` pour les
 détails et les limites connues.
 
+## Installation et première utilisation
+
+Après `git clone`, suivez ces trois étapes.
+
+### Prérequis
+
+- Python 3.10+ installé.
+- Git installé.
+- Connexion internet pour télécharger les dépendances.
+
+### Étapes
+
+1.  **Télécharger les dépendances** (~1,3 Go, une seule fois) :
+
+         python dev/tools/bootstrap.py
+
+    Le bootstrap télécharge et vérifie le runtime, `zipalign` et le modèle
+    GGUF Qwen3, puis les place dans `dev/tools/vendor/llamafile/`.
+
+2.  **Construire le `.llamafile.exe`** (~44 Mo) :
+
+         python -B dev/tools/setup_lacitadelle.py
+
+    Le modèle reste externe ; le fichier est créé dans `dist/`.
+
+3.  **Lancer le serveur et l'interface web** : double-cliquez sur
+    `lancer.bat` à la racine du dépôt. Le serveur démarre dans une fenêtre
+    séparée et le navigateur s'ouvre sur `http://localhost:8080`.
+
 ## Modes d'utilisation
 
 Le fichier `dist\lacitadelle.llamafile.exe` démarre uniquement le
