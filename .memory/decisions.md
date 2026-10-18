@@ -143,3 +143,29 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 4. À l'avenir, si un commit doit être corrigé, créer un NOUVEAU commit par-dessus.
 
 **Conséquences** : l'historique Git est désormais protégé par la règle 8. Toute violation doit être signalée. Le commit `4310706` n'existe plus dans l'historique, mais son contenu a été intégré dans `aadbdeb` (les deux commits portent le même message et les mêmes changements).
+
+## [2026-10-18] Obsolescence des décisions antérieures mentionnant main/
+
+**Contexte** : le dossier main/ (fork local de mozilla-ai/llamafile)
+a été supprimé du worktree le 2026-10-18. Il n'était jamais utilisé
+par le code : le bootstrap télécharge directement les binaires
+depuis les releases officielles GitHub. Plusieurs décisions
+antérieures mentionnent main/ (lecture seule, gitignore,
+compilation optionnelle, etc.) et deviennent obsolètes.
+
+**Décision** :
+
+1. Les décisions antérieures qui mentionnent main/ restent dans ce
+   fichier pour traçabilité historique (Solution A : pas de
+   réécriture d'historique).
+2. Elles sont considérées comme obsolètes à compter du 2026-10-18.
+3. Le dossier main/ ne sera plus présent dans le worktree. La
+   dépendance upstream llamafile est retirée du worktree.
+4. Le dépôt mozilla-ai/llamafile reste la source d'inspiration du
+   projet et sera mentionné explicitement dans le README (Temps 2).
+
+**Conséquences** : les règles d'AGENTS.md et les documents
+(README, GIT_STRATEGY.md, OBJECTIF.md, BASE_LLAMAFILE.md,
+VENDOR_STRATEGY.md, copilot-instructions.md) seront nettoyés dans
+le Temps 2 (tâche séparée). Aucun code Python n'est affecté
+(0 occurrence de main/ dans le code).
