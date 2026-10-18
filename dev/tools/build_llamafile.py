@@ -119,12 +119,157 @@ def build_llamafile(
     Raises:
         BuildError: si un fichier manque ou si zipalign échoue.
     """
-    raise NotImplementedError("build_llamafile à implémenter (tâche suivante)")
+    # Vérifier la présence de tous les fichiers d'entrée
+    for label, path in [
+        ("runtime", runtime_path),
+        ("zipalign", zipalign_path),
+        ("gguf", gguf_path),
+        ("args", args_path),
+    ]:
+        if not path.is_file():
+            raise BuildError(f"Fichier {label} manquant : {path}")
+
+    # Créer le dossier de sortie
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Copier le runtime vers output_path (base exécutable)
+    try:
+        shutil.copy2(runtime_path, output_path)
+    except OSError as e:
+        raise BuildError(f"Impossible de copier le runtime : {e}") from e
+
+    # Taille du runtime seul (pour vérification post-build)
+    runtime_size = output_path.stat().st_size
+
+    # Sous Windows, zipalign doit être appelé avec l'extension .exe
+    zipalign_invocation = zipalign_path
+    if sys.platform == "win32":
+        tmp_zipalign = output_path.parent / "zipalign.exe"
+        try:
+            shutil.copy2(zipalign_path, tmp_zipalign)
+        except OSError as e:
+            raise BuildError(
+                f"Impossible de copier zipalign en .exe : {e}"
+            ) from e
+        zipalign_invocation = tmp_zipalign
+
+    # Invoquer zipalign
+    cmd = [
+        str(zipalign_invocation),
+        "-j0",
+        str(output_path),
+        str(gguf_path),
+        str(args_path),
+    ]
+    print(f"[BUILD] {' '.join(cmd)}")
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, errors="replace"
+        )
+    except OSError as e:
+        raise BuildError(f"Impossible d'exécuter zipalign : {e}") from e
+
+    if result.returncode != 0:
+        raise BuildError(
+            f"zipalign a échoué (code {result.returncode}) :\n"
+            f"stdout: {result.stdout}\n"
+            f"stderr: {result.stderr}"
+        )
+
+    # Vérifier la taille finale
+    if not output_path.is_file():
+        raise BuildError(f"Fichier de sortie absent après zipalign : {output_path}")
+
+    final_size = output_path.stat().st_size
+    if final_size <= runtime_size:
+        raise BuildError(
+            f"Taille finale ({final_size}) ≤ runtime seul ({runtime_size}). "
+            f"zipalign n'a probablement pas intégré les fichiers."
+        )
+
+    print(f"[OK] Build terminé : {output_path} ({final_size} octets)")
 
 
 def main() -> int:
     """Point d'entrée. Retourne le code de sortie."""
-    raise NotImplementedError("main à implémenter (tâche suivante)")
+    # 1. Charger la config
+    try:
+        config = load_config()
+    except BootstrapError as e:
+        print(f"ERREUR [config] : {e}", file=sys.stderr)
+        return EXIT_CONFIG_ERROR
+
+    assets = config["assets"]
+
+    # 2. Vérifier la présence des 3 assets requis
+    required_assets = [RUNTIME_NAME, ZIPALIGN_NAME, MODEL_NAME]
+    paths = {}
+    for name in required_assets:
+        if name not in assets:
+            print(
+                f"ERREUR [config] : asset '{name}' absent de la config",
+                file=sys.stderr,
+            )
+            return EXIT_CONFIG_ERROR
+        try:
+            paths[name] = ensure_asset(name, assets[name])
+        except BootstrapError as e:
+            print(f"ERREUR [asset {name}] : {e}", file=sys.stderr)
+            return EXIT_ASSET_FAILED
+
+    runtime_path = paths[RUNTIME_NAME]
+    zipalign_path = paths[ZIPALIGN_NAME]
+    gguf_path = paths[MODEL_NAME]
+
+    # 3. Préparer le dossier temporaire et le fichier .args
+    DIST_TMP_DIR.mkdir(parents=True, exist_ok=True)
+    args_path = DIST_TMP_DIR / ".args"
+    try:
+        create_args_file(args_path)
+    except OSError as e:
+        print(f"ERREUR [args] : {e}", file=sys.stderr)
+        return EXIT_BUILD_ERROR
+
+    # 4. Si le fichier final existe déjà, prévenir
+    if FINAL_LLAMAFILE.is_file():
+        print(f"overwriting existing: {FINAL_LLAMAFILE}")
+
+    # 5. Construire dans un fichier temporaire, puis publier
+    tmp_output = DIST_TMP_DIR / "citadelle.llamafile.tmp"
+    try:
+        build_llamafile(
+            runtime_path=runtime_path,
+            zipalign_path=zipalign_path,
+            gguf_path=gguf_path,
+            args_path=args_path,
+            output_path=tmp_output,
+        )
+    except BuildError as e:
+        print(f"ERREUR [build] : {e}", file=sys.stderr)
+        print(
+            f"Fichiers temporaires conservés pour diagnostic : {DIST_TMP_DIR}",
+            file=sys.stderr,
+        )
+        return EXIT_BUILD_ERROR
+
+    # 6. Publier le fichier final (remplacement atomique)
+    try:
+        if FINAL_LLAMAFILE.is_file():
+            FINAL_LLAMAFILE.unlink()
+        shutil.move(str(tmp_output), str(FINAL_LLAMAFILE))
+    except OSError as e:
+        print(f"ERREUR [publication] : {e}", file=sys.stderr)
+        return EXIT_BUILD_ERROR
+
+    # 7. Nettoyer le dossier temporaire (succès uniquement)
+    try:
+        shutil.rmtree(DIST_TMP_DIR, ignore_errors=True)
+    except OSError:
+        pass  # Nettoyage best-effort
+
+    print(f"[SUCCÈS] .llamafile créé : {FINAL_LLAMAFILE}")
+    print(f"Taille : {FINAL_LLAMAFILE.stat().st_size} octets")
+    return EXIT_OK
 
 
 if __name__ == "__main__":
