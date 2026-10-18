@@ -14,8 +14,5 @@ timeout /t 3 /nobreak >nul
 REM Ouvre le navigateur
 start http://localhost:8080
 
-echo.
-echo Le serveur tourne dans une fenêtre séparée.
-echo Fermez la fenêtre "Lacitadelle Server" pour arrêter le serveur.
-echo.
-pause
+REM Le .bat se termine ici, Windows ferme la fenêtre.
+exit
