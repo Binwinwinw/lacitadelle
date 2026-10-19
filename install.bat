@@ -26,7 +26,7 @@ echo (le navigateur va s'ouvrir automatiquement)
 echo.
 timeout /t 3 /nobreak >nul
 
-start "" "%~dp0lancer.bat"
+start "" lancer.bat
 exit
 
 :python_missing
