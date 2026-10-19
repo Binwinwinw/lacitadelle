@@ -28,8 +28,9 @@ La Citadelle assemble un runtime llamafile léger et un modèle GGUF externe. Le
 
 ### 4. Lancement
 
-- `install.bat` vérifie la disponibilité de Python, lance le bootstrap puis la fabrication, et démarre `lancer.bat` après succès.
-- `lancer.bat` démarre le serveur en arrière-plan puis ouvre `http://localhost:8080` dans le navigateur.
+- `install.bat` vérifie la disponibilité de Python, lance le bootstrap puis la fabrication, et démarre `lancer.bat` (V2) après succès.
+- `lancer_v1.bat` démarre le serveur V1 en arrière-plan puis ouvre `http://localhost:8080`.
+- `lancer.bat` démarre llamafile et le proxy Python V2, puis ouvre `http://localhost:8081`.
 - L'installation et le client Python nécessitent Python 3.10+ ; l'exécutable llamafile lui-même est le runtime d'inférence.
 
 ### 5. Client conversationnel et mémoire SQLite
@@ -46,20 +47,20 @@ La Citadelle assemble un runtime llamafile léger et un modèle GGUF externe. Le
 2. Il double-clique sur `install.bat`.
 3. `install.bat` lance `bootstrap.py`, qui télécharge et vérifie le runtime, `zipalign` et le GGUF.
 4. `install.bat` lance `setup_lacitadelle.py`, qui assemble `dist/lacitadelle.llamafile.exe`.
-5. `install.bat` lance `lancer.bat`, qui démarre le serveur et ouvre le navigateur sur `localhost:8080`.
+5. `install.bat` lance `lancer.bat`, qui démarre llamafile et le proxy puis ouvre le navigateur sur `localhost:8081`.
 
 ## Flux d'utilisation quotidienne
 
 ### Interface web
 
-1. Double-cliquer sur `lancer.bat`.
+1. Double-cliquer sur `lancer_v1.bat`.
 2. Le serveur llamafile démarre sur `localhost:8080`.
 3. Le navigateur s'ouvre sur `http://localhost:8080`.
 4. L'utilisateur discute avec Qwen3-1.7B en local, sur CPU.
 
 ### Client avec mémoire
 
-1. Démarrer le serveur avec `lancer.bat` ou `dist/lacitadelle.llamafile.exe`.
+1. Démarrer le serveur V1 avec `lancer_v1.bat` ou `dist/lacitadelle.llamafile.exe`.
 2. Dans un terminal séparé, lancer `python dev/tools/client.py`.
 3. Utiliser le REPL ; les sessions sont persistées dans SQLite.
 
@@ -78,3 +79,52 @@ La Citadelle assemble un runtime llamafile léger et un modèle GGUF externe. Le
 - Le client utilise un seul utilisateur par défaut ; aucun login ni multi-utilisateurs actifs.
 - L'interface web peut saturer le contexte sur les conversations longues.
 - Pas de prompt système personnalisable ni de reprise HTTP Range.
+
+## V2 — Login multi-utilisateurs
+
+### Composants V2
+
+La V2 ajoute un proxy Python (`dev/tools/login_server.py`) devant llamafile.
+Elle repose sur trois composants :
+
+1. **llamafile** (port 8080) : moteur d'inférence, inchangé depuis la V1.
+2. **Proxy Python** (port 8081) : gère le login, filtre les sessions par
+   `user_id`, sert le frontend et relaie les requêtes de chat vers llamafile.
+3. **Frontend** (`dev/tools/web/`) : pages HTML/CSS/JS servies par le proxy,
+   avec formulaire de login, chat et barre latérale des sessions.
+
+### Flux d'authentification et de chat
+
+1. L'utilisateur ouvre `http://localhost:8081/` ; sans session valide, le
+   proxy redirige vers `/login`.
+2. Le formulaire envoie le nom d'utilisateur à `POST /login`. Le proxy crée
+   ou retrouve l'utilisateur, émet un cookie HTTP-only `SameSite=Strict`,
+   puis redirige vers `/`.
+3. `GET /` sert `chat.html` après authentification.
+4. `GET /api/sessions` retourne uniquement les sessions de l'utilisateur.
+5. Le chat crée des sessions via `POST /api/sessions`, lit leur historique
+   via `GET /api/sessions/{id}/messages`, puis envoie les messages au modèle.
+6. `POST /api/sessions/{id}/messages` transmet au modèle le prompt système,
+   les 15 derniers messages et le nouveau message, puis persiste les deux
+   messages après une réponse réussie.
+7. `POST /logout` révoque le token et expire le cookie.
+
+### Sécurité V2
+
+- Cookie `HttpOnly`, `SameSite=Strict`, `Path=/` ; pas d'attribut `Secure`
+  car le service local utilise HTTP.
+- Le proxy écoute uniquement sur `127.0.0.1` (loopback) et n'active pas de
+  CORS permissif.
+- Pas de mot de passe en V2 ; cette fonctionnalité est prévue en V2.5.
+- Les sessions d'authentification sont en mémoire du proxy ; un redémarrage
+  invalide les anciens cookies et impose une reconnexion.
+- Les sessions et messages sont filtrés par `user_id`. Une tentative de lire
+  une session appartenant à un autre utilisateur reçoit 404, pas 403.
+
+### Non-objectifs V2
+
+- Pas de HTTPS : usage local uniquement.
+- Pas de mot de passe avant V2.5.
+- Pas de plusieurs sessions de login simultanées par utilisateur ; un nouveau
+  login révoque le précédent.
+- Pas de WebSocket, de streaming ni de rendu Markdown.

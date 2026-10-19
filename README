@@ -48,7 +48,7 @@ Clonez le dépôt puis placez-vous dans son dossier :
 
 Double-cliquez sur `install.bat`. Le script vérifie Python, télécharge et
 vérifie les dépendances, construit le `.llamafile.exe`, attend trois
-secondes puis lance automatiquement `lancer.bat` et ouvre le navigateur.
+secondes puis lance automatiquement `lancer.bat` (V2) et ouvre le navigateur.
 Aucune confirmation ni saisie n'est nécessaire en cas de succès.
 La fenêtre de l'installeur se ferme ensuite ; en cas d'erreur, elle
 reste ouverte pour permettre de lire le message.
@@ -63,10 +63,11 @@ Depuis le dossier du projet :
 Le bootstrap télécharge le runtime, `zipalign` et le GGUF Qwen3
 (environ 1,3 Go au total) dans `dev/tools/vendor/llamafile/`.
 Le setup construit le `.llamafile.exe` external d'environ 44 Mo dans
-`dist/`. Ensuite, double-cliquez sur `lancer.bat` pour démarrer le
-serveur et ouvrir le navigateur.
+`dist/`. Ensuite, double-cliquez sur `lancer.bat` pour démarrer la V2
+(serveur et proxy) et ouvrir le navigateur. Pour la V1, utilisez
+`lancer_v1.bat`.
 
-## Modes d'utilisation
+## Modes d'utilisation — V1
 
 Le fichier `dist\lacitadelle.llamafile.exe` démarre uniquement le
 serveur HTTP (mode `--server`, sans interface terminal de
@@ -74,7 +75,7 @@ conversation). Il est accessible via :
 
 ### 1. Interface web (test rapide)
 
-Lancez `lancer.bat` (ou `dist\lacitadelle.llamafile.exe`).
+Lancez `lancer_v1.bat` (ou `dist\lacitadelle.llamafile.exe`).
 Ouvrez `http://localhost:8080` dans votre navigateur.
 
 **Limitation connue** : l'interface web envoie tout l'historique
@@ -89,7 +90,7 @@ d'utilisation recommandé.**
 de RAM. Si votre machine en a moins, réduisez manuellement `-c` dans
 le fichier `.args` avant de reconstruire le `.llamafile.exe`.
 
-### 2. Client conversationnel avec mémoire (recommandé)
+### 2. Client conversationnel avec mémoire
 
 Terminal 1 : lancez le serveur.
 
@@ -105,13 +106,58 @@ Le client :
 - Limite les messages envoyés au modèle (`MAX_CONTEXT_MESSAGES = 15`).
 - Permet de reprendre des conversations précédentes (`/list`, `/load`).
 
-**C'est le mode d'utilisation recommandé** pour un usage quotidien.
+**C'est le mode terminal recommandé en V1** pour un usage quotidien.
+
+## Version 2 (login multi-utilisateurs)
+
+La V2 ajoute le login et la séparation des conversations par
+utilisateur. Elle est le mode d'utilisation recommandé.
+
+### Lancement
+
+Double-cliquez sur `lancer.bat` à la racine du projet.
+
+Deux fenêtres s'ouvrent :
+
+- **Lacitadelle Server** : serveur llamafile (port 8080).
+- **Lacitadelle Proxy** : proxy Python pour le login (port 8081).
+
+Le navigateur s'ouvre sur `http://localhost:8081`.
+
+### Utilisation
+
+1. Entrez un nom d'utilisateur ; aucun mot de passe n'est demandé en V2.
+2. Créez une session avec le bouton « Nouvelle session ».
+3. Envoyez des messages.
+4. Les conversations sont liées à votre nom : après déconnexion puis
+  reconnexion, vous retrouvez vos sessions.
+5. Déconnectez-vous avec le bouton « Déconnexion » de la barre latérale.
+
+### Limites V2
+
+- **Pas de mot de passe** : le nom d'utilisateur n'est pas une preuve
+  d'identité. V2 est destinée à un usage local sur une machine de confiance.
+  Le mot de passe est prévu en V2.5.
+- **Pas de HTTPS** : le proxy écoute uniquement sur localhost (loopback).
+  Ne l'exposez pas sur un réseau.
+- **Une seule session de login par utilisateur** : un nouveau login révoque
+  le précédent.
+
+### Arrêt
+
+Fermez les deux fenêtres « Lacitadelle Server » et « Lacitadelle Proxy ».
+
+### V1 (rétrocompatibilité)
+
+`lancer_v1.bat` démarre la V1 : llamafile seul, interface web intégrée,
+port 8080. Il permet un test rapide sans login.
 
 ## État du projet
 
 - Socle documentaire : complet (voir `dev/docs/`)
 - Bootstrap des binaires : fonctionnel
 - Fabrication V1 du `.llamafile` : fonctionnelle en mode external
+- V2 : login multi-utilisateurs, proxy local et mémoire filtrée par utilisateur
 
 ## Structure du dépôt
 
