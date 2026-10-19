@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-La Citadelle assemble un runtime llamafile léger et un modèle GGUF externe. Le runtime démarre un serveur HTTP local ; l'utilisateur ouvre l'interface web avec `lancer.bat`. Un client Python séparé permet aussi d'utiliser une mémoire SQLite. Le modèle et la base ne sont pas intégrés au runtime.
+La Citadelle assemble un runtime llamafile léger et un modèle GGUF externe. Le runtime démarre un serveur HTTP local ; en V1, l'utilisateur ouvre l'interface web intégrée avec `lancer_v1.bat`. En V2, le navigateur passe par le proxy Python démarré avec `lancer.bat`. Un client Python séparé permet aussi d'utiliser une mémoire SQLite. Le modèle et la base ne sont pas intégrés au runtime.
 
 ## Composants
 
