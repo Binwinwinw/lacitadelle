@@ -115,7 +115,9 @@ def clear_cookie_token(handler: BaseHTTPRequestHandler) -> None:
 
 def redirect(handler: BaseHTTPRequestHandler, location: str) -> None:
     """Envoie une redirection HTTP 302."""
-    raise NotImplementedError("redirect à implémenter")
+    handler.send_response(HTTPStatus.FOUND)
+    handler.send_header("Location", location)
+    handler.end_headers()
 
 
 def json_response(
@@ -124,7 +126,12 @@ def json_response(
     status: int = HTTPStatus.OK,
 ) -> None:
     """Envoie une réponse JSON."""
-    raise NotImplementedError("json_response à implémenter")
+    body = json.dumps(data, ensure_ascii=False).encode("utf-8")
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json; charset=utf-8")
+    handler.send_header("Content-Length", str(len(body)))
+    handler.end_headers()
+    handler.wfile.write(body)
 
 
 def error_response(
@@ -133,12 +140,26 @@ def error_response(
     status: int = HTTPStatus.BAD_REQUEST,
 ) -> None:
     """Envoie une erreur JSON."""
-    raise NotImplementedError("error_response à implémenter")
+    json_response(handler, {"error": message}, status)
 
 
 def serve_static(handler: BaseHTTPRequestHandler, filename: str) -> None:
     """Sert un fichier statique depuis WEB_DIR."""
-    raise NotImplementedError("serve_static à implémenter")
+    file_path = WEB_DIR / filename
+    if not file_path.is_file():
+        handler.send_error(HTTPStatus.NOT_FOUND)
+        return
+    content = file_path.read_bytes()
+    content_type = {
+        ".html": "text/html; charset=utf-8",
+        ".css": "text/css; charset=utf-8",
+        ".js": "application/javascript; charset=utf-8",
+    }.get(file_path.suffix, "application/octet-stream")
+    handler.send_response(HTTPStatus.OK)
+    handler.send_header("Content-Type", content_type)
+    handler.send_header("Content-Length", str(len(content)))
+    handler.end_headers()
+    handler.wfile.write(content)
 
 
 def handle_get_login(handler: BaseHTTPRequestHandler) -> None:
