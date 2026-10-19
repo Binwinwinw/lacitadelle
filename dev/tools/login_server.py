@@ -58,32 +58,59 @@ class LoginError(Exception):
 
 def create_session_token(user_id: int) -> str:
     """Crée un token opaque et remplace l'ancien token de l'utilisateur."""
-    raise NotImplementedError("create_session_token à implémenter")
+    for existing_token, existing_user_id in list(SESSIONS.items()):
+        if existing_user_id == user_id:
+            del SESSIONS[existing_token]
+    token = secrets.token_urlsafe(32)
+    SESSIONS[token] = user_id
+    return token
 
 
 def get_user_from_token(token: str) -> int | None:
     """Retourne le user_id associé au token, ou None si le token est invalide."""
-    raise NotImplementedError("get_user_from_token à implémenter")
+    return SESSIONS.get(token)
 
 
 def revoke_session(token: str) -> None:
     """Révoque un token de session."""
-    raise NotImplementedError("revoke_session à implémenter")
+    SESSIONS.pop(token, None)
 
 
 def read_cookie_token(handler: BaseHTTPRequestHandler) -> str | None:
     """Extrait le token de session depuis les cookies de la requête."""
-    raise NotImplementedError("read_cookie_token à implémenter")
+    cookie_header = handler.headers.get("Cookie")
+    if not cookie_header:
+        return None
+    cookie = SimpleCookie()
+    try:
+        cookie.load(cookie_header)
+    except Exception:
+        return None
+    morsel = cookie.get(SESSION_COOKIE_NAME)
+    if morsel is None:
+        return None
+    return morsel.value or None
 
 
 def set_cookie_token(handler: BaseHTTPRequestHandler, token: str) -> None:
     """Envoie le cookie de session HTTP-only, SameSite=Strict et Path=/."""
-    raise NotImplementedError("set_cookie_token à implémenter")
+    cookie = SimpleCookie()
+    cookie[SESSION_COOKIE_NAME] = token
+    cookie[SESSION_COOKIE_NAME]["httponly"] = True
+    cookie[SESSION_COOKIE_NAME]["samesite"] = "Strict"
+    cookie[SESSION_COOKIE_NAME]["path"] = "/"
+    handler.send_header("Set-Cookie", cookie[SESSION_COOKIE_NAME].OutputString())
 
 
 def clear_cookie_token(handler: BaseHTTPRequestHandler) -> None:
     """Expire le cookie de session."""
-    raise NotImplementedError("clear_cookie_token à implémenter")
+    cookie = SimpleCookie()
+    cookie[SESSION_COOKIE_NAME] = ""
+    cookie[SESSION_COOKIE_NAME]["max-age"] = 0
+    cookie[SESSION_COOKIE_NAME]["httponly"] = True
+    cookie[SESSION_COOKIE_NAME]["samesite"] = "Strict"
+    cookie[SESSION_COOKIE_NAME]["path"] = "/"
+    handler.send_header("Set-Cookie", cookie[SESSION_COOKIE_NAME].OutputString())
 
 
 def redirect(handler: BaseHTTPRequestHandler, location: str) -> None:
