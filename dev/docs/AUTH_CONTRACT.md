@@ -69,6 +69,8 @@ Un admin ne peut pas se désactiver lui-même, se rétrograder hors transfert, n
 
 Un reset admin génère un mot de passe temporaire fort et aléatoire de 16 caractères, le hash avec scrypt, positionne `must_change_password = 1` et affiche le secret à l'admin une seule fois. Le login avec ce secret est autorisé, mais la session porte le flag `must_change_password` : seules `/change-password` et `/logout` sont accessibles tant que le mot de passe n'a pas été changé. La nouvelle valeur doit faire au moins 8 caractères, être différente de l'ancienne et correspondre à sa confirmation ; le succès met à jour le hash, remet le flag à `0` et redirige vers `/`.
 
+**Durée du mot de passe temporaire** : valide indéfiniment en V3.0 (pas d'expiration automatique). L'admin peut régénérer un nouveau mot de passe temporaire à tout moment via `POST /admin/users/{id}/reset`. En cas de doute, l'admin doit régénérer.
+
 ### Décision 4 — Révocation immédiate des sessions
 
 La désactivation (`is_active = 0`), le reset de mot de passe et la suppression d'un utilisateur retirent immédiatement tous ses tokens de `SESSIONS`. Une requête ultérieure avec un ancien cookie reçoit `401` ; pour un compte supprimé, aucun utilisateur n'est retrouvé.
@@ -229,7 +231,3 @@ Le certificat auto-signé déclenche un avertissement navigateur. En entreprise,
 ### V4+
 
 - Certificat Let's Encrypt via reverse proxy, par exemple Caddy ou nginx.
-
-## Point restant à préciser avant implémentation admin
-
-- La durée de validité du mot de passe temporaire généré lors d'un reset admin n'est pas spécifiée.

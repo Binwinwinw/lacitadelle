@@ -88,3 +88,20 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 - PAS de GUI graphique (v1 = interface texte de llamafile).
 - PAS de Python côté utilisateur.
 - PAS de modification du code C++ de llamafile en v1.
+
+## Mémoire projet (.memory/)
+
+Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à `AGENTS.md`. Chaque contenu vit à un seul endroit; ne pas dupliquer les règles déjà définies ici ou dans `.github/copilot-instructions.md`.
+
+| Fichier | Contenu | À lire quand |
+| --- | --- | --- |
+| `.memory/decisions.md` | Décisions actées (12) | Avant toute action structurante |
+| `.memory/instructions.md` | Rappel et pointeurs | En début de session |
+| `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
+| `.memory/quirks.md` | Pièges et particularités | Avant de coder |
+| `.memory/security.md` | Règles de sécurité | Avant tout code de sécurité |
+| `.memory/cleanup.log` | Artefact d'outil, ignoré par Git | Ne pas versionner |
+
+Avant d'ajouter une règle dans `.memory/`, vérifier qu'elle n'existe pas déjà dans `AGENTS.md` ou `.github/copilot-instructions.md`; si elle existe, ajouter un pointeur plutôt que la recopier.
+
+**Pattern documentaire** : garder courts les fichiers fréquemment lus et les faire pointer vers les détails. Si un contrat dépasse environ 400 lignes, le scinder au cas par cas en `<NOM>.md` (principal, pointeur et résumé) et `<NOM>_V<version>.md` (détails par version). Voir aussi `.memory/preferences.md`.
