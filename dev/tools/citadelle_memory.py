@@ -195,3 +195,53 @@ def delete_session(session_id: int, db_path: Path | None = None) -> None:
     """Supprime une session et tous ses messages (CASCADE)."""
     with _connect(db_path) as conn:
         conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+
+
+def list_sessions_for_user(
+    user_id: int,
+    db_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Liste les sessions appartenant à un utilisateur donné."""
+    with _connect(db_path) as conn:
+        rows = conn.execute(
+            "SELECT s.*, "
+            "  (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) "
+            "  AS message_count "
+            "FROM sessions s "
+            "WHERE s.user_id = ? "
+            "ORDER BY s.updated_at DESC",
+            (user_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+def get_session_for_user(
+    user_id: int,
+    session_id: int,
+    db_path: Path | None = None,
+) -> dict[str, Any] | None:
+    """Retourne la session si elle appartient à l'utilisateur, sinon None.
+
+    Ne révèle pas l'existence d'une session appartenant à un autre user.
+    """
+    with _connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT * FROM sessions WHERE id = ? AND user_id = ?",
+            (session_id, user_id),
+        ).fetchone()
+        return dict(row) if row else None
+
+
+def get_messages_for_user(
+    user_id: int,
+    session_id: int,
+    limit: int | None = None,
+    db_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Récupère les messages d'une session si elle appartient à l'utilisateur.
+
+    Retourne [] si la session n'existe pas ou appartient à un autre user.
+    """
+    if get_session_for_user(user_id, session_id, db_path) is None:
+        return []
+    return get_messages(session_id, limit=limit, db_path=db_path)
