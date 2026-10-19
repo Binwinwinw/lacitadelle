@@ -8,14 +8,14 @@ Ce document cadre la V2 ; il ne décrit pas une fonctionnalité déjà implémen
 
 ## Comparaison V1 / V2
 
-| Composant | V1 | V2 |
-| --- | --- | --- |
-| Utilisateur | `lacitadelle` par défaut | Login par nom d'utilisateur, plusieurs utilisateurs |
-| Interface web | `localhost:8080` (llamafile) | `localhost:8081` (proxy Python) |
-| Mémoire | Client Python séparé | Gérée par le proxy avec SQLite |
-| Login | Aucun | Nom d'utilisateur, sans mot de passe |
-| Sessions de conversation | Pas filtrées par utilisateur dans le client V1 | Toutes les opérations filtrées par `user_id` |
-| Authentification navigateur | Aucune | Cookie HTTP-only et session en mémoire du proxy |
+| Composant                   | V1                                             | V2                                                  |
+| --------------------------- | ---------------------------------------------- | --------------------------------------------------- |
+| Utilisateur                 | `lacitadelle` par défaut                       | Login par nom d'utilisateur, plusieurs utilisateurs |
+| Interface web               | `localhost:8080` (llamafile)                   | `localhost:8081` (proxy Python)                     |
+| Mémoire                     | Client Python séparé                           | Gérée par le proxy avec SQLite                      |
+| Login                       | Aucun                                          | Nom d'utilisateur, sans mot de passe                |
+| Sessions de conversation    | Pas filtrées par utilisateur dans le client V1 | Toutes les opérations filtrées par `user_id`        |
+| Authentification navigateur | Aucune                                         | Cookie HTTP-only et session en mémoire du proxy     |
 
 ## Architecture cible
 
