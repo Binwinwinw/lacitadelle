@@ -329,13 +329,114 @@ def handle_get_messages(
     json_response(handler, {"messages": messages})
 
 
+def call_llamafile(messages: list[dict]) -> str:
+    """POST vers llamafile et retourne le contenu assistant.
+
+    Isolé pour être mockable dans les tests d'intégration HTTP.
+
+    Raises:
+        LoginError: sur erreur réseau, HTTP ou réponse invalide.
+    """
+    # duplicate of client.py for isolation — ponytail:
+    payload = {
+        "model": "qwen3-1.7b",
+        "messages": messages,
+        "stream": False,
+    }
+    data = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        LLAMAFILE_URL,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=HTTP_TIMEOUT) as response:
+            response_data = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise LoginError(f"Erreur HTTP llamafile : {exc.code}") from exc
+    except urllib.error.URLError as exc:
+        raise LoginError(f"Erreur réseau llamafile : {exc.reason}") from exc
+    except (TimeoutError, OSError) as exc:
+        raise LoginError(f"Erreur réseau llamafile : {exc}") from exc
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise LoginError(f"Réponse llamafile invalide : {exc}") from exc
+    try:
+        content = response_data["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise LoginError(f"Réponse llamafile inattendue : {exc}") from exc
+    if not isinstance(content, str) or not content.strip():
+        raise LoginError("Réponse llamafile vide ou invalide")
+    return content
+
+
 def handle_post_message(
     handler: BaseHTTPRequestHandler,
-    user_id: int,
     session_id: int,
 ) -> None:
     """POST /api/sessions/{id}/messages : envoie un message au modèle."""
-    raise NotImplementedError("handle_post_message à implémenter")
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    if get_session_for_user(user_id, session_id) is None:
+        error_response(handler, "Session introuvable", HTTPStatus.NOT_FOUND)
+        return
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+    except (TypeError, ValueError):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if content_length <= 0 or content_length > 8192:
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+    try:
+        body = json.loads(raw_body) if raw_body.strip() else {}
+    except json.JSONDecodeError:
+        error_response(handler, "JSON invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if not isinstance(body, dict):
+        error_response(handler, "Corps invalide", HTTPStatus.BAD_REQUEST)
+        return
+    content = body.get("content")
+    if not isinstance(content, str) or not content.strip():
+        error_response(handler, "Contenu vide", HTTPStatus.BAD_REQUEST)
+        return
+    content = content.strip()
+    if len(content) > 4000:
+        error_response(
+            handler,
+            "Contenu trop long (max 4000)",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+
+    history = get_messages_for_user(user_id, session_id, limit=MAX_CONTEXT_MESSAGES)
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    messages.extend(
+        {"role": message["role"], "content": message["content"]}
+        for message in history
+    )
+    messages.append({"role": "user", "content": content})
+
+    try:
+        response_text = call_llamafile(messages)
+    except LoginError as exc:
+        error_response(
+            handler,
+            f"Erreur du modèle : {exc}",
+            HTTPStatus.BAD_GATEWAY,
+        )
+        return
+
+    add_message(session_id, "user", content)
+    add_message(session_id, "assistant", response_text)
+    json_response(
+        handler,
+        {"assistant_message": {"role": "assistant", "content": response_text}},
+        HTTPStatus.CREATED,
+    )
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -375,8 +476,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             else:
                 match = SESSION_MSG_RE.match(path)
                 if match:
-                    raise NotImplementedError("POST messages non encore implémenté")
-                self.send_error(HTTPStatus.NOT_FOUND)
+                    handle_post_message(self, int(match.group(1)))
+                else:
+                    self.send_error(HTTPStatus.NOT_FOUND)
         except NotImplementedError:
             self.send_error(HTTPStatus.NOT_IMPLEMENTED)
 
