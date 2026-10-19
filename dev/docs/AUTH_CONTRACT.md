@@ -23,6 +23,7 @@ Ce document spécifie la cible V3 ; ces comportements ne sont pas encore implém
 - Le nom d'utilisateur, après retrait des espaces périphériques, doit contenir de 3 à 50 caractères et correspondre à `^[A-Za-z0-9_-]{3,50}$` ; il doit être unique.
 - Le mot de passe doit contenir au moins 8 caractères. `password_confirm` doit correspondre au mot de passe.
 - En cas de succès, le compte est créé et le navigateur est redirigé vers `/login`. L'inscription ne connecte donc pas automatiquement l'utilisateur.
+- Le premier compte inscrit après la migration devient l'unique `admin` si aucun administrateur n'existe. Cette attribution doit être atomique pour que deux inscriptions concurrentes ne créent pas deux administrateurs.
 
 ### Mot de passe
 
@@ -47,7 +48,30 @@ Ce document spécifie la cible V3 ; ces comportements ne sont pas encore implém
 - Les actions admin permettent de créer un utilisateur, l'activer ou le désactiver, réinitialiser son mot de passe avec un mot de passe temporaire, supprimer un compte et changer son rôle.
 - `DELETE /admin/users/{id}` ne peut pas supprimer le compte de l'administrateur qui fait la requête.
 - Le non-admin reçoit un refus d'accès HTTP 403 ; l'interface peut ensuite le renvoyer vers `/`. Une requête non authentifiée est renvoyée vers `/login`.
-- Il ne peut pas y avoir plusieurs administrateurs simultanément. L'attribution du rôle `admin` lors de la toute première inscription doit être atomique afin que deux inscriptions concurrentes ne créent pas deux admins.
+- En V3.0 et V3.1, il ne peut y avoir qu'un seul administrateur. Seul l'administrateur courant peut promouvoir un utilisateur ; cette opération rétrograde l'appelant et promeut la cible dans une même transaction SQLite. La rétrogradation de l'appelant est interdite en dehors de ce transfert atomique.
+- Un administrateur ne peut pas se désactiver, se rétrograder hors transfert, ni supprimer son propre compte. Toute opération qui désactiverait, rétrograderait ou supprimerait le dernier admin actif est refusée.
+- V3.2 autorise jusqu'à `max_admins` (2 par défaut) ; les changements de rôle et transferts restent atomiques et doivent conserver au moins un admin actif.
+- Lors d'un reset de mot de passe, un mot de passe temporaire aléatoire et fort de 16 caractères est généré, hashé et affiché à l'administrateur une seule fois. `must_change_password` est mis à `1`.
+- Un login avec un mot de passe temporaire valide crée une session restreinte. Jusqu'au changement du mot de passe, seules `/change-password` et `/logout` sont accessibles ; les autres routes redirigent vers `/change-password`.
+- La désactivation, le reset de mot de passe ou la suppression d'un utilisateur révoque immédiatement tous ses tokens en mémoire. Une requête ultérieure avec un token révoqué reçoit `401`.
+
+## Décisions actées (complément 2026-10-19)
+
+### Décision 1 — Transfert atomique du rôle admin
+
+En V3.0 et V3.1, un seul admin est permis. La route de changement de rôle ne peut promouvoir un autre utilisateur que si l'appelant est l'admin courant ; l'appelant est alors rétrogradé en `user` et la cible promue en `admin` dans la même transaction SQLite. Aucun état validé ne contient deux admins. Un appelant non-admin ne peut changer aucun rôle. En V3.2, plusieurs admins sont permis dans la limite de `max_admins` ; les transferts dans les deux sens restent transactionnels.
+
+### Décision 2 — Protection du dernier admin
+
+Un admin ne peut pas se désactiver lui-même, se rétrograder hors transfert, ni supprimer son propre compte. Toute opération qui laisserait zéro admin actif est refusée. Les actions sur un autre compte admin ne s'appliquent pas en V3.0/V3.1, où un seul admin existe ; en V3.2, elles ne doivent pas supprimer le dernier admin actif.
+
+### Décision 3 — Mot de passe temporaire
+
+Un reset admin génère un mot de passe temporaire fort et aléatoire de 16 caractères, le hash avec scrypt, positionne `must_change_password = 1` et affiche le secret à l'admin une seule fois. Le login avec ce secret est autorisé, mais la session porte le flag `must_change_password` : seules `/change-password` et `/logout` sont accessibles tant que le mot de passe n'a pas été changé. La nouvelle valeur doit faire au moins 8 caractères, être différente de l'ancienne et correspondre à sa confirmation ; le succès met à jour le hash, remet le flag à `0` et redirige vers `/`.
+
+### Décision 4 — Révocation immédiate des sessions
+
+La désactivation (`is_active = 0`), le reset de mot de passe et la suppression d'un utilisateur retirent immédiatement tous ses tokens de `SESSIONS`. Une requête ultérieure avec un ancien cookie reçoit `401` ; pour un compte supprimé, aucun utilisateur n'est retrouvé.
 
 ## Modèle de données V3
 
@@ -60,6 +84,7 @@ CREATE TABLE users (
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user','admin')),
     is_active INTEGER NOT NULL DEFAULT 1,
+    must_change_password INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     last_login_at TEXT
 );
@@ -85,6 +110,10 @@ Après la migration, la première inscription devient admin selon la règle de c
 | `POST` | `/register` | Valide username/password/password_confirm, crée le compte et redirige vers `/login`. |
 | `POST` | `/login` | Vérifie username, mot de passe et état actif ; établit une session de 24 h. Une erreur renvoie `401` sans révéler si le nom existe. |
 | `POST` | `/logout` | Révoque le token et expire le cookie. |
+| `GET` | `/change-password` | Sert le formulaire obligatoire si la session porte `must_change_password = 1`. |
+| `POST` | `/change-password` | Vérifie l'ancien mot de passe, valide et confirme le nouveau, met à jour le hash, efface le flag et redirige vers `/`. |
+
+Après une connexion avec un mot de passe temporaire, toute route autre que `/change-password` et `/logout` redirige vers `/change-password`.
 
 ### Routes d'administration
 
@@ -94,10 +123,12 @@ Toutes ces routes exigent une session valide avec le rôle `admin`.
 | --- | --- | --- |
 | `GET` | `/admin` | Sert l'interface et la liste des utilisateurs. |
 | `POST` | `/admin/users` | Crée un compte depuis l'administration. |
-| `POST` | `/admin/users/{id}/reset` | Remplace le hash par celui d'un mot de passe temporaire fourni par l'admin. |
+| `POST` | `/admin/users/{id}/reset` | Génère un mot de passe temporaire aléatoire de 16 caractères, stocke son hash, positionne `must_change_password = 1`, révoque les sessions et affiche le secret une seule fois. |
 | `POST` | `/admin/users/{id}/toggle` | Active ou désactive le compte ciblé. |
-| `POST` | `/admin/users/{id}/role` | Change le rôle entre `user` et `admin`, sans créer plusieurs admins simultanés. |
+| `POST` | `/admin/users/{id}/role` | Change le rôle entre `user` et `admin` selon le transfert atomique unique-administrateur défini ci-dessus. |
 | `DELETE` | `/admin/users/{id}` | Supprime le compte et ses données liées ; refuse la suppression du compte appelant. |
+
+La désactivation révoque immédiatement les tokens de l'utilisateur. Un administrateur ne peut désactiver ni rétrograder son propre compte ; une promotion d'un autre utilisateur est le seul transfert permis et rétrograde l'administrateur appelant dans la même transaction.
 
 ### Routes V2 conservées
 
@@ -115,12 +146,38 @@ Les routes `/api/sessions`, `/api/sessions/{id}/messages` et les opérations de 
 ## Sécurité
 
 - Les mots de passe ne sont jamais enregistrés en clair ni écrits dans les logs.
+- Les mots de passe temporaires de reset sont générés aléatoirement, affichés une seule fois à l'admin et imposent un changement au prochain accès.
 - La comparaison des hashes utilise `hmac.compare_digest`.
 - Les échecs d'authentification ne divulguent pas l'existence d'un nom d'utilisateur.
 - Les sessions et messages restent filtrés par `user_id` ; les accès inter-utilisateurs sont refusés sans révéler l'existence de la ressource.
 - Le cookie est `HttpOnly`, `SameSite=Strict`, limité à `Path=/` et valable 24 heures ; pas de `Secure` car l'usage est local en HTTP.
-- Le proxy doit rester lié à `127.0.0.1` et ne pas être exposé sur un réseau.
-- V3 n'ajoute ni protection CSRF ni rate limiting ; ce sont des limites explicites du périmètre local V3, pas des garanties de sécurité.
+- La révocation d'un token après désactivation, reset ou suppression est immédiate en mémoire ; les requêtes ultérieures de cette session reçoivent `401`.
+- V3.0 reste liée à `127.0.0.1` et utilise HTTP local. Elle n'ajoute ni protection CSRF ni rate limiting ; ces limites ne sont acceptables que pour cet usage local.
+- En V3.1, HTTPS, validation CSRF pour chaque POST/DELETE et limitation de débit sur le login deviennent obligatoires avant toute écoute sur le réseau local.
+- Un certificat auto-signé V3.1 déclenche un avertissement navigateur. En entreprise, l'administrateur doit distribuer le certificat dans le magasin de confiance des clients (GPO Windows, MDM ou équivalent).
+
+## Cadre de déploiement progressif (V3.0 / V3.1 / V3.2)
+
+### V3.0 — Authentification complète, HTTP local
+
+- Le proxy écoute uniquement sur `127.0.0.1:8081` en HTTP.
+- CSRF et rate limiting ne sont pas actifs ; ce sont des limites explicites pour l'usage local.
+- Un admin actif au maximum ; les quatre décisions complémentaires ci-dessus s'appliquent.
+- La structure de `citadelle_data/config.json` prévoit `host` et `port`. La structure CSRF est prévue mais désactivée.
+
+### V3.1 — HTTPS et protections pour réseau local
+
+- Le proxy écoute sur `0.0.0.0:8081` ou une adresse LAN configurable dans `config.json`.
+- HTTPS utilise un certificat auto-signé généré au premier lancement (OpenSSL en sous-processus ou solution standard disponible), puis un `SSLContext`.
+- Un token CSRF par session est injecté dans le HTML et vérifié sur toutes les requêtes POST et DELETE.
+- Le rate limiting du login est de 5 tentatives par minute par IP et de 5 tentatives par minute par nom d'utilisateur.
+- Le certificat auto-signé affiche un avertissement navigateur. En entreprise, l'informaticien distribue le certificat dans le magasin de confiance des clients (GPO Windows, MDM ou équivalent).
+- Let's Encrypt via reverse proxy (Caddy ou nginx) est reporté à V4.
+
+### V3.2 — Multi-admin et configuration réseau avancée
+
+- Plusieurs admins sont permis, avec `max_admins = 2` par défaut. Les transferts de rôle sont atomiques dans les deux sens.
+- `citadelle_data/config.json`, généré au premier lancement avec des valeurs par défaut, contient `host`, `port`, `ssl_cert`, `ssl_key`, `max_admins` et `rate_limit_login`.
 
 ## Non-objectifs V3
 
@@ -128,10 +185,9 @@ Les routes `/api/sessions`, `/api/sessions/{id}/messages` et les opérations de 
 - Pas de validation d'adresse email.
 - Pas d'OAuth ni de SSO.
 - Pas de 2FA.
-- Pas de jeton CSRF.
-- Pas de rate limiting.
+- Pas de jeton CSRF ni de rate limiting en V3.0 ; ces protections sont prévues en V3.1.
 - Pas de journal d'audit.
-- Pas de plusieurs administrateurs simultanés.
+- Pas de plusieurs administrateurs simultanés avant V3.2.
 
 ## Critères d'acceptation
 
@@ -145,16 +201,35 @@ Les routes `/api/sessions`, `/api/sessions/{id}/messages` et les opérations de 
 - Le cookie et la validation côté serveur expirent après 24 heures.
 - Les données V2 existantes (utilisateurs, sessions et messages) sont supprimées par la migration.
 
-## Plan d'implémentation (Next Move)
+## Plan d'implémentation révisé (Next Move)
 
-1. **Next Move 8b** : migration SQLite, hash et vérification du mot de passe dans `citadelle_memory.py`, avec tests unitaires.
-2. **Next Move 8c** : routes `/register`, modification de `/login` et frontend register/login.
-3. **Next Move 8d** : page `/admin`, routes de gestion et frontend admin.
-4. **Next Move 8e (optionnel)** : tests d'intégration complets.
+### V3.0 — Authentification locale
 
-## Points à préciser avant implémentation admin
+1. **Next Move 8b** : migration SQLite, hash et vérification scrypt dans `citadelle_memory.py`, avec tests unitaires.
+2. **Next Move 8c** : routes `/register`, modification de `/login`, `/change-password` et frontend register/login.
+3. **Next Move 8d** : page `/admin`, routes de gestion des utilisateurs et frontend admin.
+4. **Next Move 8e** : tests d'intégration V3.0.
 
-- Le décideur a fixé l'unicité des admins mais pas le protocole de transfert du rôle. Le changement vers `admin` doit éviter deux admins simultanés ; le transfert atomique ou la séquence de rétrogradation/promotion est à choisir avant Next Move 8d.
-- Le comportement pour le dernier admin n'est pas précisé : confirmer si sa désactivation ou sa rétrogradation doit être refusée afin de ne pas laisser l'installation sans administrateur.
-- Le mot de passe temporaire du reset est fourni par l'admin ; la durée de validité et l'obligation de le changer au prochain login ne sont pas spécifiées.
-- La désactivation doit empêcher les nouveaux logins. La révocation immédiate d'une session déjà ouverte lors de la désactivation est à confirmer pour l'implémentation.
+Le proxy reste sur `127.0.0.1:8081` en HTTP. La structure de configuration prévoit `host` et `port`, et la gestion CSRF est préparée mais désactivée.
+
+### V3.1 — Déploiement réseau local
+
+1. **Next Move 8f** : HTTPS avec certificat auto-signé généré au premier lancement (OpenSSL en sous-processus ou solution standard disponible) et `SSLContext`.
+2. **Next Move 8g** : jeton CSRF par session, injection dans les pages et validation de tous les POST/DELETE.
+3. **Next Move 8h** : rate limiting de 5 tentatives par minute par IP et par nom d'utilisateur sur `POST /login`.
+4. **Next Move 8i** : configuration de l'écoute HTTPS (host et port, loopback par défaut ou IP LAN configurée) et chemins du certificat.
+
+Le certificat auto-signé déclenche un avertissement navigateur. En entreprise, l'informaticien devra déployer le certificat dans les magasins de confiance des postes clients (GPO Windows, MDM ou équivalent).
+
+### V3.2 — Multi-admin et configuration avancée
+
+1. **Next Move 8j** : multi-admin configurable (`max_admins = 2` par défaut) et transferts de rôle atomiques dans les deux sens.
+2. **Next Move 8k** : configuration réseau avancée dans `citadelle_data/config.json` : `host`, `port`, `ssl_cert`, `ssl_key`, `max_admins` et `rate_limit_login`, créée avec des valeurs par défaut au premier lancement.
+
+### V4+
+
+- Certificat Let's Encrypt via reverse proxy, par exemple Caddy ou nginx.
+
+## Point restant à préciser avant implémentation admin
+
+- La durée de validité du mot de passe temporaire généré lors d'un reset admin n'est pas spécifiée.
