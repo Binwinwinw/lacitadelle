@@ -13,19 +13,19 @@ dépôt Git initialisé.
 
 ## Règles agents
 
-Les règles complètes sont dans `.github/agents/rules/*.mdc` (format
+Les règles complètes sont dans `.github/agents/rules/*.instructions.md` (format
 Cursor, lu nativement par Cursor). VS Code + Copilot ne les lit PAS
 directement : cette section est le résumé opérationnel pour Copilot.
 En cas de changement d'une règle, mettre à jour les deux.
 
-- **karpathy-guidelines.mdc** : hypothèses explicites avant de coder,
+- **karpathy-guidelines.instructions.md** : hypothèses explicites avant de coder,
    simplicité (pas d'abstraction spéculative), changements
    chirurgicaux (ne toucher que ce qui est nécessaire), critères
    vérifiables.
-- **ponytail.mdc** : YAGNI, réutiliser l'existant (stdlib >
+- **ponytail.instructions.md** : YAGNI, réutiliser l'existant (stdlib >
    dépendance installée > code nouveau), diff minimal, cause racine
    des bugs (grep les callers).
-- **review-simplify-verif.mdc** : cycle obligatoire
+- **review-simplify-verif.instructions.md** : cycle obligatoire
    Review → Simplify → Verif pour toute nouvelle fonctionnalité.
    Interdit : coder → supposer → passer à autre chose. Statut final
    explicite : OK / BLOQUÉ / PARTIEL.

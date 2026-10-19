@@ -1,6 +1,6 @@
 ---
 description: Discipline par défaut pour toute nouvelle fonctionnalité — review → simplify → verif
-alwaysApply: true
+applyTo: "**"
 ---
 
 # Review → Simplify → Verif

@@ -1,6 +1,6 @@
 ---
 description: Ponytail (DietrichGebert/ponytail) — senior paresseux, YAGNI, diff minimal (tokens + maintenance).
-alwaysApply: true
+applyTo: "**"
 ---
 
 # Ponytail, lazy senior dev mode
