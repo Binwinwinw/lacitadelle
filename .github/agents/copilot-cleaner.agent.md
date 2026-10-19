@@ -2,7 +2,7 @@
 name: Copilot Cleaner
 description: Retire la mention obsolète de main/ dans copilot-instructions.md
 user-invocable: false
-tools: ['read', 'edit']
+tools: ["read", "edit"]
 ---
 
 Modifie uniquement `.github/copilot-instructions.md`.

@@ -2,7 +2,7 @@
 name: Decisions Checker
 description: Vérifie que decisions.md documente l'obsolescence selon Solution A
 user-invocable: false
-tools: ['read', 'edit']
+tools: ["read", "edit"]
 ---
 
 Vérifie uniquement `.memory/decisions.md`.

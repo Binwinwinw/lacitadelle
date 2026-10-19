@@ -2,7 +2,7 @@
 name: Docs Cleaner
 description: Nettoie OBJECTIF, GIT_STRATEGY, BASE_LLAMAFILE et VENDOR_STRATEGY
 user-invocable: false
-tools: ['read', 'edit']
+tools: ["read", "edit"]
 ---
 
 Corrige uniquement les quatre documents suivants :

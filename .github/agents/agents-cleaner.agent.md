@@ -2,7 +2,7 @@
 name: AGENTS Cleaner
 description: Retire la règle obsolète de main/ dans AGENTS.md
 user-invocable: false
-tools: ['read', 'edit']
+tools: ["read", "edit"]
 ---
 
 Corrige uniquement `AGENTS.md`.

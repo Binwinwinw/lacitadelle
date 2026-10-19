@@ -2,7 +2,7 @@
 name: README Cleaner
 description: Nettoie README, retire les mentions obsolètes de main/ et corrige l’état V1
 user-invocable: false
-tools: ['read', 'edit']
+tools: ["read", "edit"]
 ---
 
 Corrige uniquement `README`.
