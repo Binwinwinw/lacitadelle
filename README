@@ -48,8 +48,9 @@ Clonez le dépôt puis placez-vous dans son dossier :
 ### Option A — installation rapide (recommandée)
 
 Double-cliquez sur `install.bat`. Le script vérifie Python, télécharge et
-vérifie les dépendances, construit le `.llamafile.exe`, puis propose de
-lancer `lancer.bat`.
+vérifie les dépendances, construit le `.llamafile.exe`, attend trois
+secondes puis lance automatiquement `lancer.bat` et ouvre le navigateur.
+Aucune confirmation ni saisie n'est nécessaire en cas de succès.
 
 ### Option B — installation manuelle
 

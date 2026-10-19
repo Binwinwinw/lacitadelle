@@ -17,11 +17,17 @@ python -B dev\tools\setup_lacitadelle.py
 if errorlevel 1 goto setup_failed
 
 echo.
-echo Installation terminee.
-choice /C ON /M "Lancer lancer.bat maintenant?"
-if errorlevel 2 exit /b 0
+echo ======================================
+echo   Installation terminee avec succes !
+echo ======================================
+echo.
+echo Lancement de La Citadelle dans 3 secondes...
+echo (le navigateur va s'ouvrir automatiquement)
+echo.
+timeout /t 3 /nobreak >nul
+
 start "" "%~dp0lancer.bat"
-exit /b 0
+exit
 
 :python_missing
 echo ERREUR : Python 3.10+ est requis et doit etre disponible dans PATH.
