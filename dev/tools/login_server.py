@@ -19,9 +19,11 @@ from __future__ import annotations
 
 import json
 import secrets
+import sqlite3
 import sys
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -31,6 +33,7 @@ from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from citadelle_memory import (
+    DB_PATH as MEMORY_DB_PATH,
     add_message,
     create_session,
     ensure_default_user,
@@ -47,6 +50,7 @@ MAX_CONTEXT_MESSAGES = 15
 SYSTEM_PROMPT = "Tu es Lacitadelle, un assistant IA local. Réponds en français."
 SESSION_COOKIE_NAME = "lacitadelle_session"
 HTTP_TIMEOUT = 120
+SQLITE_TIMEOUT = 5.0
 
 # Le contenu est perdu au redémarrage du proxy, conformément au contrat V2.
 SESSIONS: dict[str, int] = {}
@@ -54,6 +58,15 @@ SESSIONS: dict[str, int] = {}
 
 class LoginError(Exception):
     """Erreur attendue du serveur de login."""
+
+
+def _get_db_connection() -> sqlite3.Connection:
+    """Ouvre une connexion SQLite à memory.db (configurable pour tests)."""
+    MEMORY_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(MEMORY_DB_PATH), timeout=SQLITE_TIMEOUT)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
 def create_session_token(user_id: int) -> str:
@@ -164,22 +177,77 @@ def serve_static(handler: BaseHTTPRequestHandler, filename: str) -> None:
 
 def handle_get_login(handler: BaseHTTPRequestHandler) -> None:
     """GET /login : affiche la page de login."""
-    raise NotImplementedError("handle_get_login à implémenter")
+    serve_static(handler, "login.html")
 
 
 def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
     """POST /login : crée ou charge un utilisateur et ouvre sa session."""
-    raise NotImplementedError("handle_post_login à implémenter")
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+    except (TypeError, ValueError):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if content_length <= 0 or content_length > 1024:
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+    params = parse_qs(raw_body)
+    username = params.get("username", [""])[0].strip()
+    if not username or len(username) > 50:
+        error_response(
+            handler,
+            "Nom d'utilisateur invalide",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+
+    conn = _get_db_connection()
+    try:
+        row = conn.execute(
+            "SELECT id FROM users WHERE username = ?",
+            (username,),
+        ).fetchone()
+        if row:
+            user_id = int(row["id"])
+        else:
+            created_at = datetime.now(timezone.utc).isoformat()
+            cursor = conn.execute(
+                "INSERT INTO users (username, created_at) VALUES (?, ?)",
+                (username, created_at),
+            )
+            conn.commit()
+            if cursor.lastrowid is None:
+                raise LoginError("Impossible de récupérer l'identifiant utilisateur")
+            user_id = cursor.lastrowid
+    finally:
+        conn.close()
+
+    token = create_session_token(user_id)
+    handler.send_response(HTTPStatus.FOUND)
+    set_cookie_token(handler, token)
+    handler.send_header("Location", "/")
+    handler.end_headers()
 
 
 def handle_post_logout(handler: BaseHTTPRequestHandler) -> None:
     """POST /logout : révoque la session et expire le cookie."""
-    raise NotImplementedError("handle_post_logout à implémenter")
+    token = read_cookie_token(handler)
+    if token:
+        revoke_session(token)
+    handler.send_response(HTTPStatus.FOUND)
+    clear_cookie_token(handler)
+    handler.send_header("Location", "/login")
+    handler.end_headers()
 
 
 def handle_get_index(handler: BaseHTTPRequestHandler) -> None:
     """GET / : affiche le chat authentifié ou redirige vers le login."""
-    raise NotImplementedError("handle_get_index à implémenter")
+    token = read_cookie_token(handler)
+    user_id = get_user_from_token(token) if token else None
+    if user_id is None:
+        redirect(handler, "/login")
+        return
+    serve_static(handler, "chat.html")
 
 
 def handle_get_api_sessions(
@@ -230,9 +298,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 serve_static(self, "style.css")
             elif path == "/chat.js":
                 serve_static(self, "chat.js")
-            elif path == "/api/sessions" or (
-                path.startswith("/api/sessions/") and path.endswith("/messages")
-            ):
+            elif path.startswith("/api/sessions"):
                 raise NotImplementedError("Routes API non encore implémentées")
             else:
                 self.send_error(HTTPStatus.NOT_FOUND)
@@ -246,9 +312,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_login(self)
             elif path == "/logout":
                 handle_post_logout(self)
-            elif path == "/api/sessions" or (
-                path.startswith("/api/sessions/") and path.endswith("/messages")
-            ):
+            elif path.startswith("/api/sessions"):
                 raise NotImplementedError("Routes API non encore implémentées")
             else:
                 self.send_error(HTTPStatus.NOT_FOUND)
