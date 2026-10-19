@@ -13,12 +13,11 @@ dépôt Git initialisé.
 
 ## Règles non-négociables
 
-1. `main/` est en LECTURE SEULE. Aucune modification, aucun ajout, aucune suppression.
-2. Toute décision structurante va dans `.memory/decisions.md`, datée, avec Contexte / Décision / Conséquences.
-3. Règle de périmètre v1 : toute proposition d'ajout (tool calling, GUI, gestionnaire de téléchargement, agent PC) doit être reportée dans `dev/docs/OBJECTIF.md` section 6 avec version cible. Élargir le périmètre exige une nouvelle entrée dans `decisions.md` validée par le décideur.
-4. Aucune décision technique structurante (langage, packaging, dépendance à llamafile) tant que `OBJECTIF.md` contient un `TODO:` non résolu.
-5. `AGENTS.md` est la source de vérité des instructions agents. `.github/copilot-instructions.md` et `.memory/instructions.md` ne font que pointer vers lui et rappeler les règles vitales.
-6. Intégrité de `.memory/` et `.github/copilot-instructions.md` : aucun
+1. Toute décision structurante va dans `.memory/decisions.md`, datée, avec Contexte / Décision / Conséquences.
+2. Règle de périmètre v1 : toute proposition d'ajout (tool calling, GUI, gestionnaire de téléchargement, agent PC) doit être reportée dans `dev/docs/OBJECTIF.md` section 6 avec version cible. Élargir le périmètre exige une nouvelle entrée dans `decisions.md` validée par le décideur.
+3. Aucune décision technique structurante (langage, packaging, dépendance à llamafile) tant que `OBJECTIF.md` contient un `TODO:` non résolu.
+4. `AGENTS.md` est la source de vérité des instructions agents. `.github/copilot-instructions.md` et `.memory/instructions.md` ne font que pointer vers lui et rappeler les règles vitales.
+5. Intégrité de `.memory/` et `.github/copilot-instructions.md` : aucun
    outil externe (skill, extension, agent de normalisation) ne peut modifier
    un fichier de `.memory/` ou `.github/copilot-instructions.md` sans
    instruction explicite du décideur. L'agent lui-même ne peut pas ajouter,
@@ -34,13 +33,13 @@ dépôt Git initialisé.
    et hacklm-memory (et tout outil similaire) sont explicitement interdits
    d'action sur `.memory/` et `.github/copilot-instructions.md`. Voir
    `dev/docs/OUTILS_INTRUSIFS.md` pour la liste à jour.
-7. Vérification post-session des fichiers sensibles : à la fin de chaque
+6. Vérification post-session des fichiers sensibles : à la fin de chaque
    session, l'agent doit exécuter `git status --short` et confirmer que les
    SEULS fichiers modifiés sont ceux attendus dans la tâche courante. Toute
    modification non attendue (notamment sur `.memory/`,
-   `.github/copilot-instructions.md`, `AGENTS.md`, `main/`) doit être
+   `.github/copilot-instructions.md`, `AGENTS.md`) doit être
    signalée immédiatement au décideur, sans correction automatique.
-8. Interdiction de réécrire l'historique Git : aucun `git commit
+7. Interdiction de réécrire l'historique Git : aucun `git commit
 --amend`, `git rebase`, `git push --force` ou `git push
 --force-with-lease` ne peut être exécuté sans autorisation explicite
    du décideur dans la conversation courante. Si un commit doit être
@@ -61,7 +60,6 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 - Journal de bord : `dev/docs/JOURNALDEBORD.md`
 - Modifications et TODO vivant : `dev/docs/JOURNALDESMODIFS.md`
 - Code de production : `dev/` (à venir)
-- Runtime llamafile : `main/` (lecture seule)
 
 ## Non-objectifs v1
 

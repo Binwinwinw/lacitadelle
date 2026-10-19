@@ -19,8 +19,7 @@ Systèmes cibles : ceux supportés par llamafile (macOS, Windows, Linux, BSD).
 ## 4. Rapport à llamafile upstream (mozilla-ai/llamafile)
 
 llamafile est le RUNTIME et le FORMAT de distribution.
-`main/` reste en lecture seule, utilisé comme outil de fabrication.
-La Citadelle produit des llamafiles personnalisés via un pipeline Python de build.
+La Citadelle produit des llamafiles personnalisés via un pipeline Python de fabrication, à partir d'assets upstream précompilés et d'un GGUF.
 
 ## 5. Famille de produit visée
 
