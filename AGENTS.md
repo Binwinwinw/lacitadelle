@@ -11,6 +11,25 @@ mozilla-ai/llamafile mais centré sur la fabrication de llamafiles personnalisé
 Socle documentaire en cours. Aucune fonctionnalité exécutable. Pas encore de
 dépôt Git initialisé.
 
+## Règles agents
+
+Les règles complètes sont dans `.github/agents/rules/*.mdc` (format
+Cursor, lu nativement par Cursor). VS Code + Copilot ne les lit PAS
+directement : cette section est le résumé opérationnel pour Copilot.
+En cas de changement d'une règle, mettre à jour les deux.
+
+- **karpathy-guidelines.mdc** : hypothèses explicites avant de coder,
+   simplicité (pas d'abstraction spéculative), changements
+   chirurgicaux (ne toucher que ce qui est nécessaire), critères
+   vérifiables.
+- **ponytail.mdc** : YAGNI, réutiliser l'existant (stdlib >
+   dépendance installée > code nouveau), diff minimal, cause racine
+   des bugs (grep les callers).
+- **review-simplify-verif.mdc** : cycle obligatoire
+   Review → Simplify → Verif pour toute nouvelle fonctionnalité.
+   Interdit : coder → supposer → passer à autre chose. Statut final
+   explicite : OK / BLOQUÉ / PARTIEL.
+
 ## Règles non-négociables
 
 1. Toute décision structurante va dans `.memory/decisions.md`, datée, avec Contexte / Décision / Conséquences.
@@ -37,7 +56,8 @@ dépôt Git initialisé.
    session, l'agent doit exécuter `git status --short` et confirmer que les
    SEULS fichiers modifiés sont ceux attendus dans la tâche courante. Toute
    modification non attendue (notamment sur `.memory/`,
-   `.github/copilot-instructions.md`, `AGENTS.md`) doit être
+   `.github/copilot-instructions.md`, `.github/agents/rules/`,
+   `AGENTS.md`) doit être
    signalée immédiatement au décideur, sans correction automatique.
 7. Interdiction de réécrire l'historique Git : aucun `git commit
 --amend`, `git rebase`, `git push --force` ou `git push
