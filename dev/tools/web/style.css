@@ -1,51 +1,295 @@
-/* Styles de base pour La Citadelle V2 */
-/* TODO : styles complets dans un prochain Next Move */
-
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  font-family: system-ui, sans-serif;
-  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
   background: #1a1a1a;
   color: #e0e0e0;
+  min-height: 100vh;
 }
 
 .login-container {
   max-width: 400px;
-  margin: 100px auto;
-  padding: 2rem;
+  margin: 5rem auto;
+  padding: 2.5rem;
   background: #2a2a2a;
   border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 .login-container h1 {
-  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.subtitle {
+  color: #888;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+}
+
+#login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#login-form label {
+  font-size: 0.9rem;
+  color: #bbb;
+}
+
+#login-form input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #333;
+  color: #e0e0e0;
+  font-size: 1rem;
+}
+
+#login-form input:focus,
+.chat-form textarea:focus {
+  outline: 2px solid #4a9eff;
+  outline-offset: 1px;
+}
+
+#login-form button,
+#new-session {
+  padding: 0.75rem;
+  background: #4a9eff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#login-form button:hover,
+#new-session:hover {
+  background: #3585e0;
 }
 
 .chat-layout {
   display: grid;
-  grid-template-columns: 250px 1fr;
+  grid-template-columns: 280px minmax(0, 1fr);
   height: 100vh;
+  height: 100dvh;
 }
 
 .sidebar {
   background: #222;
   padding: 1rem;
   border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+#new-session {
+  padding: 0.6rem;
+  font-size: 0.9rem;
+}
+
+#sessions-list {
+  flex: 1;
+  list-style: none;
+  overflow-y: auto;
+}
+
+#sessions-list li {
+  padding: 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  color: #ccc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#sessions-list li:hover {
+  background: #333;
+}
+
+#sessions-list li.active {
+  background: #4a9eff;
+  color: #fff;
+}
+
+#sessions-list li.empty {
+  color: #777;
+  cursor: default;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 0.6rem;
+  background: transparent;
+  color: #888;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.logout-btn:hover {
+  color: #e0e0e0;
+  border-color: #666;
 }
 
 .chat-main {
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  height: 100%;
+  min-width: 0;
 }
 
-#messages {
+.messages {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-/* TODO : styles complets */
+.placeholder {
+  color: #888;
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.message {
+  max-width: 80%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.message.user {
+  background: #4a9eff;
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.message.assistant {
+  background: #333;
+  color: #e0e0e0;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.message.loading {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.chat-form {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #333;
+  background: #222;
+}
+
+.chat-form textarea {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #333;
+  color: #e0e0e0;
+  font: inherit;
+  resize: vertical;
+}
+
+.chat-form button {
+  padding: 0.75rem 1.5rem;
+  background: #4a9eff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.chat-form button:hover:not(:disabled) {
+  background: #3585e0;
+}
+
+.chat-form button:disabled,
+.chat-form textarea:disabled,
+#new-session:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  min-height: 1.5rem;
+  padding: 0.25rem 1rem;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.status.error {
+  color: #ff6b6b;
+}
+
+@media (max-width: 600px) {
+  .login-container {
+    margin: 4rem 1rem;
+    padding: 1.5rem;
+  }
+
+  .chat-layout {
+    grid-template-columns: minmax(112px, 34%) minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding: 0.65rem;
+  }
+
+  .sidebar h2 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  #new-session {
+    padding: 0.55rem 0.3rem;
+    font-size: 0.78rem;
+  }
+
+  .messages {
+    padding: 0.8rem;
+  }
+
+  .message {
+    max-width: 95%;
+  }
+
+  .chat-form {
+    padding: 0.65rem;
+  }
+
+  .chat-form button {
+    padding: 0.65rem 0.8rem;
+  }
+}

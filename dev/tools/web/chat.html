@@ -2,32 +2,35 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Citadelle - Chat</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="chat-layout">
         <aside class="sidebar">
-            <h2>Sessions</h2>
-            <button id="new-session" disabled>+ Nouvelle session</button>
-            <ul id="sessions-list">
-                <li>TODO : liste des sessions</li>
-            </ul>
+            <h2>La Citadelle</h2>
+            <button id="new-session" type="button">+ Nouvelle session</button>
+            <ul id="sessions-list"></ul>
             <form method="POST" action="/logout">
-                <button type="submit">Déconnexion</button>
+                <button type="submit" class="logout-btn">Déconnexion</button>
             </form>
         </aside>
         <main class="chat-main">
-            <div id="messages">
-                <p>TODO : messages de la conversation</p>
+            <div id="messages" class="messages" aria-live="polite">
+                <p class="placeholder">Sélectionnez une session ou créez-en une nouvelle.</p>
             </div>
-            <form id="chat-form">
-                <textarea id="user-input" placeholder="Votre message..."
-                          disabled></textarea>
-                <button type="submit" disabled>Envoyer</button>
+            <form id="chat-form" class="chat-form">
+                <textarea
+                    id="user-input"
+                    placeholder="Votre message..."
+                    rows="2"
+                    disabled></textarea>
+                <button type="submit" id="send-btn" disabled>Envoyer</button>
             </form>
+            <div id="status" class="status" role="status" aria-live="polite"></div>
         </main>
     </div>
-    <script src="/chat.js"></script>
+    <script src="chat.js"></script>
 </body>
 </html>
