@@ -32,32 +32,37 @@ détails et les limites connues.
 
 ## Installation et première utilisation
 
-Après `git clone`, suivez ces trois étapes.
-
 ### Prérequis
 
 - Python 3.10+ installé.
 - Git installé.
 - Connexion internet pour télécharger les dépendances.
 
-### Étapes
+### Préparation commune
 
-1.  **Télécharger les dépendances** (~1,3 Go, une seule fois) :
+Clonez le dépôt puis placez-vous dans son dossier :
 
-         python dev/tools/bootstrap.py
+    git clone https://github.com/Binwinwinw/lacitadelle.git
+    cd lacitadelle
 
-    Le bootstrap télécharge et vérifie le runtime, `zipalign` et le modèle
-    GGUF Qwen3, puis les place dans `dev/tools/vendor/llamafile/`.
+### Option A — installation rapide (recommandée)
 
-2.  **Construire le `.llamafile.exe`** (~44 Mo) :
+Double-cliquez sur `install.bat`. Le script vérifie Python, télécharge et
+vérifie les dépendances, construit le `.llamafile.exe`, puis propose de
+lancer `lancer.bat`.
 
-         python -B dev/tools/setup_lacitadelle.py
+### Option B — installation manuelle
 
-    Le modèle reste externe ; le fichier est créé dans `dist/`.
+Depuis le dossier du projet :
 
-3.  **Lancer le serveur et l'interface web** : double-cliquez sur
-    `lancer.bat` à la racine du dépôt. Le serveur démarre dans une fenêtre
-    séparée et le navigateur s'ouvre sur `http://localhost:8080`.
+    python dev/tools/bootstrap.py
+    python -B dev/tools/setup_lacitadelle.py
+
+Le bootstrap télécharge le runtime, `zipalign` et le GGUF Qwen3
+(environ 1,3 Go au total) dans `dev/tools/vendor/llamafile/`.
+Le setup construit le `.llamafile.exe` external d'environ 44 Mo dans
+`dist/`. Ensuite, double-cliquez sur `lancer.bat` pour démarrer le
+serveur et ouvrir le navigateur.
 
 ## Modes d'utilisation
 
