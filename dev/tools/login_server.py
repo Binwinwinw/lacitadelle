@@ -18,6 +18,7 @@ Aucune dépendance externe. Python 3.10+ requis.
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import sqlite3
 import sys
@@ -36,10 +37,14 @@ from citadelle_memory import (
     DB_PATH as MEMORY_DB_PATH,
     add_message,
     create_session,
+    create_session_for_user,
     ensure_default_user,
     get_messages,
+    get_messages_for_user,
+    get_session_for_user,
     init_db,
     list_sessions,
+    list_sessions_for_user,
 )
 
 PROXY_HOST = "127.0.0.1"
@@ -51,6 +56,7 @@ SYSTEM_PROMPT = "Tu es Lacitadelle, un assistant IA local. Réponds en français
 SESSION_COOKIE_NAME = "lacitadelle_session"
 HTTP_TIMEOUT = 120
 SQLITE_TIMEOUT = 5.0
+SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
 
 # Le contenu est perdu au redémarrage du proxy, conformément au contrat V2.
 SESSIONS: dict[str, int] = {}
@@ -124,6 +130,14 @@ def clear_cookie_token(handler: BaseHTTPRequestHandler) -> None:
     cookie[SESSION_COOKIE_NAME]["samesite"] = "Strict"
     cookie[SESSION_COOKIE_NAME]["path"] = "/"
     handler.send_header("Set-Cookie", cookie[SESSION_COOKIE_NAME].OutputString())
+
+
+def get_authenticated_user_id(handler: BaseHTTPRequestHandler) -> int | None:
+    """Retourne le user_id si le cookie est valide, sinon None."""
+    token = read_cookie_token(handler)
+    if token is None:
+        return None
+    return get_user_from_token(token)
 
 
 def redirect(handler: BaseHTTPRequestHandler, location: str) -> None:
@@ -252,27 +266,67 @@ def handle_get_index(handler: BaseHTTPRequestHandler) -> None:
 
 def handle_get_api_sessions(
     handler: BaseHTTPRequestHandler,
-    user_id: int,
 ) -> None:
     """GET /api/sessions : liste les sessions de l'utilisateur."""
-    raise NotImplementedError("handle_get_api_sessions à implémenter")
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    sessions = list_sessions_for_user(user_id)
+    json_response(handler, {"sessions": sessions})
 
 
 def handle_post_api_sessions(
     handler: BaseHTTPRequestHandler,
-    user_id: int,
 ) -> None:
     """POST /api/sessions : crée une session pour l'utilisateur."""
-    raise NotImplementedError("handle_post_api_sessions à implémenter")
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+    except (TypeError, ValueError):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if content_length < 0 or content_length > 4096:
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+
+    title: str | None = None
+    if content_length:
+        raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+        try:
+            body = json.loads(raw_body) if raw_body.strip() else {}
+        except json.JSONDecodeError:
+            body = {}
+        if isinstance(body, dict):
+            title_raw = body.get("title")
+            if isinstance(title_raw, str) and title_raw.strip():
+                title = title_raw.strip()[:100]
+
+    session_id = create_session_for_user(user_id, title)
+    json_response(
+        handler,
+        {"session_id": session_id, "title": title},
+        HTTPStatus.CREATED,
+    )
 
 
 def handle_get_messages(
     handler: BaseHTTPRequestHandler,
-    user_id: int,
     session_id: int,
 ) -> None:
     """GET /api/sessions/{id}/messages : liste les messages de la session."""
-    raise NotImplementedError("handle_get_messages à implémenter")
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    if get_session_for_user(user_id, session_id) is None:
+        error_response(handler, "Session introuvable", HTTPStatus.NOT_FOUND)
+        return
+    messages = get_messages_for_user(user_id, session_id)
+    json_response(handler, {"messages": messages})
 
 
 def handle_post_message(
@@ -298,10 +352,14 @@ class RequestHandler(BaseHTTPRequestHandler):
                 serve_static(self, "style.css")
             elif path == "/chat.js":
                 serve_static(self, "chat.js")
-            elif path.startswith("/api/sessions"):
-                raise NotImplementedError("Routes API non encore implémentées")
+            elif path == "/api/sessions":
+                handle_get_api_sessions(self)
             else:
-                self.send_error(HTTPStatus.NOT_FOUND)
+                match = SESSION_MSG_RE.match(path)
+                if match:
+                    handle_get_messages(self, int(match.group(1)))
+                else:
+                    self.send_error(HTTPStatus.NOT_FOUND)
         except NotImplementedError:
             self.send_error(HTTPStatus.NOT_IMPLEMENTED)
 
@@ -312,9 +370,12 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_login(self)
             elif path == "/logout":
                 handle_post_logout(self)
-            elif path.startswith("/api/sessions"):
-                raise NotImplementedError("Routes API non encore implémentées")
+            elif path == "/api/sessions":
+                handle_post_api_sessions(self)
             else:
+                match = SESSION_MSG_RE.match(path)
+                if match:
+                    raise NotImplementedError("POST messages non encore implémenté")
                 self.send_error(HTTPStatus.NOT_FOUND)
         except NotImplementedError:
             self.send_error(HTTPStatus.NOT_IMPLEMENTED)

@@ -245,3 +245,25 @@ def get_messages_for_user(
     if get_session_for_user(user_id, session_id, db_path) is None:
         return []
     return get_messages(session_id, limit=limit, db_path=db_path)
+
+
+def create_session_for_user(
+    user_id: int,
+    title: str | None = None,
+    db_path: Path | None = None,
+) -> int:
+    """Crée une session pour un user_id donné.
+
+    Contrairement à create_session (V1), ne crée pas d'utilisateur
+    par défaut : l'utilisateur doit exister.
+    """
+    now = _utcnow()
+    with _connect(db_path) as conn:
+        cursor = conn.execute(
+            "INSERT INTO sessions (user_id, title, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?)",
+            (user_id, title, now, now),
+        )
+        if cursor.lastrowid is None:
+            raise MemoryError_("Impossible de récupérer l'identifiant de session")
+        return cursor.lastrowid
