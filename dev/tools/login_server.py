@@ -45,6 +45,7 @@ from citadelle_memory import (
     init_db,
     list_sessions,
     list_sessions_for_user,
+    migrate_to_v3,
 )
 
 PROXY_HOST = "127.0.0.1"
@@ -488,7 +489,25 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 def main() -> int:
-    """Démarre le serveur local ; les routes restent toutes non implémentées."""
+    """Migre la base V3 puis démarre le serveur local."""
+    migrate_to_v3()
+    conn = sqlite3.connect(str(MEMORY_DB_PATH), timeout=SQLITE_TIMEOUT)
+    try:
+        has_admin = conn.execute(
+            "SELECT 1 FROM users WHERE role = 'admin' LIMIT 1"
+        ).fetchone()
+    except sqlite3.Error as exc:
+        print(f"ERREUR DB : {exc}", file=sys.stderr)
+        return 1
+    finally:
+        conn.close()
+    if has_admin is None:
+        print(
+            "ATTENTION : aucun administrateur n'existe en base.\n"
+            "Lancez : python dev/tools/create_admin.py\n"
+            "(le proxy démarre quand même, mais /register créera le premier admin).",
+            file=sys.stderr,
+        )
     server = HTTPServer((PROXY_HOST, PROXY_PORT), RequestHandler)
     print(f"Proxy La Citadelle démarré sur http://{PROXY_HOST}:{PROXY_PORT}")
     try:

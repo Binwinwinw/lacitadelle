@@ -13,7 +13,12 @@ Aucune dépendance externe. Python 3.10+ requis.
 from __future__ import annotations
 
 import json
+import hashlib
+import hmac
+import os
+import secrets
 import sqlite3
+import string
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -55,6 +60,146 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 """
+
+SCRYPT_N = 16384
+SCRYPT_R = 8
+SCRYPT_P = 1
+SCRYPT_SALT_BYTES = 16
+SCRYPT_HASH_BYTES = 32
+
+SCHEMA_V3_SQL = """
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user','admin')),
+    is_active INTEGER NOT NULL DEFAULT 1,
+    must_change_password INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    last_login_at TEXT
+);
+
+CREATE TABLE sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('user','assistant','system')),
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    metadata TEXT,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
+"""
+
+
+def _users_has_password_hash(conn: sqlite3.Connection) -> bool:
+    """Détecte si le schéma V3 est déjà appliqué."""
+    rows = conn.execute("PRAGMA table_info(users)").fetchall()
+    return any(row["name"] == "password_hash" for row in rows)
+
+
+def migrate_to_v3(db_path: Path | None = None) -> None:
+    """Remplace le schéma V2 par V3, en supprimant toutes les données."""
+    with _connect(db_path) as conn:
+        if _users_has_password_hash(conn):
+            return
+        conn.execute("PRAGMA foreign_keys = OFF")
+        try:
+            conn.executescript(
+                "BEGIN;"
+                "DROP TABLE IF EXISTS messages;"
+                "DROP TABLE IF EXISTS sessions;"
+                "DROP TABLE IF EXISTS users;"
+                + SCHEMA_V3_SQL
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.execute("PRAGMA foreign_keys = ON")
+
+
+def hash_password(password: str) -> str:
+    """Hash scrypt avec les paramètres V3."""
+    if not isinstance(password, str) or not password:
+        raise ValueError("Mot de passe vide")
+    salt = os.urandom(SCRYPT_SALT_BYTES)
+    password_hash = hashlib.scrypt(
+        password.encode("utf-8"),
+        salt=salt,
+        n=SCRYPT_N,
+        r=SCRYPT_R,
+        p=SCRYPT_P,
+        dklen=SCRYPT_HASH_BYTES,
+    )
+    return (
+        f"scrypt${SCRYPT_N}${SCRYPT_R}${SCRYPT_P}$"
+        f"{salt.hex()}${password_hash.hex()}"
+    )
+
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    """Vérifie un hash scrypt V3; rejette les formats ou paramètres invalides."""
+    if not isinstance(password, str) or not isinstance(stored_hash, str):
+        return False
+    parts = stored_hash.split("$")
+    if len(parts) != 6 or parts[0] != "scrypt":
+        return False
+    try:
+        n, r, p = map(int, parts[1:4])
+        salt = bytes.fromhex(parts[4])
+        expected = bytes.fromhex(parts[5])
+    except ValueError:
+        return False
+    if (
+        (n, r, p) != (SCRYPT_N, SCRYPT_R, SCRYPT_P)
+        or len(salt) != SCRYPT_SALT_BYTES
+        or len(expected) != SCRYPT_HASH_BYTES
+    ):
+        return False
+    try:
+        actual = hashlib.scrypt(
+            password.encode("utf-8"),
+            salt=salt,
+            n=n,
+            r=r,
+            p=p,
+            dklen=len(expected),
+        )
+    except (ValueError, MemoryError):
+        return False
+    return hmac.compare_digest(actual, expected)
+
+
+def generate_strong_password(length: int = 16) -> str:
+    """Génère un mot de passe contenant les quatre catégories requises."""
+    if not isinstance(length, int) or length < 16:
+        raise ValueError("Longueur minimale : 16")
+    lowercase = string.ascii_lowercase
+    uppercase = string.ascii_uppercase
+    digits = string.digits
+    symbols = "!@#$%^&*"
+    alphabet = lowercase + uppercase + digits + symbols
+    password_chars = [
+        secrets.choice(lowercase),
+        secrets.choice(uppercase),
+        secrets.choice(digits),
+        secrets.choice(symbols),
+    ]
+    password_chars.extend(
+        secrets.choice(alphabet) for _ in range(length - 4)
+    )
+    secrets.SystemRandom().shuffle(password_chars)
+    return "".join(password_chars)
 
 
 class MemoryError_(Exception):
