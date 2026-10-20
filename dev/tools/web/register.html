@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Citadelle - Inscription</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="login-container">
+        <h1>La Citadelle</h1>
+        <p class="subtitle">Créer un compte</p>
+        <form id="register-form" action="/register" method="POST">
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" id="username" name="username"
+                   placeholder="3-50 caractères, alphanumérique + - _"
+                   required minlength="3" maxlength="50" autofocus>
+            <label for="password">Mot de passe (min 8 caractères)</label>
+            <input type="password" id="password" name="password"
+                   required minlength="8">
+            <label for="password_confirm">Confirmer</label>
+            <input type="password" id="password_confirm"
+                   name="password_confirm" required minlength="8">
+            <button type="submit">Créer le compte</button>
+        </form>
+        <p class="subtitle" style="text-align:center;margin-top:1rem;">
+            <a href="/login">Déjà un compte ? Se connecter</a>
+        </p>
+    </main>
+</body>
+</html>

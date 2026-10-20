@@ -42,10 +42,12 @@ from citadelle_memory import (
     get_messages,
     get_messages_for_user,
     get_session_for_user,
+    hash_password,
     init_db,
     list_sessions,
     list_sessions_for_user,
     migrate_to_v3,
+    verify_password,
 )
 
 PROXY_HOST = "127.0.0.1"
@@ -58,9 +60,22 @@ SESSION_COOKIE_NAME = "lacitadelle_session"
 HTTP_TIMEOUT = 120
 SQLITE_TIMEOUT = 5.0
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
+USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_-]{3,50}$")
+EXEMPT_PATHS_WHEN_MUST_CHANGE = {
+    "/change-password",
+    "/logout",
+    "/login",
+    "/register",
+    "/style.css",
+    "/chat.js",
+    "/login.html",
+    "/register.html",
+    "/change-password.html",
+}
 
 # Le contenu est perdu au redémarrage du proxy, conformément au contrat V2.
 SESSIONS: dict[str, int] = {}
+MUST_CHANGE: dict[str, bool] = {}
 
 
 class LoginError(Exception):
@@ -76,13 +91,15 @@ def _get_db_connection() -> sqlite3.Connection:
     return conn
 
 
-def create_session_token(user_id: int) -> str:
+def create_session_token(user_id: int, must_change: bool = False) -> str:
     """Crée un token opaque et remplace l'ancien token de l'utilisateur."""
     for existing_token, existing_user_id in list(SESSIONS.items()):
         if existing_user_id == user_id:
             del SESSIONS[existing_token]
+            MUST_CHANGE.pop(existing_token, None)
     token = secrets.token_urlsafe(32)
     SESSIONS[token] = user_id
+    MUST_CHANGE[token] = must_change
     return token
 
 
@@ -94,6 +111,31 @@ def get_user_from_token(token: str) -> int | None:
 def revoke_session(token: str) -> None:
     """Révoque un token de session."""
     SESSIONS.pop(token, None)
+    MUST_CHANGE.pop(token, None)
+
+
+def must_change_required(token: str | None) -> bool:
+    """Indique si le token est restreint au changement de mot de passe."""
+    return MUST_CHANGE.get(token, False) if token is not None else False
+
+
+def check_must_change_gate(
+    handler: BaseHTTPRequestHandler,
+    token: str | None,
+    path: str,
+) -> bool:
+    """Bloque les routes d'une session qui doit changer son mot de passe."""
+    if path in EXEMPT_PATHS_WHEN_MUST_CHANGE or not must_change_required(token):
+        return False
+    if path.startswith("/api/"):
+        error_response(
+            handler,
+            "Changement de mot de passe requis",
+            HTTPStatus.FORBIDDEN,
+        )
+    else:
+        redirect(handler, "/change-password")
+    return True
 
 
 def read_cookie_token(handler: BaseHTTPRequestHandler) -> str | None:
@@ -195,23 +237,172 @@ def handle_get_login(handler: BaseHTTPRequestHandler) -> None:
     serve_static(handler, "login.html")
 
 
+def handle_get_register(handler: BaseHTTPRequestHandler) -> None:
+    """GET /register : affiche la page d'inscription."""
+    serve_static(handler, "register.html")
+
+
+def handle_get_change_password(handler: BaseHTTPRequestHandler) -> None:
+    """GET /change-password : affiche le formulaire de changement."""
+    serve_static(handler, "change-password.html")
+
+
 def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
-    """POST /login : crée ou charge un utilisateur et ouvre sa session."""
+    """POST /login : vérifie le mot de passe et ouvre une session."""
     try:
         content_length = int(handler.headers.get("Content-Length", "0"))
     except (TypeError, ValueError):
         error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
         return
-    if content_length <= 0 or content_length > 1024:
+    if content_length <= 0 or content_length > 4096:
         error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
         return
     raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
     params = parse_qs(raw_body)
     username = params.get("username", [""])[0].strip()
-    if not username or len(username) > 50:
+    password = params.get("password", [""])[0]
+    if not username or not password:
+        error_response(handler, "Identifiants invalides", HTTPStatus.UNAUTHORIZED)
+        return
+
+    conn = _get_db_connection()
+    try:
+        row = conn.execute(
+            "SELECT id, password_hash, is_active, must_change_password "
+            "FROM users WHERE username = ?",
+            (username,),
+        ).fetchone()
+        if (
+            row is None
+            or row["is_active"] != 1
+            or not verify_password(password, row["password_hash"])
+        ):
+            error_response(handler, "Identifiants invalides", HTTPStatus.UNAUTHORIZED)
+            return
+        user_id = int(row["id"])
+        must_change = bool(row["must_change_password"])
+        conn.execute(
+            "UPDATE users SET last_login_at = ? WHERE id = ?",
+            (datetime.now(timezone.utc).isoformat(), user_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    token = create_session_token(user_id, must_change=must_change)
+    handler.send_response(HTTPStatus.FOUND)
+    set_cookie_token(handler, token)
+    handler.send_header(
+        "Location",
+        "/change-password" if must_change else "/",
+    )
+    handler.end_headers()
+
+
+def handle_post_register(handler: BaseHTTPRequestHandler) -> None:
+    """POST /register : crée un utilisateur et redirige vers /login."""
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+    except (TypeError, ValueError):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if content_length <= 0 or content_length > 4096:
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+    params = parse_qs(raw_body)
+    username = params.get("username", [""])[0].strip()
+    password = params.get("password", [""])[0]
+    password_confirm = params.get("password_confirm", [""])[0]
+
+    if not USERNAME_REGEX.fullmatch(username):
         error_response(
             handler,
             "Nom d'utilisateur invalide",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if len(password) < 8:
+        error_response(
+            handler,
+            "Mot de passe trop court (min 8)",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if password != password_confirm:
+        error_response(handler, "Mots de passe différents", HTTPStatus.BAD_REQUEST)
+        return
+
+    conn = _get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        if conn.execute(
+            "SELECT 1 FROM users WHERE username = ? LIMIT 1",
+            (username,),
+        ).fetchone():
+            error_response(handler, "Nom déjà utilisé", HTTPStatus.BAD_REQUEST)
+            return
+        has_admin = conn.execute(
+            "SELECT 1 FROM users WHERE role = 'admin' LIMIT 1"
+        ).fetchone()
+        role = "user" if has_admin else "admin"
+        conn.execute(
+            "INSERT INTO users "
+            "(username, password_hash, role, is_active, "
+            "must_change_password, created_at, last_login_at) "
+            "VALUES (?, ?, ?, 1, 0, ?, NULL)",
+            (
+                username,
+                hash_password(password),
+                role,
+                datetime.now(timezone.utc).isoformat(),
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    redirect(handler, "/login")
+
+
+def handle_post_change_password(handler: BaseHTTPRequestHandler) -> None:
+    """POST /change-password : vérifie et remplace le mot de passe."""
+    token = read_cookie_token(handler)
+    user_id = get_user_from_token(token) if token else None
+    if token is None or user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    if not must_change_required(token):
+        error_response(handler, "Changement non requis", HTTPStatus.FORBIDDEN)
+        return
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+    except (TypeError, ValueError):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if content_length <= 0 or content_length > 4096:
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+    params = parse_qs(raw_body)
+    old_password = params.get("old_password", [""])[0]
+    new_password = params.get("new_password", [""])[0]
+    new_password_confirm = params.get("new_password_confirm", [""])[0]
+
+    if len(new_password) < 8:
+        error_response(
+            handler,
+            "Mot de passe trop court (min 8)",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if new_password != new_password_confirm:
+        error_response(handler, "Mots de passe différents", HTTPStatus.BAD_REQUEST)
+        return
+    if new_password == old_password:
+        error_response(
+            handler,
+            "Nouveau mot de passe identique à l'ancien",
             HTTPStatus.BAD_REQUEST,
         )
         return
@@ -219,29 +410,27 @@ def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
     conn = _get_db_connection()
     try:
         row = conn.execute(
-            "SELECT id FROM users WHERE username = ?",
-            (username,),
+            "SELECT password_hash FROM users WHERE id = ?",
+            (user_id,),
         ).fetchone()
-        if row:
-            user_id = int(row["id"])
-        else:
-            created_at = datetime.now(timezone.utc).isoformat()
-            cursor = conn.execute(
-                "INSERT INTO users (username, created_at) VALUES (?, ?)",
-                (username, created_at),
+        if row is None or not verify_password(old_password, row["password_hash"]):
+            error_response(
+                handler,
+                "Ancien mot de passe incorrect",
+                HTTPStatus.UNAUTHORIZED,
             )
-            conn.commit()
-            if cursor.lastrowid is None:
-                raise LoginError("Impossible de récupérer l'identifiant utilisateur")
-            user_id = cursor.lastrowid
+            return
+        conn.execute(
+            "UPDATE users SET password_hash = ?, must_change_password = 0 "
+            "WHERE id = ?",
+            (hash_password(new_password), user_id),
+        )
+        conn.commit()
     finally:
         conn.close()
 
-    token = create_session_token(user_id)
-    handler.send_response(HTTPStatus.FOUND)
-    set_cookie_token(handler, token)
-    handler.send_header("Location", "/")
-    handler.end_headers()
+    MUST_CHANGE[token] = False
+    redirect(handler, "/")
 
 
 def handle_post_logout(handler: BaseHTTPRequestHandler) -> None:
@@ -445,11 +634,23 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
+        if check_must_change_gate(self, read_cookie_token(self), path):
+            return
         try:
             if path == "/login":
                 handle_get_login(self)
+            elif path == "/register":
+                handle_get_register(self)
+            elif path == "/change-password":
+                handle_get_change_password(self)
             elif path == "/":
                 handle_get_index(self)
+            elif path == "/login.html":
+                serve_static(self, "login.html")
+            elif path == "/register.html":
+                serve_static(self, "register.html")
+            elif path == "/change-password.html":
+                serve_static(self, "change-password.html")
             elif path == "/style.css":
                 serve_static(self, "style.css")
             elif path == "/chat.js":
@@ -467,9 +668,15 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
+        if check_must_change_gate(self, read_cookie_token(self), path):
+            return
         try:
             if path == "/login":
                 handle_post_login(self)
+            elif path == "/register":
+                handle_post_register(self)
+            elif path == "/change-password":
+                handle_post_change_password(self)
             elif path == "/logout":
                 handle_post_logout(self)
             elif path == "/api/sessions":

@@ -13,6 +13,8 @@ Particularités techniques à connaître avant de coder ou déboguer.
 
 Les restrictions concernant Ponytail et hacklm-memory, ainsi que leur vérification post-session, sont définies dans `AGENTS.md` et `dev/docs/OUTILS_INTRUSIFS.md`.
 
+- `dev/tests/system-commandline-sentinel-files/` : artefact .NET/Git Credential Manager. Réapparaît automatiquement après certains pushs. Gitignoré. Ignorer. S'il réapparaît, le supprimer (pas de commit nécessaire).
+
 ## Python
 
 - **Python 3.10+ requis** pour bootstrap, setup, client et proxy; pas pour llamafile.
