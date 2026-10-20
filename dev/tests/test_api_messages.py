@@ -12,12 +12,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 citadelle_memory = importlib.import_module("citadelle_memory")
 login_server = importlib.import_module("login_server")
-api_sessions_tests = importlib.import_module("test_api_sessions")
-api_test_context = api_sessions_tests.api_test_context
-api_post = api_sessions_tests.api_post
-login_as = api_sessions_tests.login_as
-open_no_redirect = api_sessions_tests.open_no_redirect
-SESSION_COOKIE_NAME = login_server.SESSION_COOKIE_NAME
+from _helpers import (
+    NoRedirect,
+    SESSION_COOKIE_NAME,
+    api_post,
+    api_test_context,
+    create_test_user,
+    login_as,
+    open_no_redirect,
+)
 
 
 def api_post_message(opener, base_url, token, session_id, body):
@@ -46,7 +49,8 @@ def create_session(opener, base_url, token):
 
 def test_post_message_ok():
     with api_test_context() as (base_url, opener, db_path):
-        token = login_as(opener, base_url, "alice")
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
         session_id = create_session(opener, base_url, token)
         with patch.object(login_server, "call_llamafile", return_value="Bonjour!") as call:
             response = api_post_message(
@@ -98,9 +102,11 @@ def test_post_message_no_auth():
 
 
 def test_post_message_other_user():
-    with api_test_context() as (base_url, opener, _):
-        alice_token = login_as(opener, base_url, "alice")
-        bob_token = login_as(opener, base_url, "bob")
+    with api_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "alice", "secret123")
+        create_test_user(db_path, "bob", "secret123")
+        alice_token = login_as(opener, base_url, "alice", "secret123")
+        bob_token = login_as(opener, base_url, "bob", "secret123")
         session_id = create_session(opener, base_url, alice_token)
         with patch.object(login_server, "call_llamafile") as call:
             response = api_post_message(
@@ -116,8 +122,9 @@ def test_post_message_other_user():
 
 
 def test_post_message_empty_content():
-    with api_test_context() as (base_url, opener, _):
-        token = login_as(opener, base_url, "alice")
+    with api_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
         session_id = create_session(opener, base_url, token)
         with patch.object(login_server, "call_llamafile") as call:
             response = api_post_message(
@@ -134,7 +141,8 @@ def test_post_message_empty_content():
 
 def test_post_message_llamafile_error():
     with api_test_context() as (base_url, opener, db_path):
-        token = login_as(opener, base_url, "alice")
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
         session_id = create_session(opener, base_url, token)
         with patch.object(
             login_server,

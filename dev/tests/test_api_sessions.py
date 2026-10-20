@@ -3,74 +3,23 @@
 import importlib
 import json
 import sys
-import tempfile
-import threading
-import urllib.error
 import urllib.request
-from contextlib import contextmanager
-from http.cookies import SimpleCookie
-from http.server import HTTPServer
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 citadelle_memory = importlib.import_module("citadelle_memory")
 login_server = importlib.import_module("login_server")
+from _helpers import (
+    NoRedirect,
+    api_post,
+    api_test_context,
+    create_test_user,
+    login_as,
+    open_no_redirect,
+)
 SESSION_COOKIE_NAME = login_server.SESSION_COOKIE_NAME
-
-
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, request, file, code, message, headers, new_url):
-        return None
-
-
-def open_no_redirect(opener, request):
-    try:
-        return opener.open(request, timeout=5)
-    except urllib.error.HTTPError as response:
-        return response
-
-
-def login_as(opener, base_url: str, username: str) -> str:
-    request = urllib.request.Request(
-        f"{base_url}/login",
-        data=f"username={username}".encode("utf-8"),
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        method="POST",
-    )
-    response = open_no_redirect(opener, request)
-    assert response.code == 302
-    cookie_header = response.headers.get("Set-Cookie", "")
-    cookie = SimpleCookie()
-    cookie.load(cookie_header)
-    response.close()
-    return cookie[SESSION_COOKIE_NAME].value
-
-
-@contextmanager
-def api_test_context():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        db_path = Path(temp_dir) / "test.db"
-        with (
-            patch.object(login_server, "MEMORY_DB_PATH", db_path),
-            patch.object(citadelle_memory, "DB_PATH", db_path),
-        ):
-            citadelle_memory.init_db(db_path)
-            login_server.SESSIONS.clear()
-            server = HTTPServer(("127.0.0.1", 0), login_server.RequestHandler)
-            port = server.server_address[1]
-            thread = threading.Thread(target=server.serve_forever, daemon=True)
-            thread.start()
-            try:
-                base_url = f"http://127.0.0.1:{port}"
-                opener = urllib.request.build_opener(NoRedirect())
-                yield base_url, opener, db_path
-            finally:
-                server.shutdown()
-                thread.join(timeout=5)
-                server.server_close()
-                login_server.SESSIONS.clear()
 
 
 def api_get(opener, base_url: str, path: str, token: str | None = None):
@@ -78,26 +27,6 @@ def api_get(opener, base_url: str, path: str, token: str | None = None):
     if token is not None:
         headers["Cookie"] = f"{SESSION_COOKIE_NAME}={token}"
     request = urllib.request.Request(f"{base_url}{path}", headers=headers)
-    return open_no_redirect(opener, request)
-
-
-def api_post(
-    opener,
-    base_url: str,
-    path: str,
-    token: str,
-    body: dict | None = None,
-):
-    data = json.dumps(body).encode("utf-8") if body is not None else b""
-    request = urllib.request.Request(
-        f"{base_url}{path}",
-        data=data,
-        headers={
-            "Cookie": f"{SESSION_COOKIE_NAME}={token}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
     return open_no_redirect(opener, request)
 
 
@@ -115,16 +44,18 @@ def test_api_sessions_requires_auth():
 
 
 def test_api_sessions_list_empty():
-    with api_test_context() as (base_url, opener, _):
-        token = login_as(opener, base_url, "alice")
+    with api_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
         with api_get(opener, base_url, "/api/sessions", token) as response:
             assert response.code == 200
             assert json.loads(response.read().decode("utf-8"))["sessions"] == []
 
 
 def test_api_sessions_create_and_list():
-    with api_test_context() as (base_url, opener, _):
-        token = login_as(opener, base_url, "alice")
+    with api_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
         with api_post(
             opener,
             base_url,
@@ -144,9 +75,11 @@ def test_api_sessions_create_and_list():
 
 
 def test_api_sessions_isolation():
-    with api_test_context() as (base_url, opener, _):
-        alice_token = login_as(opener, base_url, "alice")
-        bob_token = login_as(opener, base_url, "bob")
+    with api_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "alice", "secret123")
+        create_test_user(db_path, "bob", "secret123")
+        alice_token = login_as(opener, base_url, "alice", "secret123")
+        bob_token = login_as(opener, base_url, "bob", "secret123")
         with api_post(
             opener, base_url, "/api/sessions", alice_token, {"title": "Alice"}
         ):
@@ -166,7 +99,8 @@ def test_api_sessions_isolation():
 
 def test_api_messages_get_own():
     with api_test_context() as (base_url, opener, db_path):
-        token = login_as(opener, base_url, "alice")
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
         with api_post(
             opener, base_url, "/api/sessions", token, {"title": "T"}
         ) as response:
@@ -191,9 +125,11 @@ def test_api_messages_get_own():
 
 
 def test_api_messages_other_user_404():
-    with api_test_context() as (base_url, opener, _):
-        alice_token = login_as(opener, base_url, "alice")
-        bob_token = login_as(opener, base_url, "bob")
+    with api_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "alice", "secret123")
+        create_test_user(db_path, "bob", "secret123")
+        alice_token = login_as(opener, base_url, "alice", "secret123")
+        bob_token = login_as(opener, base_url, "bob", "secret123")
         with api_post(
             opener, base_url, "/api/sessions", alice_token, {"title": "T"}
         ) as response:
