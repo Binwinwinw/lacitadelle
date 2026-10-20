@@ -29,3 +29,6 @@ Thumbs.db
 
 # Logs (bruit système / IDE — voir cleanup.log)
 *.log
+
+# Artefact externe (.NET / Git Credential Manager sentinel)
+dev/tests/system-commandline-sentinel-files/
