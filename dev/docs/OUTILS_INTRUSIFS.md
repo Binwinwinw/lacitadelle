@@ -18,19 +18,24 @@ si possible, désactivé ou restreint.
 
 ## hacklm-memory
 
-- **Source** : extension / outil d'environnement (identifié par les marqueurs
-  `<!-- hacklm-memory:start -->` / `<!-- hacklm-memory:end -->`).
-- **Comportement identifié** : injecte un bloc d'instructions dans
-  `.github/copilot-instructions.md`, avec instructions `storeMemory`
-  contradictoires avec la règle 6 d'`AGENTS.md`.
-- **Incident** : 2026-10-17, injection de 40 lignes dans
-  `copilot-instructions.md`, restauré par `git restore`. Documenté dans
-  `decisions.md`.
-- **Fichiers sensibles** : `.github/copilot-instructions.md`, potentiellement
-  `.memory/*.md`.
-- **Mesure** : interdit d'action sur `.github/copilot-instructions.md` et
-  `.memory/` (AGENTS.md règle 6). Vérifier après chaque session l'absence de
-  blocs `<!-- hacklm-memory:* -->` dans `copilot-instructions.md`.
+- **Source** : extension VS Code (Visual Studio Marketplace).
+- **Comportement par défaut** : injecte un bloc
+  `<!-- hacklm-memory:start --> ... end -->` dans
+  `.github/copilot-instructions.md` (setting `manageInstructionFile: true`
+  par défaut).
+- **Incident** : 2026-10-17, injection de 40 lignes. Restauré via
+  `git restore`.
+- **Configuration actuelle (2026-10-21)** : setting
+  `hacklm-memory.manageInstructionFile = false`. L'extension ne modifie plus
+  `copilot-instructions.md`. Elle continue d'apprendre passivement dans
+  `.memory/` (comportement de l'extension, non intrusif pour notre projet).
+- **Fichiers sensibles** : `.github/copilot-instructions.md` (protégé par la
+  configuration), `.memory/*.md` (l'extension peut écrire si
+  `autoApproveStore` est activé — actuellement `false`).
+- **Mesure de sécurité** : si un bloc `<!-- hacklm-memory:start -->`
+  réapparaît dans `copilot-instructions.md`, exécuter
+  `git restore .github/copilot-instructions.md` et vérifier la configuration
+  VS Code.
 
 ## Garde-fous généraux
 

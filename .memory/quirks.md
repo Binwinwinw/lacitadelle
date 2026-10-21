@@ -13,6 +13,12 @@ Particularités techniques à connaître avant de coder ou déboguer.
 
 Les restrictions concernant Ponytail et hacklm-memory, ainsi que leur vérification post-session, sont définies dans `AGENTS.md` et `dev/docs/OUTILS_INTRUSIFS.md`.
 
+- **hacklm-memory** (extension VS Code) : **configuré** via
+  `hacklm-memory.manageInstructionFile: false` pour ne pas modifier
+  `.github/copilot-instructions.md`. Si un bloc
+  `<!-- hacklm-memory:start -->` réapparaît, restaurer via
+  `git restore .github/copilot-instructions.md` et vérifier la configuration
+  VS Code.
 - `dev/tests/system-commandline-sentinel-files/` : artefact .NET/Git Credential Manager. Réapparaît automatiquement après certains pushs. Gitignoré. Ignorer. S'il réapparaît, le supprimer (pas de commit nécessaire).
 
 ## Python
