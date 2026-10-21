@@ -8,22 +8,17 @@ la fabrication de llamafiles personnalisés.
 Voir `dev/docs/OBJECTIF.md` pour le périmètre v1, et `AGENTS.md` pour
 les instructions de développement.
 
-## Bootstrap des dépendances
+## Téléchargement des fichiers requis
 
-Avant la première utilisation, télécharger et vérifier les binaires
-llamafile nécessaires :
+Le bootstrap télécharge et vérifie le runtime `.llamafile` préconstruit
+dans `dist/` et le modèle GGUF dans `dev/tools/vendor/llamafile/` :
 
     python dev/tools/bootstrap.py
 
-Cette commande télécharge :
-
-- `llamafile-0.10.6-thin` (~44 Mo) — runtime CPU-only
-- `zipalign-0.10.6` (~850 Ko) — outil d'assemblage
-
-Les fichiers sont stockés dans `dev/tools/vendor/llamafile/`, qui est
-gitignoré. Le premier lancement télécharge ~44 Mo. Les lancements
-suivants vérifient les checksums et ne retéléchargent pas les fichiers
-valides.
+Le modèle fait environ 1,28 Go et le runtime environ 44 Mo. Les
+relancements vérifient les checksums et ne retéléchargent pas les fichiers
+valides. `llamafile-thin` et `zipalign` ne sont téléchargés que si un
+développeur lance `setup_lacitadelle.py` pour reconstruire le runtime.
 
 Si un fichier est corrompu, le script le supprime et le retélécharge
 (mode réparateur). Voir `dev/tools/BOOTSTRAP_CONTRACT.md` pour les
@@ -35,37 +30,55 @@ détails et les limites connues.
 
 - Python 3.10+ installé.
 - Git installé.
-- Connexion internet pour télécharger les dépendances.
+- Environ 3 Go d'espace disque libre.
+- Connexion internet pour le premier téléchargement.
 
-### Préparation commune
+### Parcours rapide (Windows, 2 étapes)
 
-Clonez le dépôt puis placez-vous dans son dossier :
+1. Clonez le dépôt :
 
     git clone https://github.com/Binwinwinw/lacitadelle.git
-    cd lacitadelle
 
-### Option A — installation rapide (recommandée)
+2. Double-cliquez sur `install.bat`.
 
-Double-cliquez sur `install.bat`. Le script vérifie Python, télécharge et
-vérifie les dépendances, construit le `.llamafile.exe`, attend trois
-secondes puis lance automatiquement `lancer.bat` (V2) et ouvre le navigateur.
-Aucune confirmation ni saisie n'est nécessaire en cas de succès.
-La fenêtre de l'installeur se ferme ensuite ; en cas d'erreur, elle
-reste ouverte pour permettre de lire le message.
+`install.bat` vérifie Python, télécharge le `.llamafile` depuis GitHub
+Releases et le modèle GGUF depuis HuggingFace, puis lance `lancer.bat`.
+Le navigateur s'ouvre sur `http://localhost:8081`.
 
-### Option B — installation manuelle
+**Aucune compilation ni exécution de zipalign sur l'ordinateur utilisateur.**
+Le runtime préconstruit reste un exécutable : un antivirus peut encore le
+bloquer; autorisez `dist/` si nécessaire.
 
-Depuis le dossier du projet :
+La configuration de la release `v0.1.0` contient encore une URL et un
+checksum TODO. Le bootstrap et `setup_lacitadelle.py` refuseront cette
+configuration tant que l'URL et le checksum SHA-256 réels ne seront pas
+remplacés dans `dev/tools/llamafile_config.json` après publication de
+l'asset.
 
-    python dev/tools/bootstrap.py
-    python -B dev/tools/setup_lacitadelle.py
+### Création du premier administrateur
 
-Le bootstrap télécharge le runtime, `zipalign` et le GGUF Qwen3
-(environ 1,3 Go au total) dans `dev/tools/vendor/llamafile/`.
-Le setup construit le `.llamafile.exe` external d'environ 44 Mo dans
-`dist/`. Ensuite, double-cliquez sur `lancer.bat` pour démarrer la V2
-(serveur et proxy) et ouvrir le navigateur. Pour la V1, utilisez
-`lancer_v1.bat`.
+Une fois le proxy démarré, lancez :
+
+    python dev/tools/create_admin.py
+
+Notez le mot de passe temporaire affiché ; il devra être changé à la
+première connexion.
+
+### En cas de problème
+
+- **L'antivirus bloque le `.llamafile`** : autorisez le fichier ou le
+  dossier `dist/`. Le runtime reste un exécutable.
+- **Python n'est pas reconnu** : vérifiez que Python 3.10+ est dans le PATH.
+- **Le téléchargement échoue** : vérifiez la connexion et relancez
+  `python dev/tools/bootstrap.py`.
+
+Pour reconstruire le runtime côté développeur, lancez
+`python -B dev/tools/setup_lacitadelle.py`. Cette commande télécharge si
+besoin le runtime thin, `zipalign` et le GGUF, puis produit
+`dist/lacitadelle.llamafile.exe`.
+
+Sur Unix, aucun script d'installation automatique n'est fourni dans cette
+version. Le bootstrap peut être lancé avec `python dev/tools/bootstrap.py`.
 
 ## Modes d'utilisation — V1
 

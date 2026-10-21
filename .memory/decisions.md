@@ -169,3 +169,26 @@ compilation optionnelle, etc.) et deviennent obsolètes.
 VENDOR_STRATEGY.md, copilot-instructions.md) seront nettoyés dans
 le Temps 2 (tâche séparée). Aucun code Python n'est affecté
 (0 occurrence de main/ dans le code).
+
+## [2026-10-21] Séparation du build développeur et du run utilisateur
+
+**Contexte** : `install.bat` construisait le runtime avec `zipalign` sur
+l'ordinateur utilisateur. Ce binaire peut être bloqué par les politiques
+antivirus d'entreprise.
+
+**Décision(s)** :
+
+1. Le développeur construit le runtime avec `setup_lacitadelle.py` et publie
+   le `.llamafile` préconstruit dans une release GitHub.
+2. Le bootstrap utilisateur télécharge le runtime préconstruit dans `dist/`
+   et le GGUF dans `dev/tools/vendor/llamafile/`. Il ne télécharge pas
+   `zipalign` ni le runtime thin ; ces assets restent disponibles pour le
+   build développeur.
+3. `install.bat` exécute uniquement le bootstrap puis `lancer.bat`.
+4. La vérification SHA-256 reste obligatoire. L'URL et le checksum TODO
+   doivent être remplacés après publication de la release v0.1.0.
+
+**Conséquences** : l'ordinateur utilisateur n'exécute plus `zipalign` et
+n'effectue aucune compilation. Le bootstrap ne pourra fonctionner qu'une
+fois l'URL et le checksum réels renseignés. Le `.llamafile` reste soumis aux
+règles antivirus locales.

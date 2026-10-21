@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Bootstrap : télécharge et vérifie les binaires llamafile.
+"""Bootstrap : télécharge et vérifie le runtime préconstruit et le modèle.
 
 Lit dev/tools/llamafile_config.json, télécharge les assets marqués
-required=true, vérifie leur SHA-256, les stocke dans
-dev/tools/vendor/llamafile/. Échoue proprement en cas d'erreur.
+required=true et vérifie leur SHA-256. Le runtime préconstruit va dans
+dist/ ; les autres assets vont dans dev/tools/vendor/llamafile/.
+Échoue proprement en cas d'erreur.
 
 Voir dev/tools/BOOTSTRAP_CONTRACT.md pour le contrat complet.
 
@@ -30,8 +31,10 @@ from typing import Any
 
 # Chemins (relatifs au fichier, pas au cwd)
 TOOLS_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = TOOLS_DIR.parent.parent
 CONFIG_PATH = TOOLS_DIR / "llamafile_config.json"
 VENDOR_DIR = TOOLS_DIR / "vendor" / "llamafile"
+DIST_DIR = PROJECT_ROOT / "dist"
 
 # Paramètres
 CHUNK_SIZE = 64 * 1024
@@ -195,6 +198,16 @@ def _cleanup_partial(path: Path) -> None:
         pass
 
 
+def _make_executable(path: Path) -> None:
+    """Ajoute les droits d'exécution au runtime sur les systèmes Unix."""
+    try:
+        os.chmod(path, 0o755)
+    except OSError as e:
+        raise BootstrapError(
+            f"Impossible de rendre le runtime exécutable ({path}) : {e}"
+        ) from e
+
+
 def download(url: str, dest: Path) -> None:
     """Télécharge `url` vers `dest` en streaming.
 
@@ -243,7 +256,8 @@ def process_asset(name: str, meta: dict[str, Any]) -> None:
       1. Fichier final présent + checksum OK → rien à faire.
       2. Fichier final présent + checksum KO → suppression + téléchargement
          vers temporaire + vérification + publication atomique.
-      3. Fichier final absent → téléchargement vers temporaire + vérification
+      3. Runtime valide déjà dans vendor/ → déplacement vers dist/.
+      4. Fichier final absent → téléchargement vers temporaire + vérification
          + publication atomique.
 
     Une seule tentative de réparation. Pas de boucle de retry.
@@ -254,15 +268,20 @@ def process_asset(name: str, meta: dict[str, Any]) -> None:
     url = meta["url"]
     expected_sha = meta["sha256"]
     filename = meta["filename"]
-    final_path = VENDOR_DIR / filename
-    temp_path = VENDOR_DIR / f".tmp-{filename}-{os.getpid()}"
+    is_llamafile = filename.endswith(".llamafile")
+    final_filename = (
+        f"{filename}.exe"
+        if is_llamafile and sys.platform == "win32"
+        else filename
+    )
+    destination_dir = DIST_DIR if is_llamafile else VENDOR_DIR
+    final_path = destination_dir / final_filename
+    temp_path = destination_dir / f".tmp-{final_filename}-{os.getpid()}"
 
     # Cas 1 : fichier final présent
     if final_path.is_file():
         try:
             verify_sha256(final_path, expected_sha)
-            print(f"[OK] {name} : déjà présent et valide ({filename})")
-            return
         except BootstrapError:
             # Mode réparateur : suppression + retéléchargement
             print(
@@ -277,12 +296,51 @@ def process_asset(name: str, meta: dict[str, Any]) -> None:
                     f"Impossible de supprimer le fichier corrompu "
                     f"{final_path} : {e}"
                 ) from e
+        else:
+            if is_llamafile and sys.platform != "win32":
+                _make_executable(final_path)
+            print(f"[OK] {name} : déjà présent et valide ({filename})")
+            return
+
+    # Réutiliser un runtime préconstruit déjà placé dans vendor/llamafile/.
+    if is_llamafile:
+        vendor_candidates = dict.fromkeys(
+            (
+                VENDOR_DIR / final_filename,
+                VENDOR_DIR / filename,
+            )
+        )
+        for vendor_path in vendor_candidates:
+            if not vendor_path.is_file():
+                continue
+            try:
+                verify_sha256(vendor_path, expected_sha)
+            except BootstrapError:
+                print(
+                    f"[REPARATION] {name} : copie vendor invalide, "
+                    "nouveau téléchargement nécessaire",
+                    file=sys.stderr,
+                )
+                continue
+            if sys.platform != "win32":
+                _make_executable(vendor_path)
+            try:
+                final_path.parent.mkdir(parents=True, exist_ok=True)
+                vendor_path.replace(final_path)
+            except OSError as e:
+                raise BootstrapError(
+                    f"Impossible de publier le runtime {final_path} : {e}"
+                ) from e
+            print(f"[OK] {name} : réutilisé depuis vendor ({filename})")
+            return
 
     # Cas 2/3 : téléchargement vers temporaire
     print(f"[DOWNLOAD] {name} : téléchargement depuis {url}")
     try:
         download(url, temp_path)
         verify_sha256(temp_path, expected_sha)
+        if is_llamafile and sys.platform != "win32":
+            _make_executable(temp_path)
     except BootstrapError as e:
         # Nettoyage du temporaire en cas d'échec
         _cleanup_partial(temp_path)
@@ -321,7 +379,8 @@ def main() -> int:
         return EXIT_OK
 
     print(f"Bootstrap : {len(required)} asset(s) requis à traiter.")
-    print(f"Destination : {VENDOR_DIR}")
+    print(f"Runtime : {DIST_DIR}")
+    print(f"Autres assets : {VENDOR_DIR}")
     print()
 
     failures = []

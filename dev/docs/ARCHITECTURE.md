@@ -2,13 +2,13 @@
 
 ## Vue d'ensemble
 
-La Citadelle assemble un runtime llamafile léger et un modèle GGUF externe. Le runtime démarre un serveur HTTP local ; en V1, l'utilisateur ouvre l'interface web intégrée avec `lancer_v1.bat`. En V2, le navigateur passe par le proxy Python démarré avec `lancer.bat`. Un client Python séparé permet aussi d'utiliser une mémoire SQLite. Le modèle et la base ne sont pas intégrés au runtime.
+La Citadelle distribue un runtime llamafile léger préconstruit et un modèle GGUF externe. Le runtime démarre un serveur HTTP local ; en V1, l'utilisateur ouvre l'interface web intégrée avec `lancer_v1.bat`. En V2, le navigateur passe par le proxy Python démarré avec `lancer.bat`. Un client Python séparé permet aussi d'utiliser une mémoire SQLite. Le modèle et la base ne sont pas intégrés au runtime.
 
 ## Composants
 
 ### 1. Runtime : `dist/lacitadelle.llamafile.exe`
 
-- Binaire APE (Cosmopolitan) d'environ 44 Mo, assemblé par `dev/tools/setup_lacitadelle.py` à partir du runtime llamafile thin et de `zipalign`.
+- Binaire APE (Cosmopolitan) d'environ 44 Mo, construit côté développeur par `dev/tools/setup_lacitadelle.py` à partir du runtime llamafile thin et de `zipalign`, puis distribué via GitHub Releases.
 - Contient le runtime et un fichier `.args`, mais pas le modèle GGUF.
 - Le fichier `.args` référence le modèle par le chemin relatif `dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf`.
 - Démarre un serveur HTTP headless sur `localhost:8080` (`--server`) et expose l'API compatible OpenAI `/v1/chat/completions`.
@@ -22,13 +22,13 @@ La Citadelle assemble un runtime llamafile léger et un modèle GGUF externe. Le
 
 ### 3. Préparation et fabrication (outils de développement)
 
-- `dev/tools/llamafile_config.json` décrit les assets, leurs URLs et leurs checksums. Trois assets sont requis en V1 : runtime thin, `zipalign` et GGUF ; le runtime complet est facultatif et n'est pas utilisé.
-- `dev/tools/bootstrap.py` télécharge et vérifie les assets requis, avec réparation d'un fichier absent ou corrompu.
-- `dev/tools/setup_lacitadelle.py` assemble le runtime et le fichier `.args` avec `zipalign` pour produire l'exécutable dans `dist/`.
+- `dev/tools/llamafile_config.json` décrit le runtime préconstruit et le GGUF requis au lancement. Le runtime thin et `zipalign` restent disponibles comme assets facultatifs pour le build développeur.
+- `dev/tools/bootstrap.py` télécharge le runtime préconstruit dans `dist/` et le GGUF dans `dev/tools/vendor/llamafile/`, puis vérifie leurs checksums.
+- `dev/tools/setup_lacitadelle.py` peut reconstruire le runtime côté développeur ; il récupère au besoin le runtime thin et `zipalign`.
 
 ### 4. Lancement
 
-- `install.bat` vérifie la disponibilité de Python, lance le bootstrap puis la fabrication, et démarre `lancer.bat` (V2) après succès.
+- `install.bat` vérifie la disponibilité de Python, lance le bootstrap et démarre `lancer.bat` (V2) après succès. Il ne construit pas le runtime.
 - `lancer_v1.bat` démarre le serveur V1 en arrière-plan puis ouvre `http://localhost:8080`.
 - `lancer.bat` démarre llamafile et le proxy Python V2, puis ouvre `http://localhost:8081`.
 - L'installation et le client Python nécessitent Python 3.10+ ; l'exécutable llamafile lui-même est le runtime d'inférence.
@@ -45,9 +45,8 @@ La Citadelle assemble un runtime llamafile léger et un modèle GGUF externe. Le
 
 1. L'utilisateur clone le dépôt et installe Python 3.10+.
 2. Il double-clique sur `install.bat`.
-3. `install.bat` lance `bootstrap.py`, qui télécharge et vérifie le runtime, `zipalign` et le GGUF.
-4. `install.bat` lance `setup_lacitadelle.py`, qui assemble `dist/lacitadelle.llamafile.exe`.
-5. `install.bat` lance `lancer.bat`, qui démarre llamafile et le proxy puis ouvre le navigateur sur `localhost:8081`.
+3. `install.bat` lance `bootstrap.py`, qui télécharge et vérifie le runtime préconstruit et le GGUF.
+4. `install.bat` lance `lancer.bat`, qui démarre llamafile et le proxy puis ouvre le navigateur sur `localhost:8081`.
 
 ## Flux d'utilisation quotidienne
 
@@ -128,3 +127,32 @@ Elle repose sur trois composants :
 - Pas de plusieurs sessions de login simultanées par utilisateur ; un nouveau
   login révoque le précédent.
 - Pas de WebSocket, de streaming ni de rendu Markdown.
+
+## Séparation build / run
+
+La fabrication et l'installation utilisent des chemins distincts.
+
+### Build (développeur)
+
+- `dev/tools/setup_lacitadelle.py` assemble le runtime thin, le fichier
+  `.args` et le GGUF avec `zipalign`.
+- `dev/tools/vendor/llamafile/` conserve les assets du build, dont le runtime
+  thin et `zipalign`.
+- Le résultat est `dist/lacitadelle.llamafile.exe` sous Windows, à publier
+  dans une release GitHub après vérification de son SHA-256.
+
+### Run (utilisateur)
+
+- `dev/tools/bootstrap.py` télécharge le `.llamafile` préconstruit et le GGUF.
+- Le runtime va dans `dist/`; le GGUF reste dans
+  `dev/tools/vendor/llamafile/`.
+- `install.bat` lance le bootstrap puis `lancer.bat`. Aucun build ni appel à
+  `zipalign` n'a lieu sur l'ordinateur utilisateur.
+
+Cette séparation retire `zipalign` du parcours utilisateur et réduit le
+risque de blocage antivirus associé. Le `.llamafile` reste un exécutable et
+peut lui-même être soumis aux règles antivirus de l'environnement.
+L'URL de release et le SHA-256 de l'asset doivent être renseignés dans
+`llamafile_config.json` après sa publication ; le bootstrap conserve la
+vérification stricte du checksum. Tant que ces valeurs sont TODO, la
+validation de configuration bloque également `setup_lacitadelle.py`.
