@@ -47,3 +47,4 @@
 [2026-10-21] Parcours cloneur validé localement par le décideur : git clone → install.bat → lancer.bat → /register (admin créé) → /login → chat. Test terrain en entreprise prévu le 2026-10-22.
 [2026-10-22] Fix layout chat : html/body height 100% + overflow hidden (min-height: 100vh retiré du body). La zone .messages scrolle en interne, la sidebar et la zone de saisie restent visibles. Piège documenté dans quirks.md (section CSS / Layout). Prochaine étape : test terrain en entreprise.
 [2026-10-22] Fix layout chat (fin) : min-height: 0 ajouté sur .chat-main et .messages. Le débordement venait de min-height: auto par défaut en flexbox (les enfants flex: 1 grandissent pour contenir leur contenu). La zone .messages scrolle maintenant en interne. Test visuel à confirmer par le décideur.
+[2026-10-22] Ajustement CSS : min-height de .status passé à 0. Prochaine étape : vérifier le rendu du chat dans le navigateur.

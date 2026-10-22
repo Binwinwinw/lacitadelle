@@ -249,7 +249,7 @@ body {
 }
 
 .status {
-  min-height: 1.5rem;
+  min-height: 0;
   padding: 0.25rem 1rem;
   font-size: 0.85rem;
   color: #aaa;
