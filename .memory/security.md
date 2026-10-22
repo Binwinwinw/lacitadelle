@@ -12,9 +12,14 @@ Règles actées pour V3 et au-delà. Ne pas les contourner sans décision explic
 ## Sessions
 
 - Cookie : `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age=86400` (24 h).
-- Vérifier aussi l'expiration côté serveur; le cookie seul ne suffit pas.
+- Vérifier aussi l'expiration côté serveur avec `SESSION_EXPIRY`; le cookie
+  seul ne suffit pas.
+- À chaque requête présentant un token expiré, révoquer la session. Les pages
+  redirigent vers `/login` et les API renvoient `401`.
 - Un nouveau login révoque l'ancien token de l'utilisateur.
-- Désactivation, reset de mot de passe ou suppression : révoquer immédiatement les tokens en mémoire.
+- En V3.0, logout révoque la session. La désactivation, le reset de mot de
+  passe par admin et la suppression de compte sont reportés en V3.1 avec les
+  routes d'administration.
 
 ## Anti-énumération
 
@@ -38,4 +43,3 @@ Règles actées pour V3 et au-delà. Ne pas les contourner sans décision explic
 ## Références
 
 Les règles de protection des fichiers mémoire et des outils intrusifs sont définies dans `AGENTS.md`; les détails du contrat d'authentification sont dans `dev/docs/AUTH_CONTRACT.md`.
-

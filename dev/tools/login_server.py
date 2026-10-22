@@ -22,6 +22,7 @@ import re
 import secrets
 import sqlite3
 import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -57,6 +58,7 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 MAX_CONTEXT_MESSAGES = 15
 SYSTEM_PROMPT = "Tu es Lacitadelle, un assistant IA local. Réponds en français."
 SESSION_COOKIE_NAME = "lacitadelle_session"
+SESSION_TTL_SECONDS = 86400
 HTTP_TIMEOUT = 120
 SQLITE_TIMEOUT = 5.0
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
@@ -76,6 +78,7 @@ EXEMPT_PATHS_WHEN_MUST_CHANGE = {
 # Le contenu est perdu au redémarrage du proxy, conformément au contrat V2.
 SESSIONS: dict[str, int] = {}
 MUST_CHANGE: dict[str, bool] = {}
+SESSION_EXPIRY: dict[str, float] = {}
 
 
 class LoginError(Exception):
@@ -95,16 +98,31 @@ def create_session_token(user_id: int, must_change: bool = False) -> str:
     """Crée un token opaque et remplace l'ancien token de l'utilisateur."""
     for existing_token, existing_user_id in list(SESSIONS.items()):
         if existing_user_id == user_id:
-            del SESSIONS[existing_token]
-            MUST_CHANGE.pop(existing_token, None)
+            revoke_session(existing_token)
     token = secrets.token_urlsafe(32)
     SESSIONS[token] = user_id
     MUST_CHANGE[token] = must_change
+    SESSION_EXPIRY[token] = time.time() + SESSION_TTL_SECONDS
     return token
 
 
-def get_user_from_token(token: str) -> int | None:
+def is_session_valid(token: str | None) -> bool:
+    """Vérifie que le token existe et n'a pas expiré côté serveur."""
+    if token is None:
+        return False
+    if token not in SESSIONS:
+        revoke_session(token)
+        return False
+    if SESSION_EXPIRY.get(token, 0) <= time.time():
+        revoke_session(token)
+        return False
+    return True
+
+
+def get_user_from_token(token: str | None) -> int | None:
     """Retourne le user_id associé au token, ou None si le token est invalide."""
+    if not is_session_valid(token):
+        return None
     return SESSIONS.get(token)
 
 
@@ -112,11 +130,12 @@ def revoke_session(token: str) -> None:
     """Révoque un token de session."""
     SESSIONS.pop(token, None)
     MUST_CHANGE.pop(token, None)
+    SESSION_EXPIRY.pop(token, None)
 
 
 def must_change_required(token: str | None) -> bool:
     """Indique si le token est restreint au changement de mot de passe."""
-    return MUST_CHANGE.get(token, False) if token is not None else False
+    return MUST_CHANGE.get(token, False) if is_session_valid(token) else False
 
 
 def check_must_change_gate(
@@ -125,6 +144,8 @@ def check_must_change_gate(
     path: str,
 ) -> bool:
     """Bloque les routes d'une session qui doit changer son mot de passe."""
+    if token is not None and not is_session_valid(token):
+        token = None
     if path in EXEMPT_PATHS_WHEN_MUST_CHANGE or not must_change_required(token):
         return False
     if path.startswith("/api/"):
@@ -161,6 +182,7 @@ def set_cookie_token(handler: BaseHTTPRequestHandler, token: str) -> None:
     cookie[SESSION_COOKIE_NAME]["httponly"] = True
     cookie[SESSION_COOKIE_NAME]["samesite"] = "Strict"
     cookie[SESSION_COOKIE_NAME]["path"] = "/"
+    cookie[SESSION_COOKIE_NAME]["max-age"] = SESSION_TTL_SECONDS
     handler.send_header("Set-Cookie", cookie[SESSION_COOKIE_NAME].OutputString())
 
 
@@ -178,8 +200,6 @@ def clear_cookie_token(handler: BaseHTTPRequestHandler) -> None:
 def get_authenticated_user_id(handler: BaseHTTPRequestHandler) -> int | None:
     """Retourne le user_id si le cookie est valide, sinon None."""
     token = read_cookie_token(handler)
-    if token is None:
-        return None
     return get_user_from_token(token)
 
 
@@ -698,6 +718,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 def main() -> int:
     """Migre la base V3 puis démarre le serveur local."""
     migrate_to_v3()
+    SESSIONS.clear()
+    MUST_CHANGE.clear()
+    SESSION_EXPIRY.clear()
     conn = sqlite3.connect(str(MEMORY_DB_PATH), timeout=SQLITE_TIMEOUT)
     try:
         has_admin = conn.execute(

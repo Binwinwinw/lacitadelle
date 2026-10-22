@@ -192,3 +192,43 @@ antivirus d'entreprise.
 n'effectue aucune compilation. Le bootstrap ne pourra fonctionner qu'une
 fois l'URL et le checksum réels renseignés. Le `.llamafile` reste soumis aux
 règles antivirus locales.
+
+## [2026-10-21] Objectif v1 révisé : produit external assumé
+
+**Contexte** : le rapport de vérification documentaire a relevé que
+`OBJECTIF.md` décrivait un fichier unique avec modèle embarqué, sans Python ni
+réseau, alors que le parcours livré distribue le runtime et le GGUF séparément
+et utilise un proxy Python avec une interface web.
+
+**Décision(s)** : le produit v1 est le mode external actuel.
+`OBJECTIF.md` décrit le runtime préconstruit, le GGUF séparé, le proxy Python,
+le webchat, Python requis et le téléchargement au premier lancement.
+
+**Conséquences** : la vision initiale « fichier unique sans Python ni réseau »
+est remplacée par « installation Python et réseau au premier lancement, puis
+runtime external utilisé localement ».
+
+## [2026-10-21] Sessions avec expiration serveur (Max-Age 24h)
+
+**Contexte** : `security.md` exige `Max-Age=86400` et une expiration serveur,
+mais le code V3.0 ne les implémentait pas.
+
+**Décision(s)** : ajouter `Max-Age=86400` et une échéance `SESSION_EXPIRY`
+par token dans `login_server.py`. Invalider une session expirée lors de toute
+requête qui présente son cookie.
+
+**Conséquences** : les sessions expirent après 24 heures côté navigateur et
+côté proxy; l'expiration ne dépend plus du cookie seul.
+
+## [2026-10-21] Routes admin reportées en V3.1
+
+**Contexte** : `AUTH_CONTRACT.md` décrit les routes d'administration, mais
+`login_server.py` ne les implémente pas.
+
+**Décision(s)** : V3.0 comprend register, login, change-password et logout.
+Les routes `/admin` et de gestion des comptes sont reportées en V3.1, avec
+HTTPS, CSRF et rate limiting.
+
+**Conséquences** : `AUTH_CONTRACT.md` et `security.md` distinguent les routes
+d'authentification V3.0 des fonctions d'administration V3.1. V3.0 est livrée
+sans interface web d'administration.

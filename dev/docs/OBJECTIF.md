@@ -1,20 +1,27 @@
-## 1. Artefact principal livré à l'utilisateur final
+## 1. Produit livré à l'utilisateur
 
-Un fichier `.llamafile` unique, exécutable, sans installation.
-L'utilisateur le télécharge, le rend exécutable si nécessaire, double-clique, ça discute.
-Aucune dépendance Python côté utilisateur.
+Le produit livré comprend :
+
+- un runtime `.llamafile` préconstruit (environ 44 Mo) ;
+- un modèle GGUF externe Qwen3-1.7B Q4_K_M (environ 1,28 Go) ;
+- un proxy Python local (`login_server.py`) et un webchat.
+
+L'utilisateur clone le dépôt, lance `install.bat`, puis `lancer.bat`.
+Le navigateur ouvre le webchat sur `http://localhost:8081`.
 
 ## 2. Public cible
 
-Utilisateur non-technique souhaitant une IA locale « de poche ».
-La v1 assume une interface terminal (celle fournie par llamafile).
-Une GUI graphique viendra plus tard, pas en v1.
+Utilisateur non-technique souhaitant une IA locale. L'interface livrée est un
+webchat local servi par le proxy Python.
 
 ## 3. Contrainte d'exécution
 
-Python requis chez l'utilisateur : NON.
-Réseau requis au premier lancement : NON (modèle embarqué dans le fichier).
-Systèmes cibles : ceux supportés par llamafile (macOS, Windows, Linux, BSD).
+Python 3.10+ requis chez l'utilisateur : OUI (bootstrap et proxy).
+Réseau requis au premier lancement : OUI (runtime et GGUF téléchargés).
+Réseau requis après installation : NON ; les services communiquent en local.
+Parcours d'installation automatisé : Windows 10+ (`install.bat`).
+Le runtime llamafile prend en charge macOS, Windows, Linux et BSD ; aucun
+script d'installation Unix n'est fourni actuellement.
 
 ## 4. Rapport à llamafile upstream (mozilla-ai/llamafile)
 
@@ -23,18 +30,22 @@ La Citadelle produit des llamafiles personnalisés via un pipeline Python de fab
 
 ## 5. Famille de produit visée
 
-Famille 1 (binaire auto-exécutable unique), avec Python en rôle de FABRICATION uniquement.
+Famille 2 (application Python packagée + runtime external) avec une
+distribution préconstruite : le `.llamafile` est fourni via GitHub Releases.
 
-## 6. Non-objectifs explicites (v1)
+## 6. Périmètre et non-objectifs
 
-- PAS de téléchargement de modèles depuis l'interface (reporté v2).
-- PAS de tool calling / agent / action sur l'ordinateur (reporté v3+).
-- PAS de GUI graphique (v1 = interface texte de llamafile).
-- PAS de Python côté utilisateur.
-- PAS de modification du code C++ de llamafile en v1.
+- V3.0 : pas de routes d'administration web ; reportées en V3.1.
+- V3.1 : HTTPS, CSRF, rate limiting et routes d'administration.
+- V3.2 : multi-admin.
+- V2+ : détection GPU.
+- Pas de tool calling, d'agent PC ni de modification du code C++ de
+  llamafile dans le périmètre actuel.
 
 ## 7. Décisions dérivées
 
-- v1 = « Pocket Chat » : un llamafile avec un modèle 1B-3B embarqué, chat texte fonctionnel.
-- Python = script de fabrication (entrée : fichier GGUF + paramètres ; sortie : `.llamafile`).
-- Toute envie d'ajouter « IA qui contrôle le PC » est reportée à v3 minimum, sans exception.
+- v1 = distribution external : runtime préconstruit, GGUF téléchargé séparément,
+  proxy Python local et webchat.
+- Python est requis pour l'installation et le proxy ; le modèle est téléchargé
+  au premier lancement puis utilisé hors ligne.
+- L'administration web est reportée en V3.1 ; le multi-admin en V3.2.
