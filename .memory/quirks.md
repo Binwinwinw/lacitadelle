@@ -38,3 +38,9 @@ Les restrictions concernant Ponytail et hacklm-memory, ainsi que leur vérificat
 
 - **XAMPP** : retiré. Test sous proxy uniquement.
 - **`main/`** : supprimé du worktree (fork llamafile retiré).
+
+## CSS / Layout
+
+- Le layout chat utilise `html, body { height: 100%; overflow: hidden; }` et `.messages { min-height: 0; overflow-y: auto; }`.
+- **Piège** : ne PAS mettre `min-height: 100vh` sur `body`. Cela empêche le scroll interne de `.messages` et fait grandir la page entière. Le scroll doit être sur `.messages`, pas sur `html/body`.
+- Si le problème réapparaît (page qui s'allonge avec beaucoup de messages), vérifier que `html, body` ont bien `height: 100%` et `overflow: hidden`, et que `body` n'a pas `min-height: 100vh`.
