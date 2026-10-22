@@ -4,13 +4,12 @@ Particularités techniques à connaître avant de coder ou déboguer.
 
 ## llamafile
 
-- **Windows** : le binaire `.llamafile` doit être renommé `.exe` pour être exécuté. `setup_lacitadelle.py` le fait déjà.
-- **`.args` chemin relatif** : le `.llamafile.exe` doit être lancé depuis la racine du projet pour résoudre `dev/tools/vendor/llamafile/...`. Sinon, erreur « no file found in zip archive ».
+- **Windows** : bootstrap renomme llamafile-thin en `dist/llamafile.exe` pour l'exécution. Sous Unix, il ajoute le droit d'exécution au runtime.
 - **Timeout 20 s** dans `lancer.bat` : Qwen3 met du temps à charger. Si le délai est dépassé, le proxy démarre avant llamafile et les premières requêtes peuvent échouer.
 - **Binaires `.tmp-*`** : les téléchargements interrompus peuvent laisser des
-  fichiers temporaires orphelins. Le runtime préconstruit
-  (`lacitadelle.llamafile`) va dans `dist/`; le GGUF et les autres assets vont
-  dans `vendor/llamafile/`. Nettoyer manuellement les temporaires accumulés.
+  fichiers temporaires orphelins. Le runtime téléchargé va dans `dist/`;
+  le GGUF et les autres assets vont dans `vendor/llamafile/`. Nettoyer
+  manuellement les temporaires accumulés.
 
 ## Outils externes intrusifs
 
