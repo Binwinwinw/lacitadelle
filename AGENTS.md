@@ -2,14 +2,15 @@
 
 ## Identité du projet
 
-Application de poche sous forme de fichier `.llamafile` unique, avec modèle 1B-3B
-embarqué, interface texte, destinée à un public non-technique. Inspiré de
-mozilla-ai/llamafile mais centré sur la fabrication de llamafiles personnalisés.
+Application locale pour public non-technique : runtime `.llamafile`
+préconstruit, GGUF externe, proxy Python et webchat. Le projet s'appuie sur
+mozilla-ai/llamafile.
 
 ## État actuel
 
-Socle documentaire en cours. Aucune fonctionnalité exécutable. Pas encore de
-dépôt Git initialisé.
+V3.0 fonctionnelle (validée localement le 2026-10-21, test terrain prévu
+2026-10-22). 73 tests permanents. Distribution pré-construite (runtime GitHub
+Releases v0.1.0). Routes admin reportées V3.1.
 
 ## Règles agents
 
@@ -57,8 +58,11 @@ En cas de changement d'une règle, mettre à jour les deux.
    SEULS fichiers modifiés sont ceux attendus dans la tâche courante. Toute
    modification non attendue (notamment sur `.memory/`,
    `.github/copilot-instructions.md`, `.github/agents/rules/`,
-   `AGENTS.md`) doit être
-   signalée immédiatement au décideur, sans correction automatique.
+   `AGENTS.md`) doit être signalée immédiatement au décideur, sans correction
+   automatique. Vérifier aussi l'absence de réinjection hacklm-memory dans
+   `.github/copilot-instructions.md` et si l'artefact gitignored
+   `dev/tests/system-commandline-sentinel-files/` réapparaît après un push ;
+   voir `dev/docs/OUTILS_INTRUSIFS.md` pour sa suppression manuelle.
 7. Interdiction de réécrire l'historique Git : aucun `git commit
 --amend`, `git rebase`, `git push --force` ou `git push
 --force-with-lease` ne peut être exécuté sans autorisation explicite
@@ -81,13 +85,12 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 - Modifications et TODO vivant : `dev/docs/JOURNALDESMODIFS.md`
 - Code de production : `dev/` (à venir)
 
-## Non-objectifs v1
+## Périmètre et non-objectifs
 
-- PAS de téléchargement de modèles depuis l'interface (reporté v2).
-- PAS de tool calling / agent / action sur l'ordinateur (reporté v3+).
-- PAS de GUI graphique (v1 = interface texte de llamafile).
-- PAS de Python côté utilisateur.
-- PAS de modification du code C++ de llamafile en v1.
+- V3.0 : pas de routes d'administration web.
+- V3.1 : routes admin, HTTPS, CSRF et rate limiting.
+- V3.2 : multi-admin.
+- Pas de tool calling, d'agent PC ni de modification du code C++ de llamafile.
 
 ## Mémoire projet (.memory/)
 
@@ -95,7 +98,7 @@ Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à
 
 | Fichier | Contenu | À lire quand |
 | --- | --- | --- |
-| `.memory/decisions.md` | Décisions actées (12) | Avant toute action structurante |
+| `.memory/decisions.md` | Décisions actées (16) | Avant toute action structurante |
 | `.memory/instructions.md` | Rappel et pointeurs | En début de session |
 | `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
 | `.memory/quirks.md` | Pièges et particularités | Avant de coder |

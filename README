@@ -33,6 +33,9 @@ détails et les limites connues.
 - Environ 3 Go d'espace disque libre.
 - Connexion internet pour le premier téléchargement.
 
+`install.bat` vérifie la présence de Python, mais pas sa version.
+Vérifiez manuellement `python --version` : Python 3.10 ou supérieur est requis.
+
 ### Parcours rapide (Windows, 2 étapes)
 
 1. Clonez le dépôt :
@@ -49,20 +52,19 @@ Le navigateur s'ouvre sur `http://localhost:8081`.
 Le runtime préconstruit reste un exécutable : un antivirus peut encore le
 bloquer; autorisez `dist/` si nécessaire.
 
-La configuration de la release `v0.1.0` contient encore une URL et un
-checksum TODO. Le bootstrap et `setup_lacitadelle.py` refuseront cette
-configuration tant que l'URL et le checksum SHA-256 réels ne seront pas
-remplacés dans `dev/tools/llamafile_config.json` après publication de
-l'asset.
-
 ### Création du premier administrateur
 
-Une fois le proxy démarré, lancez :
+Choisissez une seule des deux méthodes :
 
-    python dev/tools/create_admin.py
+1. Inscrivez le premier compte via `/register` : il reçoit le rôle admin.
+2. Si aucun administrateur n'existe, créez-en un en lançant :
 
-Notez le mot de passe temporaire affiché ; il devra être changé à la
-première connexion.
+       python dev/tools/create_admin.py
+
+Ne faites pas les deux : `create_admin.py` échoue si un admin existe déjà.
+Après une inscription, connectez-vous avec le mot de passe choisi.
+Un compte créé par `create_admin.py` reçoit un mot de passe temporaire à changer
+à la première connexion.
 
 ### En cas de problème
 
@@ -121,10 +123,11 @@ Le client :
 
 **C'est le mode terminal recommandé en V1** pour un usage quotidien.
 
-## Version 2 (login multi-utilisateurs)
+## Version 3.0 (authentification complète)
 
-La V2 ajoute le login et la séparation des conversations par
-utilisateur. Elle est le mode d'utilisation recommandé.
+V3.0 ajoute le login avec mot de passe (hashé avec scrypt), l'inscription et la
+séparation des conversations par utilisateur. Le premier compte inscrit devient
+admin, mais aucune route d'administration web n'est disponible en V3.0.
 
 ### Lancement
 
@@ -139,22 +142,25 @@ Le navigateur s'ouvre sur `http://localhost:8081`.
 
 ### Utilisation
 
-1. Entrez un nom d'utilisateur ; aucun mot de passe n'est demandé en V2.
-2. Créez une session avec le bouton « Nouvelle session ».
-3. Envoyez des messages.
-4. Les conversations sont liées à votre nom : après déconnexion puis
+1. Créez un compte via `/register` avec un nom d'utilisateur et un mot de passe.
+2. Connectez-vous via `/login`.
+3. Créez une session avec le bouton « Nouvelle session » et envoyez des messages.
+4. Les conversations sont liées à votre compte : après déconnexion puis
   reconnexion, vous retrouvez vos sessions.
 5. Déconnectez-vous avec le bouton « Déconnexion » de la barre latérale.
 
-### Limites V2
+Un compte marqué `must_change_password` est redirigé vers le formulaire de
+changement de mot de passe. Les cookies et les sessions côté serveur expirent
+après 24 heures.
 
-- **Pas de mot de passe** : le nom d'utilisateur n'est pas une preuve
-  d'identité. V2 est destinée à un usage local sur une machine de confiance.
-  Le mot de passe est prévu en V2.5.
+### Limites V3.0
+
 - **Pas de HTTPS** : le proxy écoute uniquement sur localhost (loopback).
   Ne l'exposez pas sur un réseau.
 - **Une seule session de login par utilisateur** : un nouveau login révoque
   le précédent.
+- **Pas de routes admin web** : reportées en V3.1, avec HTTPS, CSRF et
+  limitation de débit du login.
 
 ### Arrêt
 
@@ -167,10 +173,9 @@ port 8080. Il permet un test rapide sans login.
 
 ## État du projet
 
-- Socle documentaire : complet (voir `dev/docs/`)
-- Bootstrap des binaires : fonctionnel
-- Fabrication V1 du `.llamafile` : fonctionnelle en mode external
-- V2 : login multi-utilisateurs, proxy local et mémoire filtrée par utilisateur
+- V3.0 : authentification avec mot de passe, proxy local et conversations
+  séparées par utilisateur
+- Distribution : runtime préconstruit via GitHub Releases et GGUF séparé
 
 ## Structure du dépôt
 

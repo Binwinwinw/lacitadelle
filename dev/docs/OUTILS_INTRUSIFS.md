@@ -13,8 +13,8 @@ si possible, désactivé ou restreint.
 - **Incident** : 2026-10-17, fusion d'entrées dans `decisions.md` et
   reformatage des fichiers `.memory/`, documenté dans `.memory/cleanup.log`.
 - **Fichiers sensibles** : `.memory/*.md`.
-- **Mesure** : interdit d'action sur `.memory/` (AGENTS.md règle 6). Vérifier
-  après chaque session l'intégrité de `decisions.md`.
+- **Mesure** : interdit d'action sur `.memory/` (AGENTS.md règle 5). Vérifier
+  après chaque session l'intégrité de `decisions.md` (AGENTS.md règle 6).
 
 ## hacklm-memory
 
@@ -37,12 +37,20 @@ si possible, désactivé ou restreint.
   `git restore .github/copilot-instructions.md` et vérifier la configuration
   VS Code.
 
+## system-commandline-sentinel-files (.NET / Git Credential Manager)
+
+- **Source** : artefact .NET (Git Credential Manager).
+- **Comportement** : réapparaît automatiquement après certains pushs dans
+  `dev/tests/system-commandline-sentinel-files/`.
+- **Mesure** : gitignored. Supprimer manuellement s'il réapparaît (pas de
+  commit nécessaire). Voir `.memory/quirks.md`.
+
 ## Garde-fous généraux
 
-1. Vérification post-session systématique (AGENTS.md règle 7) : `git status
+1. Vérification post-session systématique (AGENTS.md règle 6) : `git status
 --short` doit montrer uniquement les fichiers attendus.
 2. Si un outil intrusif est identifié, ajouter une entrée dans ce document
-   et une mention dans AGENTS.md règle 6.
+   et mettre à jour les garde-fous des règles 5 et 6 d'AGENTS.md.
 3. Si un outil injecte du contenu malgré tout, restaurer la version HEAD
    (`git restore <fichier>`) et documenter l'incident dans `decisions.md`.
 4. Envisager à terme un hook Git de pré-commit qui refuse les modifications

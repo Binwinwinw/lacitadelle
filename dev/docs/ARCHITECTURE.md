@@ -1,8 +1,8 @@
-# Architecture de La Citadelle (V1)
+# Architecture de La Citadelle (V3.0)
 
 ## Vue d'ensemble
 
-La Citadelle distribue un runtime llamafile léger préconstruit et un modèle GGUF externe. Le runtime démarre un serveur HTTP local ; en V1, l'utilisateur ouvre l'interface web intégrée avec `lancer_v1.bat`. En V2, le navigateur passe par le proxy Python démarré avec `lancer.bat`. Un client Python séparé permet aussi d'utiliser une mémoire SQLite. Le modèle et la base ne sont pas intégrés au runtime.
+La Citadelle distribue un runtime llamafile léger préconstruit et un modèle GGUF externe. Le runtime démarre un serveur HTTP local ; en V1, l'utilisateur ouvre l'interface web intégrée avec `lancer_v1.bat`. En V3.0, le navigateur passe par le proxy Python démarré avec `lancer.bat`, qui fournit l'authentification et le webchat. Un client Python séparé permet aussi d'utiliser une mémoire SQLite. Le modèle et la base ne sont pas intégrés au runtime.
 
 ## Composants
 
@@ -28,9 +28,9 @@ La Citadelle distribue un runtime llamafile léger préconstruit et un modèle G
 
 ### 4. Lancement
 
-- `install.bat` vérifie la disponibilité de Python, lance le bootstrap et démarre `lancer.bat` (V2) après succès. Il ne construit pas le runtime.
+- `install.bat` vérifie la présence de Python, lance le bootstrap et démarre `lancer.bat` (V3.0) après succès. Il ne vérifie pas la version minimale Python et ne construit pas le runtime.
 - `lancer_v1.bat` démarre le serveur V1 en arrière-plan puis ouvre `http://localhost:8080`.
-- `lancer.bat` démarre llamafile et le proxy Python V2, puis ouvre `http://localhost:8081`.
+- `lancer.bat` démarre llamafile et le proxy Python V3.0, puis ouvre `http://localhost:8081`.
 - L'installation et le client Python nécessitent Python 3.10+ ; l'exécutable llamafile lui-même est le runtime d'inférence.
 
 ### 5. Client conversationnel et mémoire SQLite
@@ -71,7 +71,7 @@ La Citadelle distribue un runtime llamafile léger préconstruit et un modèle G
 - **Téléchargement vérifié** : le bootstrap valide les checksums des assets requis.
 - **Mémoire séparée** : le client Python et SQLite fournissent la persistance, hors du runtime llamafile.
 
-## Limites actuelles
+## Limites du mode V1
 
 - Le client mémoire et le parcours d'installation nécessitent Python 3.10+.
 - Le serveur V1 utilise le runtime CPU thin ; aucune détection ni bascule GPU n'est implémentée.
@@ -79,11 +79,11 @@ La Citadelle distribue un runtime llamafile léger préconstruit et un modèle G
 - L'interface web peut saturer le contexte sur les conversations longues.
 - Pas de prompt système personnalisable ni de reprise HTTP Range.
 
-## V2 — Login multi-utilisateurs
+## V3.0 — Authentification complète
 
-### Composants V2
+### Composants V3.0
 
-La V2 ajoute un proxy Python (`dev/tools/login_server.py`) devant llamafile.
+La V3.0 fournit un proxy Python (`dev/tools/login_server.py`) devant llamafile.
 Elle repose sur trois composants :
 
 1. **llamafile** (port 8080) : moteur d'inférence, inchangé depuis la V1.
@@ -96,9 +96,9 @@ Elle repose sur trois composants :
 
 1. L'utilisateur ouvre `http://localhost:8081/` ; sans session valide, le
    proxy redirige vers `/login`.
-2. Le formulaire envoie le nom d'utilisateur à `POST /login`. Le proxy crée
-   ou retrouve l'utilisateur, émet un cookie HTTP-only `SameSite=Strict`,
-   puis redirige vers `/`.
+2. L'utilisateur s'inscrit via `POST /register`, puis se connecte via
+   `POST /login` avec son mot de passe. Le proxy émet un cookie HTTP-only
+   `SameSite=Strict`, `Max-Age=86400`, puis redirige vers `/`.
 3. `GET /` sert `chat.html` après authentification.
 4. `GET /api/sessions` retourne uniquement les sessions de l'utilisateur.
 5. Le chat crée des sessions via `POST /api/sessions`, lit leur historique
@@ -107,26 +107,32 @@ Elle repose sur trois composants :
    les 15 derniers messages et le nouveau message, puis persiste les deux
    messages après une réponse réussie.
 7. `POST /logout` révoque le token et expire le cookie.
+8. Une session portant `must_change_password` est limitée au changement de
+   mot de passe et au logout. Le serveur invalide aussi les sessions après
+   24 heures.
 
-### Sécurité V2
+Le premier compte inscrit devient admin, mais V3.0 ne comprend aucune route
+d'administration web.
+
+### Sécurité V3.0
 
 - Cookie `HttpOnly`, `SameSite=Strict`, `Path=/` ; pas d'attribut `Secure`
   car le service local utilise HTTP.
 - Le proxy écoute uniquement sur `127.0.0.1` (loopback) et n'active pas de
   CORS permissif.
-- Pas de mot de passe en V2 ; cette fonctionnalité est prévue en V2.5.
+- Le mot de passe est hashé avec scrypt; les erreurs de login ne révèlent pas
+  si le compte existe.
+- Le cookie et l'expiration serveur limitent les sessions à 24 heures.
 - Les sessions d'authentification sont en mémoire du proxy ; un redémarrage
   invalide les anciens cookies et impose une reconnexion.
 - Les sessions et messages sont filtrés par `user_id`. Une tentative de lire
   une session appartenant à un autre utilisateur reçoit 404, pas 403.
+- Les routes d'administration web ne sont pas disponibles avant V3.1.
 
-### Non-objectifs V2
+### Suite prévue
 
-- Pas de HTTPS : usage local uniquement.
-- Pas de mot de passe avant V2.5.
-- Pas de plusieurs sessions de login simultanées par utilisateur ; un nouveau
-  login révoque le précédent.
-- Pas de WebSocket, de streaming ni de rendu Markdown.
+- V3.1 : routes admin, HTTPS, CSRF et rate limiting.
+- V3.2 : multi-admin.
 
 ## Séparation build / run
 
@@ -138,8 +144,9 @@ La fabrication et l'installation utilisent des chemins distincts.
   `.args` et le GGUF avec `zipalign`.
 - `dev/tools/vendor/llamafile/` conserve les assets du build, dont le runtime
   thin et `zipalign`.
-- Le résultat est `dist/lacitadelle.llamafile.exe` sous Windows, à publier
-  dans une release GitHub après vérification de son SHA-256.
+- Le résultat est `dist/lacitadelle.llamafile.exe` sous Windows ; l'asset
+  préconstruit est publié dans la release GitHub v0.1.0 après vérification de
+  son SHA-256.
 
 ### Run (utilisateur)
 
@@ -152,7 +159,6 @@ La fabrication et l'installation utilisent des chemins distincts.
 Cette séparation retire `zipalign` du parcours utilisateur et réduit le
 risque de blocage antivirus associé. Le `.llamafile` reste un exécutable et
 peut lui-même être soumis aux règles antivirus de l'environnement.
-L'URL de release et le SHA-256 de l'asset doivent être renseignés dans
-`llamafile_config.json` après sa publication ; le bootstrap conserve la
-vérification stricte du checksum. Tant que ces valeurs sont TODO, la
-validation de configuration bloque également `setup_lacitadelle.py`.
+L'URL de release v0.1.0 et le SHA-256 sont renseignés dans
+`dev/tools/llamafile_config.json` ; le bootstrap valide le checksum avant
+publication locale.
