@@ -6,7 +6,7 @@
   "assets": {
     "lacitadelle-prebuilt": {
       "url": "https://github.com/Binwinwinw/lacitadelle/releases/download/v0.1.0/lacitadelle.llamafile",
-      "sha256": "TODO_APRES_BUILD",
+      "sha256": "339d2587b978e82e93136008e6f8224d7b1607f387cbec5a7d14aa596dc51f41",
       "filename": "lacitadelle.llamafile",
       "required": true,
       "purpose": "Runtime llamafile préconstruit (build développeur). Voir ARCHITECTURE.md, section Séparation build / run."

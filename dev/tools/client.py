@@ -61,6 +61,8 @@ def chat_with_llamafile(messages: list[dict[str, str]]) -> str:
         data=body,
         headers={
             "Content-Type": "application/json",
+    # Placeholder : llamafile local n'exige pas de clé API.
+    # La valeur "no-key" satisfait le format OpenAI Authorization: Bearer <valeur>.
             "Authorization": "Bearer no-key",
         },
         method="POST",
