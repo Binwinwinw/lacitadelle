@@ -17,6 +17,8 @@ La source de vérité des instructions structurelles est `AGENTS.md` à la racin
 - Avant toute modification structurante, consulter `.memory/decisions.md`.
 - Toute session se termine par une entrée d'une ligne dans `dev/docs/JOURNALDEBORD.md`.
 - Appliquer le cycle Review → Simplify → Verif pour toute nouvelle fonctionnalité (voir `.github/agents/rules/review-simplify-verif.instructions.md`).
+- Parcours utilisateur final : extraire `lacitadelle-v2.zip` (sans Git), lancer `install.bat` (Python et réseau requis au premier lancement), puis `lancer.bat`. Le bootstrap télécharge llamafile-thin et le GGUF.
+- La release GitHub v0.1.0 contient l'ancien runtime regroupé; elle est obsolète et doit être dépréciée manuellement par le décideur.
 
 ## Pattern documentaire
 

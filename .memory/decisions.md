@@ -232,3 +232,23 @@ HTTPS, CSRF et rate limiting.
 **Conséquences** : `AUTH_CONTRACT.md` et `security.md` distinguent les routes
 d'authentification V3.0 des fonctions d'administration V3.1. V3.0 est livrée
 sans interface web d'administration.
+
+## [2026-10-22] Distribution Phase 3 : archive autonome sans Git
+
+**Contexte** : les phases 1 et 2 ont remplacé le runtime regroupé par un
+runtime llamafile-thin et un GGUF téléchargés séparément. La distribution
+finale doit être utilisable sans clone Git.
+
+**Décision(s)** :
+
+1. L'utilisateur reçoit `lacitadelle-v2.zip`, l'extrait, lance `install.bat`,
+   puis `lancer.bat`; Git n'est pas requis.
+2. `bootstrap.py` télécharge llamafile-thin dans `dist/` et le GGUF dans
+   `dev/tools/vendor/llamafile/`, avec vérification SHA-256.
+3. `zipalign` et `setup_lacitadelle.py` ne font pas partie du parcours
+   utilisateur.
+4. La release GitHub v0.1.0 contenant l'ancien runtime regroupé est obsolète;
+   sa dépréciation est une action manuelle du décideur.
+
+**Conséquences** : Python et une connexion Internet sont requis à la première
+installation. L'archive ne contient ni Git, ni runtime, ni modèle GGUF.

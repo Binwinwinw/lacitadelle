@@ -1,24 +1,23 @@
 # La Citadelle
 
-Application locale destinée à un public non-technique, utilisant un
-`.llamafile` léger et un modèle GGUF externe. La Citadelle s'inspire de
-[mozilla-ai/llamafile](https://github.com/mozilla-ai/llamafile) pour
-la fabrication de llamafiles personnalisés.
+Application locale destinée à un public non-technique. La distribution
+autonome fournit un webchat Python et télécharge séparément le runtime
+llamafile-thin et le modèle GGUF depuis leurs sources officielles.
 
 Voir `dev/docs/OBJECTIF.md` pour le périmètre v1, et `AGENTS.md` pour
 les instructions de développement.
 
 ## Téléchargement des fichiers requis
 
-Le bootstrap télécharge et vérifie le runtime `.llamafile` préconstruit
-dans `dist/` et le modèle GGUF dans `dev/tools/vendor/llamafile/` :
+Le bootstrap télécharge et vérifie llamafile-thin dans `dist/` (renommé
+`llamafile.exe` sous Windows) et le modèle GGUF dans
+`dev/tools/vendor/llamafile/` :
 
     python dev/tools/bootstrap.py
 
-Le modèle fait environ 1,28 Go et le runtime environ 44 Mo. Les
+Le modèle fait environ 1,28 Go et le runtime environ 42 Mo. Les
 relancements vérifient les checksums et ne retéléchargent pas les fichiers
-valides. `llamafile-thin` et `zipalign` ne sont téléchargés que si un
-développeur lance `setup_lacitadelle.py` pour reconstruire le runtime.
+valides.
 
 Si un fichier est corrompu, le script le supprime et le retélécharge
 (mode réparateur). Voir `dev/tools/BOOTSTRAP_CONTRACT.md` pour les
@@ -29,28 +28,29 @@ détails et les limites connues.
 ### Prérequis
 
 - Python 3.10+ installé.
-- Git installé.
 - Environ 3 Go d'espace disque libre.
 - Connexion internet pour le premier téléchargement.
+- Aucun Git requis.
 
 `install.bat` vérifie la présence de Python, mais pas sa version.
 Vérifiez manuellement `python --version` : Python 3.10 ou supérieur est requis.
 
-### Parcours rapide (Windows, 2 étapes)
+### Parcours rapide (Windows, sans Git)
 
-1. Clonez le dépôt :
-
-    git clone https://github.com/Binwinwinw/lacitadelle.git
-
+1. Décompressez `lacitadelle-v2.zip` dans un dossier accessible en écriture.
 2. Double-cliquez sur `install.bat`.
+3. Une fois l'installation terminée, `lancer.bat` démarre automatiquement.
 
-`install.bat` vérifie Python, télécharge le `.llamafile` depuis GitHub
-Releases et le modèle GGUF depuis HuggingFace, puis lance `lancer.bat`.
+`install.bat` vérifie Python, télécharge llamafile-thin depuis les releases
+Mozilla AI et le modèle GGUF depuis HuggingFace, puis lance `lancer.bat`.
 Le navigateur s'ouvre sur `http://localhost:8081`.
 
 **Aucune compilation ni exécution de zipalign sur l'ordinateur utilisateur.**
-Le runtime préconstruit reste un exécutable : un antivirus peut encore le
-bloquer; autorisez `dist/` si nécessaire.
+Un antivirus peut bloquer `dist/llamafile.exe`; autorisez ce fichier si
+nécessaire.
+
+**Release GitHub v0.1.0 OBSOLÈTE** : ne pas utiliser son ancien artefact.
+Le décideur doit déprécier cette release manuellement.
 
 ### Création du premier administrateur
 
@@ -68,60 +68,17 @@ Un compte créé par `create_admin.py` reçoit un mot de passe temporaire à cha
 
 ### En cas de problème
 
-- **L'antivirus bloque le `.llamafile`** : autorisez le fichier ou le
-  dossier `dist/`. Le runtime reste un exécutable.
+- **L'antivirus bloque le runtime** : autorisez `dist/llamafile.exe`.
 - **Python n'est pas reconnu** : vérifiez que Python 3.10+ est dans le PATH.
 - **Le téléchargement échoue** : vérifiez la connexion et relancez
   `python dev/tools/bootstrap.py`.
 
-Pour reconstruire le runtime côté développeur, lancez
-`python -B dev/tools/setup_lacitadelle.py`. Cette commande télécharge si
-besoin le runtime thin, `zipalign` et le GGUF, puis produit
-`dist/lacitadelle.llamafile.exe`.
+`dev/tools/setup_lacitadelle.py` reste un outil de build développeur
+historique; il ne fait pas partie de la distribution ni de l'installation
+utilisateur.
 
 Sur Unix, aucun script d'installation automatique n'est fourni dans cette
 version. Le bootstrap peut être lancé avec `python dev/tools/bootstrap.py`.
-
-## Modes d'utilisation — V1
-
-Le fichier `dist\lacitadelle.llamafile.exe` démarre uniquement le
-serveur HTTP (mode `--server`, sans interface terminal de
-conversation). Il est accessible via :
-
-### 1. Interface web (test rapide)
-
-Lancez `lancer_v1.bat` (ou `dist\lacitadelle.llamafile.exe`).
-Ouvrez `http://localhost:8080` dans votre navigateur.
-
-**Limitation connue** : l'interface web envoie tout l'historique
-de la conversation au serveur à chaque message. Pour les
-conversations longues, le contexte (`-c 8192`) peut être saturé.
-Dans ce cas, créez une nouvelle conversation ou relancez le
-serveur. **L'interface web est un outil de test, pas le mode
-d'utilisation recommandé.**
-
-`-c 8192` augmente la mémoire du KV cache (environ le double de
-`-c 4096`). Cette valeur convient aux machines disposant de 8 à 16 Go
-de RAM. Si votre machine en a moins, réduisez manuellement `-c` dans
-le fichier `.args` avant de reconstruire le `.llamafile.exe`.
-
-### 2. Client conversationnel avec mémoire
-
-Terminal 1 : lancez le serveur.
-
-    dist\lacitadelle.llamafile.exe
-
-Terminal 2 : lancez le client.
-
-    python dev/tools/client.py
-
-Le client :
-
-- Persiste les conversations dans SQLite (`citadelle_data/memory.db`).
-- Limite les messages envoyés au modèle (`MAX_CONTEXT_MESSAGES = 15`).
-- Permet de reprendre des conversations précédentes (`/list`, `/load`).
-
-**C'est le mode terminal recommandé en V1** pour un usage quotidien.
 
 ## Version 3.0 (authentification complète)
 
@@ -166,19 +123,15 @@ après 24 heures.
 
 Fermez les deux fenêtres « Lacitadelle Server » et « Lacitadelle Proxy ».
 
-### V1 (rétrocompatibilité)
-
-`lancer_v1.bat` démarre la V1 : llamafile seul, interface web intégrée,
-port 8080. Il permet un test rapide sans login.
-
 ## État du projet
 
 - V3.0 : authentification avec mot de passe, proxy local et conversations
   séparées par utilisateur
-- Distribution : runtime préconstruit via GitHub Releases et GGUF séparé
+- Distribution : archive autonome sans Git; llamafile-thin et GGUF séparés
 
 ## Structure du dépôt
 
 - `dev/` — code et documentation de La Citadelle
+- `lacitadelle-v2.zip` — archive générée par `python -B dev/tools/creer_archive.py`
 - `.memory/` — mémoire projet (décisions, instructions)
 - `AGENTS.md` — source de vérité des instructions agents

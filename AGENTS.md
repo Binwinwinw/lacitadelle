@@ -2,15 +2,17 @@
 
 ## Identité du projet
 
-Application locale pour public non-technique : runtime `.llamafile`
-préconstruit, GGUF externe, proxy Python et webchat. Le projet s'appuie sur
+Application locale pour public non-technique : runtime llamafile-thin et GGUF
+téléchargés séparément, proxy Python et webchat. La distribution utilisateur
+est une archive ZIP autonome, sans Git. Le projet s'appuie sur
 mozilla-ai/llamafile.
 
 ## État actuel
 
-V3.0 fonctionnelle (validée localement le 2026-10-21, test terrain prévu
-2026-10-22). 73 tests permanents. Distribution pré-construite (runtime GitHub
-Releases v0.1.0). Routes admin reportées V3.1.
+V3.0 fonctionnelle localement. 73 tests permanents. `install.bat` télécharge
+llamafile-thin et le GGUF; `lancer.bat` démarre le runtime et le proxy. La
+distribution est `lacitadelle-v2.zip`, sans Git ni binaires intégrés. La
+release GitHub v0.1.0 est obsolète et doit être dépréciée manuellement.
 
 ## Règles agents
 
@@ -98,7 +100,7 @@ Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à
 
 | Fichier | Contenu | À lire quand |
 | --- | --- | --- |
-| `.memory/decisions.md` | Décisions actées (16) | Avant toute action structurante |
+| `.memory/decisions.md` | Décisions actées (17) | Avant toute action structurante |
 | `.memory/instructions.md` | Rappel et pointeurs | En début de session |
 | `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
 | `.memory/quirks.md` | Pièges et particularités | Avant de coder |
