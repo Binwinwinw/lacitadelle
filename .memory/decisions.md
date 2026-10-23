@@ -399,3 +399,28 @@ long sans retour est anxiogène.
 
 **Conséquences** : retour de progression pour l'utilisateur final, tests
 dédiés TTY et non-TTY, sans dépendance externe.
+
+## [2026-10-23] Expérience Spec Kit : non adopté pour La Citadelle
+
+**Contexte** : la Phase 7F-B a testé github/spec-kit en isolation complète
+sur la même spec que la Phase 7F-A (barre de progression bootstrap.py).
+Spec Kit a produit 10 artefacts (constitution, spec, plan, tasks, research,
+data-model, quickstart, checklist, code, tests) mais avec un coût
+d'installation élevé, un feedback VS Code trompeur (chat read-only alors
+que les skills tournaient), et sans intégration native au projet.
+
+**Décision(s)** :
+
+1. Garder la méthode actuelle pour La Citadelle (Review/Simplify/Verif +
+   décisions + journaux + TODO.md local + GO atomiques). Elle est validée,
+   intégrée et mieux adaptée à un projet solo.
+2. Ne pas installer Spec Kit dans le dépôt lacitadelle.
+3. Réévaluer Spec Kit pour de futurs projets plus gros (3+ développeurs,
+   features multi-semaines).
+4. Retenir de Spec Kit trois idées utilisables sans l'outil :
+   - Spec courte (user stories + acceptation) pour les features complexes.
+   - Tâches ordonnées par user story.
+   - Checklist de qualité avant implémentation.
+
+**Conséquences** : la méthode actuelle reste la référence. Spec Kit est noté
+comme piste future, pas comme dette. Aucune dépendance ajoutée au projet.

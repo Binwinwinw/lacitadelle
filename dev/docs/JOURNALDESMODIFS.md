@@ -198,3 +198,17 @@ GGUF pour les utilisateurs.
 
 **Impact** : progression ASCII en TTY et journalisée en non-TTY, deux tests
 dédiés, décision #24; aucun ajout de dépendance.
+
+## [2026-10-23] Phase 7F-C — Décision Spec Kit
+
+**Commit** : Phase 7F-C (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `.memory/decisions.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`;
+`TODO.md` mis à jour localement (gitignoré).
+
+**Raison** : acter le résultat de l'expérience Spec Kit de la Phase 7F-B.
+
+**Impact** : la méthode actuelle est conservée pour La Citadelle; Spec Kit
+reste une piste pour de futurs projets plus gros; aucun changement de code,
+de tests ou de dépendance.
