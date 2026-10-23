@@ -8,7 +8,7 @@ echo ======================================
 echo.
 
 echo Demarrage du serveur llamafile (port 8080)...
-start "Lacitadelle Server" dist\llamafile.exe -m dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf
+start "Lacitadelle Server" dist\llamafile.exe -m dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps
 
 echo Attente du serveur (20 secondes)...
 timeout /t 20 /nobreak >nul
