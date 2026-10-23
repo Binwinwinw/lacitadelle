@@ -11,7 +11,7 @@ mozilla-ai/llamafile.
 
 V3.0 fonctionnelle localement. 73 tests permanents. `install.bat` télécharge
 llamafile-thin et le GGUF; `lancer.bat` démarre le runtime et le proxy. La
-distribution est `lacitadelle-v2.zip`, sans Git ni binaires intégrés. La
+distribution est `lacitadelle-distribution.zip`, sans Git ni binaires intégrés. La
 release GitHub v0.1.0 est obsolète et doit être dépréciée manuellement.
 
 ## Règles agents
@@ -100,7 +100,7 @@ Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à
 
 | Fichier | Contenu | À lire quand |
 | --- | --- | --- |
-| `.memory/decisions.md` | Décisions actées (17) | Avant toute action structurante |
+| `.memory/decisions.md` | Décisions actées (18) | Avant toute action structurante |
 | `.memory/instructions.md` | Rappel et pointeurs | En début de session |
 | `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
 | `.memory/quirks.md` | Pièges et particularités | Avant de coder |

@@ -1,5 +1,7 @@
 # Contrat du mode external
 
+> **HISTORIQUE** — contrat d'analyse V1/V2. Le parcours actuel est décrit dans [BOOTSTRAP_CONTRACT.md](../tools/BOOTSTRAP_CONTRACT.md) et [README.md](../../README.md). Conservé pour traçabilité.
+
 ## Contexte
 
 La v0 de La Citadelle embarquait le modèle Qwen3-1.7B Q4_K_M dans le
@@ -18,26 +20,21 @@ La v0 de La Citadelle embarquait le modèle Qwen3-1.7B Q4_K_M dans le
 
 ## Décisions actées
 
-1. Le .llamafile ne contient plus le modèle.
+1. Le runtime et le modèle sont téléchargés séparément.
 2. Le GGUF vit dans `dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf`,
    téléchargé une fois par bootstrap (asset `qwen3-1.7b-q4km`,
    `required: true`).
-3. Le .args contient un chemin RELATIF vers le GGUF :
-   `-m ../dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf` (chemin exact
-   à calculer selon l'emplacement final du .llamafile, voir Tâche 2.3).
+3. `lancer.bat` passe au runtime le chemin du GGUF dans
+   `dev/tools/vendor/llamafile/`.
 4. Politique de conservation : les versions futures ne suppriment pas
    les modèles précédents sans confirmation explicite de l'utilisateur.
-5. Nom de sortie : `dist/lacitadelle.llamafile.exe` sous Windows,
-   `dist/lacitadelle.llamafile` sous POSIX, avec `chmod +x` si applicable.
-6. Point d'entrée : `dev/tools/setup_lacitadelle.py` (renommage de
-   `build_llamafile.py`). Détecte la plateforme en premier, orchestre
-   bootstrap + build + renommage.
+5. Le runtime téléchargé est placé dans `dist/` et nommé `llamafile.exe`
+   sous Windows.
 
 ## Comportement si le GGUF est absent
 
 Au lancement, llamafile affichera une erreur claire (fichier introuvable).
-Un README.txt dans `vendor/llamafile/` documentera la procédure
-(lancer `python dev/tools/setup_lacitadelle.py`).
+Le bootstrap télécharge les assets requis depuis leurs sources configurées.
 
 ## Comportement si le .llamafile existe déjà
 
@@ -46,10 +43,9 @@ succès. Pas de perte silencieuse.
 
 ## Impact sur le code
 
-- `dev/tools/build_llamafile.py` → renommé `dev/tools/setup_lacitadelle.py`.
-- `bootstrap.py` : inchangé (asset `qwen3-1.7b-q4km` passe à
-  `required: true`).
-- `.args` : ne contient plus `-m /zip/...` mais `-m <chemin relatif>`.
+- Le bootstrap télécharge le runtime et le GGUF séparément; tous deux sont
+  requis dans `llamafile_config.json`.
+- Le runtime est lancé avec le chemin local du modèle externe.
 
 ## Non-objectifs (v1)
 
