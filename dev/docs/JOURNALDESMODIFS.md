@@ -152,3 +152,17 @@ reformulations accidentelles « DISCUSSION/CHAT » et « Terminale » ont aussi
 
 **Impact** : avertissement de sécurité restauré et terminologie française
 clarifiée; aucun impact sur le code ou les tests.
+
+## [2026-10-23] Phase 7E-Lot2 — Décisions historiques + trailer Assisted-by
+
+**Commit** : Phase 7E-Lot2 (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `.memory/decisions.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : l'audit 7D a identifié quatre décisions supplantées sans
+annotation et cinq décisions implicites non actées.
+
+**Impact** : traçabilité complète (23 décisions), trailer `Assisted-by` acté,
+tests intermittents reportés en Phase 8, quatre règles `AGENTS.md`
+formalisées, licence Apache 2.0 et documentation bilingue tracées.

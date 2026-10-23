@@ -24,6 +24,8 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 
 ## [2026-10-17] Objectif v1 : Pocket Chat (llamafile + modèle embarqué, interface texte)
 
+> **Supplantée par [2026-10-22] Distribution Phase 3** : distribution avec runtime llamafile-thin et GGUF séparés.
+
 **Contexte** : llamafile fournit le format exécutable unique et le runtime C++. Python ne peut pas produire un exécutable multi-OS unique. La Citadelle utilise donc Python comme outil de FABRICATION, pas comme runtime livré.
 
 **Décision** : v1 = fichier `.llamafile` unique, modèle 1B-3B embarqué, interface texte de llamafile. Pas de tool calling, pas de téléchargement de modèles dans l'app, pas de GUI graphique.
@@ -31,6 +33,8 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 **Conséquences** : le succès de v1 se mesure par « un non-technique double-clique et obtient une conversation ». Tout le reste est hors périmètre v1.
 
 ## [2026-10-17] Python = fabrication uniquement
+
+> **Supplantée par [2026-10-22] Distribution Phase 3** : Python est requis pour l'installation et le proxy de la distribution V3.
 
 **Contexte** : Python ne peut pas produire un binaire APE multi-OS. llamafile (C++/cosmocc) fournit ce binaire. La Citadelle a besoin d'un pipeline pour transformer un GGUF en `.llamafile` prêt à l'emploi.
 
@@ -76,6 +80,8 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 **Conséquences** : un script de téléchargement avec vérification de checksum SHA-256 sera nécessaire (voir `dev/tools/VENDOR_STRATEGY.md`). Le binaire téléchargé sera gitignoré, comme `main/`. Aucune compilation n'est requise pour la v1.
 
 ## [2026-10-17] Base llamafile : version 0.10.6, asset thin, stratégie de vendorisation
+
+> **Partiellement supplantée par [2026-10-22] Distribution Phase 3** : `zipalign` est retiré du parcours de distribution.
 
 **Contexte** : la décision Option X (binaire pré-compilé upstream) est actée. La vérification factuelle a établi que `0.10.6` (15 septembre 2026) est la dernière release stable, avec checksums SHA-256 publiés par l'API GitHub.
 
@@ -245,6 +251,8 @@ sans interface web d'administration.
 
 ## [2026-10-22] Distribution Phase 3 : archive autonome sans Git
 
+> **Supplantée par la Phase 5 et la Phase 7** : archive finale au nom neutre et documentation racine bilingue.
+
 **Contexte** : les phases 1 et 2 ont remplacé le runtime regroupé par un
 runtime llamafile-thin et un GGUF téléchargés séparément. La distribution
 finale doit être utilisable sans clone Git.
@@ -284,3 +292,90 @@ oralement entre les Phases 1 et 4 sans entrée formelle dans `decisions.md`.
 **Conséquences** : les décisions implicites sont tracées. Les décisions #1,
 #6, #9, #13 et #14 sont annotées comme partiellement supplantées sans
 réécriture de leur corps historique.
+
+## [2026-10-23] Trailer IA : Assisted-by (pas Co-authored-by)
+
+**Contexte** : l'audit 7D a relevé d'abord 13, puis 14 commits avec le trailer
+`Co-authored-by: Copilot`. Ce trailer est réservé aux co-auteurs humains et
+peut porter des implications de paternité ou de DCO.
+
+**Décision(s)** :
+
+1. Les nouveaux commits réalisés avec assistance IA utilisent
+   `Assisted-by: IA` et précisent l'outil (GitHub Copilot, Claude, etc.).
+2. `Co-authored-by` reste réservé aux co-auteurs humains.
+3. Les commits existants portant `Co-authored-by: Copilot` (14 sur 20 recensés)
+   ne sont pas réécrits.
+4. Pendant la transition, un trailer `Co-authored-by` ajouté automatiquement
+   par un outil IA est toléré mais découragé; le corriger manuellement quand
+   c'est possible.
+
+**Conséquences** : l'attribution de l'assistance IA dans l'historique est plus
+juste et la transition se fait progressivement, sans réécriture d'historique.
+
+## [2026-10-23] Tests HTTP intermittents WinError 10053
+
+**Contexte** : en Phase 7C, des échecs intermittents WinError 10053
+(`connection reset`) ont été observés sur `test_change_password_ok` et
+`test_post_message_no_auth`. Les deux tests passent en isolation; la troisième
+exécution complète a réussi (73/73).
+
+**Décision(s)** :
+
+1. Les échecs intermittents sont une dette technique identifiée.
+2. Leur traitement est reporté en Phase 8 dans un correctif dédié; ils ne
+   bloquent pas la distribution actuelle.
+3. Ne pas masquer les échecs par des retries automatiques sans investigation.
+
+**Conséquences** : les tests restent fiables en isolation; la suite complète
+peut présenter un échec intermittent à investiguer, sans que cela établisse
+un défaut du code testé.
+
+## [2026-10-23] Règles structurelles de suivi (AGENTS.md)
+
+**Contexte** : les incidents de session (commit `f50691f` sans GO, ajout de
+`backup/` sans décision et `JOURNALDESMODIFS.md` en retard de neuf commits)
+ont révélé un défaut de méthode.
+
+**Décision(s)** : les quatre règles suivantes sont actées dans `AGENTS.md` :
+
+1. Une TODO de session est obligatoire au début et à la fin de chaque GO.
+2. `JOURNALDESMODIFS.md` est maintenu à chaque commit structurant, dans le
+   même commit.
+3. `.gitignore` est proactif : tout artefact généré est ignoré dès sa
+   première génération.
+4. Aucune modification (fichier, commit, suppression ou renommage) n'est
+   effectuée hors d'un GO validé.
+
+**Conséquences** : la traçabilité est systématique et les prochains GO
+respectent ces règles.
+
+## [2026-10-23] Licence Apache 2.0
+
+**Contexte** : le projet est distribué publiquement sous forme d'archive et
+sur GitHub; une licence explicite est nécessaire.
+
+**Décision(s)** : le projet est sous licence Apache 2.0, cohérente avec
+llamafile (Mozilla AI) et Qwen3. La licence inclut une clause de brevet
+explicite et est publiée dans `LICENSE` à la racine.
+
+**Conséquences** : utilisateurs et contributeurs disposent d'un cadre
+juridique clair, avec attribution requise et compatibilité avec l'écosystème
+IA local.
+
+## [2026-10-23] Documentation bilingue EN/FR
+
+**Contexte** : le projet cible à la fois un public international sur GitHub et
+un public francophone.
+
+**Décision(s)** :
+
+1. La documentation racine est bilingue : `README.md` et `CONTRIBUTING.md` en
+   anglais, `README.fr.md` et `CONTRIBUTING.fr.md` en français.
+2. Chaque fichier dispose d'un sélecteur de langue en tête.
+3. Les liens de téléchargement pointent vers `releases/latest` afin de rester
+   valides après un renommage de version.
+
+**Conséquences** : la documentation est accessible aux publics anglophone et
+francophone; le maintien des deux langues est accepté pour la taille du
+projet.
