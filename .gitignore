@@ -18,6 +18,10 @@ citadelle_data/
 # Artefacts llamafile générés
 *.llamafile
 
+# Archives et backups locaux, régénérables
+*.zip
+backup/
+
 # Dépendance externe — NE JAMAIS versionner ni pousser sur GitHub
 # Binaires vendorisés (téléchargés par dev/tools/bootstrap.py)
 dev/tools/vendor/

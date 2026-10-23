@@ -79,6 +79,72 @@ En cas de changement d'une règle, mettre à jour les deux.
 Début de session : lire `AGENTS.md`, `.memory/decisions.md`, `.memory/instructions.md`.
 Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait + prochaine étape).
 
+## Suivi et traçabilité
+
+Ce projet applique quatre règles structurelles pour garantir la traçabilité.
+Elles s'appliquent à tous les GO (décideur, IDE, agents IA).
+
+### Règle 1 — TODO de session obligatoire
+
+Toute réponse associée à un GO commence par une TODO explicite et se termine
+par la même TODO avec les cases cochées :
+
+```text
+TODO Phase X :
+
+- [ ] Tâche 1 : ...
+- [ ] Tâche 2 : ...
+- [ ] Tâche 3 : ...
+```
+
+Les tâches non terminées sont explicitement listées en fin de GO.
+
+### Règle 2 — JOURNALDESMODIFS.md maintenu à chaque commit structurant
+
+Tout commit qui touche du code, de la configuration, de la documentation ou
+des dépendances doit avoir une entrée dans `dev/docs/JOURNALDESMODIFS.md`
+dans le même commit :
+
+```text
+[YYYY-MM-DD] <Titre court>
+Commit : <hash court>
+
+Fichiers modifiés : liste
+Raison : pourquoi
+Impact : code / distribution / tests
+```
+
+Pas d'exception : un commit structurant sans entrée dans
+`JOURNALDESMODIFS.md` n'est pas terminé.
+`JOURNALDEBORD.md` reste la chronologie des sessions (une ligne par session,
+datée). `JOURNALDESMODIFS.md` est la synthèse par commit (une entrée par
+commit structurant).
+
+### Règle 3 — .gitignore proactif
+
+Tout artefact généré (archives, backups, logs, caches, binaires) doit être
+gitignoré dès sa première génération, jamais après avoir été commité par
+erreur. `.gitignore` doit couvrir :
+
+```text
+dist/, backup/, *.zip, *.gguf,
+*.log, __pycache__/, .pytest_cache/,
+citadelle_data/, dev/tools/vendor/
+```
+
+### Règle 4 — Aucune modification hors GO
+
+Aucune modification (fichier, commit, suppression, renommage) ne doit se
+produire en dehors d'un GO validé. Si un besoin émerge en cours de route :
+STOP, rédiger un GO complémentaire, puis l'exécuter.
+
+Corollaires :
+
+- Pas de `git commit --amend`, `git rebase` ni force-push.
+- Pas de suppression de fichier suivi sans `git rm`.
+- Pas de création de fichier dans un dossier non couvert par `.gitignore`
+  sans vérifier les règles d'exclusion.
+
 ## Où trouver quoi
 
 - Cadre produit et périmètre : `dev/docs/OBJECTIF.md`

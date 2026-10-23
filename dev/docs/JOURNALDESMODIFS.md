@@ -61,3 +61,49 @@ Ce document résume les évolutions du produit et de sa distribution.
 
 - Multi-admin configurable.
 - Détection GPU, prompt système personnalisé et reprise HTTP Range restent des évolutions futures.
+
+## [2026-10-22 → 2026-10-23] Refonte distribution (Phases 1-7)
+
+**Commit** : `64f0ba4` (Phase 7; synthèse des 10 commits de la séquence)
+
+**Raison** : livrer une distribution autonome sans Git, avec moteur et modèle
+téléchargés séparément, puis documenter les parcours utilisateur et
+contributeur en anglais et en français.
+
+**Fichiers modifiés** : évolution de `bootstrap.py`, `llamafile_config.json`,
+`lancer.bat`, documentation produit et contrats; ajout de `LICENSE`,
+`README.fr.md`, `CONTRIBUTING.md` et `CONTRIBUTING.fr.md`; archivage dans
+`lacitadelle-distribution.zip`.
+
+**Impact** : distribution ZIP autonome, exécution headless avec `--server`,
+documentation bilingue, licence Apache 2.0 et validation du chat par
+navigateur.
+
+Le brief Phase 7 annonçait neuf commits mais en énumérait dix; les dix
+références listées ont été vérifiées et sont conservées ici :
+
+1. `6bfba9d` — `feat: refonte distribution (llamafile-thin direct, sans .llamafile pré-construit)`
+2. `ee766ce` — `feat: packaging Phase 2 (archive ZIP autonome sans Git)`
+3. `6db45c9` — `docs: Phase 3 finale (legacy supprimé, doc nettoyée, archive régénérée)`
+4. `ad8390b` — `docs: clôture distribution (quirks nettoyés, README.md, archive à jour)`
+5. `9c9df0e` — `docs: vérité produit et décisions historiques (Phase 5A)`
+6. `4aea85b` — `chore: nettoyage dépôt et contrats (Phase 5B)`
+7. `92f36fd` — `docs: purge finale résidus Phase 5C (archive renommée partout, contrats historiques annotés)`
+8. `f50691f` — `fix: correctif lancer.bat (llamafile --server headless, logs dans la fenêtre)`
+9. `b5c7833` — `docs: clôture Phase 6C (test navigateur chat validé, distribution V3.1)`
+10. `64f0ba4` — `docs: README bilingue, CONTRIBUTING séparé, licence Apache 2.0 (Phase 7)`
+
+## [2026-10-23] Assainissement du dépôt (Phase 7C)
+
+**Commit** : Phase 7C (commit courant; identifiant consultable dans
+l'historique Git).
+
+**Fichiers modifiés** : `.gitignore`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : retirer de l'index les deux commits locaux de backup non poussés,
+ignorer les archives et backups régénérables, rattraper la synthèse de la
+distribution Phase 1-7 et formaliser les règles de suivi des GO.
+
+**Impact** : aucune modification du code ou de l'archive livrée; les backups
+ZIP restent locaux et exclus de Git.
