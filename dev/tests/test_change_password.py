@@ -198,6 +198,36 @@ def test_change_password_ok():
         assert token not in login_server.MUST_CHANGE
 
 
+def test_post_body_consumed_before_auth_rejection():
+    with change_context() as (base_url, db_path):
+        _, token = create_user_with_token(db_path)
+        opener = urllib.request.build_opener(NoRedirect())
+        for _ in range(100):
+            for request_token, path, expected_status, expected_error in (
+                (
+                    token,
+                    "/api/sessions/1/messages",
+                    403,
+                    "Changement de mot de passe requis",
+                ),
+                (None, "/api/sessions/1/messages", 401, "Non authentifié"),
+            ):
+                headers = {"Content-Type": "application/json"}
+                if request_token is not None:
+                    headers["Cookie"] = (
+                        f"{login_server.SESSION_COOKIE_NAME}={request_token}"
+                    )
+                request = urllib.request.Request(
+                    f"{base_url}{path}",
+                    data=b"{}",
+                    headers=headers,
+                    method="POST",
+                )
+                with open_no_redirect(opener, request) as response:
+                    assert response.code == expected_status
+                    assert json.loads(response.read())["error"] == expected_error
+
+
 def test_change_password_old_wrong():
     with change_context() as (base_url, db_path):
         _, token = create_user_with_token(db_path)
@@ -246,6 +276,7 @@ def test_change_password_not_required():
 def run_all():
     tests = [
         test_change_password_ok,
+        test_post_body_consumed_before_auth_rejection,
         test_change_password_old_wrong,
         test_change_password_short,
         test_change_password_not_required,

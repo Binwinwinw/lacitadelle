@@ -424,3 +424,27 @@ que les skills tournaient), et sans intégration native au projet.
 
 **Conséquences** : la méthode actuelle reste la référence. Spec Kit est noté
 comme piste future, pas comme dette. Aucune dépendance ajoutée au projet.
+
+## [2026-10-23] Bug produit corrigé : corps POST non consommé avant contrôle d'auth
+
+**Contexte** : la Phase 8 a reproduit `WinError 10053` sur les requêtes POST
+refusées avant lecture de leur corps. `RequestHandler.do_POST` appliquait le
+contrôle `must_change_password` avant que le corps soit consommé; la fermeture
+de la connexion pouvait interrompre le client.
+
+**Décision(s)** :
+
+1. Lire le corps POST avant les contrôles d'authentification, avec une limite
+   globale de 1 048 576 octets; rejeter un corps dépassant cette limite avec
+   HTTP 413.
+2. Réutiliser le corps mis en mémoire dans les handlers POST; leurs limites
+   fonctionnelles existantes de 4 à 8 Kio restent en vigueur.
+3. Ajouter un test de non-régression couvrant 100 POST restreints (403) et
+   100 POST non authentifiés (401), avec lecture complète des réponses.
+4. Valider 10/10 suites complètes (76 tests chacune), 5/5 suites HTTP, 5/5
+   suites de progression et 200 requêtes de non-régression sans exception.
+
+**Conséquences** : les réponses d'authentification restent 401/403 pour les
+requêtes dans la limite, et les sessions `must_change_password` restent
+bloquées sans abandon de connexion observé. La dette de tests intermittents
+de la décision #20 est fermée.

@@ -61,6 +61,7 @@ SESSION_COOKIE_NAME = "lacitadelle_session"
 SESSION_TTL_SECONDS = 86400
 HTTP_TIMEOUT = 120
 SQLITE_TIMEOUT = 5.0
+MAX_POST_BODY_SIZE = 1_048_576
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
 USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_-]{3,50}$")
 EXEMPT_PATHS_WHEN_MUST_CHANGE = {
@@ -233,6 +234,13 @@ def error_response(
     json_response(handler, {"error": message}, status)
 
 
+def _read_post_body(handler: BaseHTTPRequestHandler, content_length: int) -> bytes:
+    body = getattr(handler, "_post_body", None)
+    if isinstance(body, bytes):
+        return body
+    return handler.rfile.read(content_length)
+
+
 def serve_static(handler: BaseHTTPRequestHandler, filename: str) -> None:
     """Sert un fichier statique depuis WEB_DIR."""
     file_path = WEB_DIR / filename
@@ -277,7 +285,9 @@ def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
     if content_length <= 0 or content_length > 4096:
         error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
         return
-    raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+    raw_body = _read_post_body(handler, content_length).decode(
+        "utf-8", errors="replace"
+    )
     params = parse_qs(raw_body)
     username = params.get("username", [""])[0].strip()
     password = params.get("password", [""])[0]
@@ -329,7 +339,9 @@ def handle_post_register(handler: BaseHTTPRequestHandler) -> None:
     if content_length <= 0 or content_length > 4096:
         error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
         return
-    raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+    raw_body = _read_post_body(handler, content_length).decode(
+        "utf-8", errors="replace"
+    )
     params = parse_qs(raw_body)
     username = params.get("username", [""])[0].strip()
     password = params.get("password", [""])[0]
@@ -403,7 +415,9 @@ def handle_post_change_password(handler: BaseHTTPRequestHandler) -> None:
     if content_length <= 0 or content_length > 4096:
         error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
         return
-    raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+    raw_body = _read_post_body(handler, content_length).decode(
+        "utf-8", errors="replace"
+    )
     params = parse_qs(raw_body)
     old_password = params.get("old_password", [""])[0]
     new_password = params.get("new_password", [""])[0]
@@ -505,7 +519,9 @@ def handle_post_api_sessions(
 
     title: str | None = None
     if content_length:
-        raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+        raw_body = _read_post_body(handler, content_length).decode(
+            "utf-8", errors="replace"
+        )
         try:
             body = json.loads(raw_body) if raw_body.strip() else {}
         except json.JSONDecodeError:
@@ -600,7 +616,9 @@ def handle_post_message(
     if content_length <= 0 or content_length > 8192:
         error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
         return
-    raw_body = handler.rfile.read(content_length).decode("utf-8", errors="replace")
+    raw_body = _read_post_body(handler, content_length).decode(
+        "utf-8", errors="replace"
+    )
     try:
         body = json.loads(raw_body) if raw_body.strip() else {}
     except json.JSONDecodeError:
@@ -688,6 +706,29 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+        except (TypeError, ValueError):
+            error_response(self, "Requête invalide", HTTPStatus.BAD_REQUEST)
+            self.close_connection = True
+            return
+        if content_length < 0:
+            error_response(self, "Requête invalide", HTTPStatus.BAD_REQUEST)
+            self.close_connection = True
+            return
+        if content_length > MAX_POST_BODY_SIZE:
+            error_response(
+                self,
+                "Requête trop volumineuse",
+                HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+            )
+            self.close_connection = True
+            return
+        self._post_body = self.rfile.read(content_length)
+        if len(self._post_body) != content_length:
+            error_response(self, "Requête incomplète", HTTPStatus.BAD_REQUEST)
+            self.close_connection = True
+            return
         if check_must_change_gate(self, read_cookie_token(self), path):
             return
         try:

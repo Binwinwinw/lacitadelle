@@ -212,3 +212,19 @@ dédiés, décision #24; aucun ajout de dépendance.
 **Impact** : la méthode actuelle est conservée pour La Citadelle; Spec Kit
 reste une piste pour de futurs projets plus gros; aucun changement de code,
 de tests ou de dépendance.
+
+## [2026-10-23] Phase 8b — Corps POST consommé avant contrôle d'auth
+
+**Commit** : Phase 8b (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tests/test_change_password.py`, `.memory/decisions.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`;
+`TODO.md` mis à jour localement (gitignoré).
+
+**Raison** : corriger le WinError 10053 causé par des requêtes POST refusées
+avant consommation de leur corps.
+
+**Impact** : le corps POST est lu une seule fois avant les contrôles, sous
+une limite de 1 Mio et en conservant les plafonds propres aux routes; test
+de non-régression 401/403 ajouté; 76 tests validés 10/10, sans dépendance.
