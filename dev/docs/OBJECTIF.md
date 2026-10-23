@@ -12,8 +12,8 @@ La distribution est une archive ZIP autonome, sans Git ni binaire intégré.
 L'utilisateur l'extrait, lance `install.bat`, puis `lancer.bat`. Le navigateur
 ouvre le webchat sur `http://localhost:8081`.
 
-La release GitHub v0.1.0 contenant l'ancien runtime regroupé est **OBSOLÈTE** ;
-elle doit être dépréciée manuellement par le décideur.
+La release GitHub `v0.1.0` a été supprimée. La nouvelle release
+`v3-distribution` est prévue après la Phase 7E-Lot3.
 
 ## 2. Public cible
 
@@ -41,11 +41,16 @@ effectué sur le parcours utilisateur.
 Famille 2 : application Python avec runtime external, distribuée dans une
 archive ZIP autonome sans Git ni binaires pré-téléchargés.
 
+Dans ce document, **distribution V3** désigne l'archive ZIP et son parcours
+utilisateur. Les numéros **V3.0**, **V3.1** et **V3.2** désignent les versions
+du périmètre d'authentification et d'administration, pas les versions de
+l'archive.
+
 ## 6. Périmètre et non-objectifs
 
-- V3.0 : pas de routes d'administration web ; reportées en V3.1.
-- V3.1 : HTTPS, CSRF, rate limiting et routes d'administration.
-- V3.2 : multi-admin.
+- Authentification V3.0 : login local et webchat, sans routes d'administration.
+- Authentification V3.1 : routes d'administration, HTTPS, CSRF et rate limiting.
+- Authentification V3.2 : multi-admin.
 - V2+ : détection GPU.
 - Pas de tool calling, d'agent PC ni de modification du code C++ de
   llamafile dans le périmètre actuel.

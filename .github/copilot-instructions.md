@@ -1,10 +1,25 @@
-Application de poche sous forme de fichier `.llamafile` unique, avec modèle 1B-3B embarqué, interface texte, destinée à un public non-technique.
+# La Citadelle — contexte Copilot
 
-Toute décision structurante doit être datée dans `.memory/decisions.md` au format Contexte / Décision / Conséquences.
-Règle de périmètre v1 : reporter tout ajout (tool calling, GUI, téléchargement de modèles, agent PC) dans `dev/docs/OBJECTIF.md` section 6 avec version cible; aucun élargissement sans validation du décideur.
+La Citadelle est une application locale de chat IA : le runtime llamafile-thin
+et le modèle GGUF sont téléchargés séparément, puis un proxy Python sert un
+webchat local. Le modèle s'exécute sur la machine de l'utilisateur.
 
-Lire `AGENTS.md` avant toute session.
-Lire `.memory/decisions.md`.
-Consulter `dev/docs/OBJECTIF.md`.
+## Références
 
-Fin de session → une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait + prochaine étape).
+- `AGENTS.md` : règles de travail et de suivi des GO.
+- `.memory/decisions.md` : décisions actées.
+- `dev/docs/ARCHITECTURE.md` : architecture et flux.
+- `dev/docs/OBJECTIF.md` : produit et périmètre.
+
+## Rappels obligatoires
+
+1. Chaque GO commence et se termine par la même TODO de session; cocher les
+   tâches terminées et lister les tâches restantes.
+2. Chaque commit structurant inclut son entrée dans
+   `dev/docs/JOURNALDESMODIFS.md`; le journal de bord trace les sessions.
+3. Ignorer les artefacts générés dès leur création selon `.gitignore`.
+4. Ne rien modifier hors du GO validé; signaler toute modification inattendue
+   sans la corriger automatiquement.
+
+Consulter `AGENTS.md` avant d'agir et respecter les protections de `.memory/`
+et de `.github/copilot-instructions.md`.

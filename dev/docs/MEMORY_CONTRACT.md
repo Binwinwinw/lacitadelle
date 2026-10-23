@@ -1,123 +1,110 @@
-# Contrat de la mémoire SQLite
+# Contrat de la mémoire SQLite — schéma V3
 
-> **Note** : ce contrat couvre le schéma mémoire actuel. Les passages décrivant le client V1 et le login V2 sont historiques.
+## Rôle et emplacement
 
-## Contexte
+`dev/tools/citadelle_memory.py` gère la base SQLite locale
+`citadelle_data/memory.db`. Le proxy Python utilise les helpers de ce module
+pour isoler les sessions et messages par utilisateur. La base et son contenu
+ne sont pas envoyés à un service cloud.
 
-La Citadelle doit offrir une mémoire persistante des conversations.
-Le décideur a tranché : une seule base SQLite, 3 tables en V1
-(users, sessions, messages). Une 4e table (lacitadelle) est documentée
-pour la V2 (traçage des instances de l'assistant).
+## Schéma V3 actuel
 
-## Décisions actées (V1)
+Le proxy V3 utilise trois tables :
 
-1. Une seule base SQLite : `citadelle_data/memory.db`.
-2. Trois tables :
-   - `users` : id (PK), username (UNIQUE), created_at.
-   - `sessions` : id (PK), user_id (FK → users.id), title,
-     created_at, updated_at.
-   - `messages` : id (PK), session_id (FK → sessions.id),
-     role CHECK IN ('user','assistant','system'), content,
-     created_at, metadata.
-3. Hiérarchie : user → session → message.
-   - Une session = une conversation (dans la V1).
-   - `lacitadelle` = rôle `'assistant'` dans `messages`. Pas d'entité
-     séparée en V1.
-4. La base est créée au premier lancement si absente.
-5. Un utilisateur par défaut est créé : `username = 'lacitadelle'`
-   (utilisateur humain, pas l'assistant — le nom est cosmétique et
-   peut être changé en V2).
-6. `citadelle_data/` est gitignoré (données utilisateur).
-7. La mémoire est gérée côté client ou proxy Python, pas côté llamafile.
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user','admin')),
+    is_active INTEGER NOT NULL DEFAULT 1,
+    must_change_password INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    last_login_at TEXT
+);
 
-## Schéma SQL V1
+CREATE TABLE sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
-        created_at TEXT NOT NULL
-    );
+CREATE TABLE messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('user','assistant','system')),
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    metadata TEXT,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
+```
 
-    CREATE TABLE IF NOT EXISTS sessions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        title TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
+Les dates sont enregistrées en UTC au format ISO 8601. `metadata` est un champ
+texte nullable utilisé pour les métadonnées JSON des messages.
 
-    CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        session_id INTEGER NOT NULL,
-        role TEXT NOT NULL CHECK(role IN ('user','assistant','system')),
-        content TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        metadata TEXT,
-        FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
-    );
+## Migration V2 vers V3
 
-## Schéma documenté pour V2 (non implémenté)
+`migrate_to_v3(db_path=None)` vérifie si `users` contient déjà
+`password_hash`. Si le champ est présent, elle considère la migration
+terminée et ne fait rien. Sinon, elle désactive temporairement les clés
+étrangères et, dans une transaction, supprime puis recrée les tables
+`messages`, `sessions` et `users` avec le schéma V3.
 
-Ajout d'une 4e table `lacitadelle` :
+Cette migration est **destructive** : les anciens utilisateurs, sessions et
+messages sont supprimés. Sauvegarder `citadelle_data/memory.db` avant toute
+migration; ne pas lancer cette migration comme simple réparation d'une base
+contenant des données à conserver.
 
-- id (PK), model_name, system_prompt, created_at.
-- `messages.lacitadelle_id` (FK → lacitadelle.id) pour tracer quelle
-  instance de l'assistant a répondu (utile si on change de modèle
-  ou si on garde plusieurs versions).
+Le proxy appelle cette migration au démarrage. `create_admin.py` l'appelle
+également avant de créer le premier compte administrateur.
 
-## Politique de conservation
+## Fonctions publiques
 
-V1 : conservation illimitée (suppression manuelle du fichier memory.db
-par l'utilisateur). V2+ : purge, archivage, chiffrement éventuel.
+Le module expose les opérations suivantes :
 
-## Non-objectifs (v1)
+- `migrate_to_v3(db_path=None)` : migration destructive décrite ci-dessus.
+- `init_db(db_path=None)` : crée les tables du schéma V1 si elles sont
+  absentes; ne migre pas une base existante vers V3.
+- `ensure_default_user(db_path=None)` : crée le compte historique
+  `lacitadelle` si absent et retourne son identifiant.
+- `hash_password(password)` et `verify_password(password, stored_hash)` :
+  création et vérification de hash scrypt.
+- `generate_strong_password(length=16)` : génère un mot de passe temporaire
+  aléatoire; longueur minimale 16.
+- `create_session(title=None, db_path=None)` : crée une session associée à
+  l'utilisateur V1 par défaut.
+- `create_session_for_user(user_id, title=None, db_path=None)` : crée une
+  session pour un utilisateur existant.
+- `list_sessions(db_path=None)` : liste les sessions du compte par défaut.
+- `list_sessions_for_user(user_id, db_path=None)` : liste les sessions
+  appartenant à l'utilisateur donné.
+- `get_session_for_user(user_id, session_id, db_path=None)` : retourne une
+  session seulement si elle appartient à cet utilisateur.
+- `add_message(session_id, role, content, metadata=None, db_path=None)` :
+  ajoute un message et met à jour `sessions.updated_at`.
+- `get_messages(session_id, limit=None, db_path=None)` : récupère les
+  messages d'une session, éventuellement limités aux plus récents.
+- `get_messages_for_user(user_id, session_id, limit=None, db_path=None)` :
+  retourne les messages uniquement si la session appartient à l'utilisateur.
+- `delete_session(session_id, db_path=None)` : supprime une session; la clé
+  étrangère supprime aussi ses messages.
 
-- Pas de synchronisation cloud.
-- Pas de chiffrement.
-- Pas de multi-utilisateurs actifs (le user par défaut est unique).
-- Pas d'interface UI dédiée (client texte).
+La création des comptes V3 est faite par `login_server.py` lors de
+l'inscription et par `create_admin.py` pour l'administrateur initial. Il n'y
+a pas de fonction publique `create_user` ni `get_user_by_username` dans ce
+module. L'attribution du rôle est stockée dans `users.role`.
 
-## Impact sur le code
+## Limites et précautions
 
-- Nouveau module `dev/tools/citadelle_memory.py` (à créer dans une
-  tâche ultérieure).
-- Fonctions : init_db, ensure_default_user, create_session,
-  add_message, get_messages.
-- Utilisé par le futur client texte.
-
-## Évolutions futures (V2+)
-
-### Lancement automatique de llamafile par le client
-
-En V1, le client ne lance pas llamafile : l'utilisateur lançait
-`dist/lacitadelle.llamafile.exe` dans un terminal séparé, puis
-`python dev/tools/client.py` dans un autre. Ce choix séparait les
-responsabilités (serveur d'inférence vs client conversationnel) et
-permet à l'utilisateur de voir les logs du serveur.
-
-En V2+, on pourrait envisager un lancement automatique par le
-client. Cela nécessiterait :
-
-- Le lancement du processus llamafile avec les
-  arguments adéquats.
-- L'attente que le serveur HTTP soit prêt (polling sur `/v1/models`
-  jusqu'à succès, avec timeout).
-- La capture des logs (stdout/stderr) pour les remonter dans
-  l'interface utilisateur.
-- La gestion du cycle de vie (kill propre à la sortie du client,
-  gestion des ports occupés, détection d'une instance déjà lancée).
-- La gestion des erreurs de lancement (binaire manquant, permissions).
-
-Ces fonctionnalités sont hors périmètre V1. Le mode actuel
-(lancement manuel) est le comportement documenté et supporté pour
-toutes les versions jusqu'à ce qu'une décision explicite acte le
-changement.
-
-### Multi-utilisateurs (login)
-
-La table `users` existe avec `username UNIQUE`. En V1, un
-utilisateur par défaut (`lacitadelle`) est utilisé. En V2+, on
-pourra ajouter une authentification et filtrer les sessions par
-`user_id` (via `list_sessions_for_user(user_id)`). L'architecture
-actuelle supporte cette évolution sans modification du schéma.
+- SQLite et `citadelle_data/memory.db` sont locaux; aucune synchronisation
+  cloud ni chiffrement de la base n'est fourni.
+- Les helpers V1 `init_db`, `ensure_default_user`, `create_session` et
+  `list_sessions` restent présents pour le REPL historique; le proxy web
+  utilise les opérations filtrées par `user_id`.
+- Les sessions d'authentification du proxy sont conservées en mémoire par le
+  processus et disparaissent à son redémarrage.
+- Les suppressions de sessions appliquent `ON DELETE CASCADE` aux messages.

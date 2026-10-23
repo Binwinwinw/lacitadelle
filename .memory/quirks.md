@@ -18,14 +18,14 @@ Les restrictions concernant Ponytail et hacklm-memory, ainsi que leur vérificat
 - **hacklm-memory** (extension VS Code) : **configuré** via
   `hacklm-memory.manageInstructionFile: false` pour ne pas modifier
   `.github/copilot-instructions.md`. Si un bloc
-  `<!-- hacklm-memory:start -->` réapparaît, restaurer via
-  `git restore .github/copilot-instructions.md` et vérifier la configuration
-  VS Code.
+  `<!-- hacklm-memory:start -->` réapparaît, signaler la modification au
+  décideur sans corriger automatiquement, puis vérifier la configuration VS
+  Code selon ses instructions.
 - `dev/tests/system-commandline-sentinel-files/` : artefact .NET/Git Credential Manager. Réapparaît automatiquement après certains pushs. Gitignoré. Ignorer. S'il réapparaît, le supprimer (pas de commit nécessaire).
 
 ## Python
 
-- **Python 3.10+ requis** pour bootstrap, setup, client et proxy; pas pour llamafile.
+- **Python 3.10+ requis** pour bootstrap, client et proxy; pas pour llamafile.
 - **Windows / RTK** : certains terminaux cassent l'encodage des accents. Utiliser `-X utf8` ou `PYTHONIOENCODING=utf-8`.
 
 ## Format

@@ -107,3 +107,21 @@ distribution Phase 1-7 et formaliser les règles de suivi des GO.
 
 **Impact** : aucune modification du code ou de l'archive livrée; les backups
 ZIP restent locaux et exclus de Git.
+
+## [2026-10-23] Phase 7E-Lot1 — Corrections critiques documentation
+
+**Commit** : Phase 7E-Lot1 (hash consultable dans l'historique Git)
+
+**Fichiers modifiés** : `.github/copilot-instructions.md`,
+`dev/docs/MEMORY_CONTRACT.md`, `dev/docs/GIT_STRATEGY.md`,
+`dev/docs/OUTILS_INTRUSIFS.md`, `.memory/quirks.md`,
+`dev/docs/OBJECTIF.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : corriger cinq contradictions P1 identifiées par l'audit
+Phase 7D.
+
+**Impact** : documentation alignée sur le produit actuel (runtime et GGUF
+séparés, schéma SQLite V3, chemins `dist/` et `vendor/` exacts, signalement
+sans restauration automatique, vocabulaire V3.1/authentification clarifié).
+La release v0.1.0 supprimée est signalée comme historique; `v3-distribution`
+reste prévue après Phase 7E-Lot3.

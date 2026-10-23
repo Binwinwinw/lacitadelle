@@ -11,8 +11,8 @@ mozilla-ai/llamafile.
 
 V3.0 fonctionnelle localement. 73 tests permanents. `install.bat` télécharge
 llamafile-thin et le GGUF; `lancer.bat` démarre le runtime et le proxy. La
-distribution est `lacitadelle-distribution.zip`, sans Git ni binaires intégrés. La
-release GitHub v0.1.0 est obsolète et doit être dépréciée manuellement.
+distribution V3 est `lacitadelle-distribution.zip`, sans Git ni binaires
+intégrés. V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
 ## Règles agents
 
@@ -151,7 +151,7 @@ Corollaires :
 - Décisions : `.memory/decisions.md`
 - Journal de bord : `dev/docs/JOURNALDEBORD.md`
 - Modifications et TODO vivant : `dev/docs/JOURNALDESMODIFS.md`
-- Code de production : `dev/` (à venir)
+- Code et documentation : `dev/`
 
 ## Périmètre et non-objectifs
 

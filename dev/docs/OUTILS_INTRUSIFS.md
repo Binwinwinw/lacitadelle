@@ -23,8 +23,8 @@ si possible, désactivé ou restreint.
   `<!-- hacklm-memory:start --> ... end -->` dans
   `.github/copilot-instructions.md` (setting `manageInstructionFile: true`
   par défaut).
-- **Incident** : 2026-10-17, injection de 40 lignes. Restauré via
-  `git restore`.
+- **Incident** : 2026-10-17, injection de 40 lignes. Le fichier a été
+  rétabli après signalement.
 - **Configuration actuelle (2026-10-21)** : setting
   `hacklm-memory.manageInstructionFile = false`. L'extension ne modifie plus
   `copilot-instructions.md`. Elle continue d'apprendre passivement dans
@@ -33,9 +33,9 @@ si possible, désactivé ou restreint.
   configuration), `.memory/*.md` (l'extension peut écrire si
   `autoApproveStore` est activé — actuellement `false`).
 - **Mesure de sécurité** : si un bloc `<!-- hacklm-memory:start -->`
-  réapparaît dans `copilot-instructions.md`, exécuter
-  `git restore .github/copilot-instructions.md` et vérifier la configuration
-  VS Code.
+  réapparaît dans `copilot-instructions.md`, signaler la modification au
+  décideur et ne pas la corriger automatiquement. Vérifier la configuration
+  VS Code selon les instructions du décideur.
 
 ## system-commandline-sentinel-files (.NET / Git Credential Manager)
 
@@ -51,8 +51,9 @@ si possible, désactivé ou restreint.
 --short` doit montrer uniquement les fichiers attendus.
 2. Si un outil intrusif est identifié, ajouter une entrée dans ce document
    et mettre à jour les garde-fous des règles 5 et 6 d'AGENTS.md.
-3. Si un outil injecte du contenu malgré tout, restaurer la version HEAD
-   (`git restore <fichier>`) et documenter l'incident dans `decisions.md`.
+3. Si un outil modifie un fichier protégé malgré tout, signaler la
+   modification au décideur sans la corriger automatiquement; documenter
+   l'incident uniquement sur instruction explicite.
 4. Envisager à terme un hook Git de pré-commit qui refuse les modifications
    non formatées de `decisions.md` ou les blocs `<!-- hacklm-memory:* -->`
    dans `copilot-instructions.md`.

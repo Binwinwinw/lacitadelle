@@ -12,16 +12,16 @@ Les sources, la documentation, les scripts et les fichiers de configuration
 sont suivis par Git. Les données utilisateur, modèles téléchargés, binaires
 vendorisés et artefacts générés restent locaux et sont exclus par `.gitignore`.
 
-## Assets de fabrication
+## Assets téléchargés
 
-La fabrication utilise les binaires précompilés de la release llamafile 0.10.6
-et le modèle GGUF externe. `dev/tools/bootstrap.py` les télécharge et vérifie
-leurs SHA-256 selon `dev/tools/llamafile_config.json`. Aucun checkout local des
-sources upstream n'est requis pour construire la V1.
+`dev/tools/bootstrap.py` télécharge le runtime llamafile-thin 0.10.6 dans
+`dist/` (`dist/llamafile.exe` sous Windows, `dist/llamafile` sous Unix) et le
+modèle GGUF séparément dans `dev/tools/vendor/llamafile/`. Les SHA-256 sont
+vérifiés selon `dev/tools/llamafile_config.json`. Aucun checkout local des
+sources upstream n'est requis pour utiliser la distribution.
 
-Les assets sont stockés dans `dev/tools/vendor/llamafile/` et ne sont pas
-versionnés. Les scripts, manifestes et contrats de fabrication restent suivis
-par Git.
+Le runtime, le modèle et les autres assets téléchargés ne sont pas versionnés.
+Les scripts, manifestes et contrats du bootstrap restent suivis par Git.
 
 ## Historique Git
 
