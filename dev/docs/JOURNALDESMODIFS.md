@@ -1,18 +1,28 @@
 # Journal des modifications
 
-Ce document résume les travaux notables de la V1 et les évolutions prévues.
+Ce document résume les évolutions du produit et de sa distribution.
+
+## Phases 1-5 — Distribution actuelle
+
+- **Phase 1** : le bootstrap télécharge llamafile-thin 0.10.6 dans `dist/` et le GGUF séparément dans `dev/tools/vendor/llamafile/`; les deux assets sont vérifiés par checksum.
+- **Phase 2** : création d'une archive ZIP autonome pour les utilisateurs, sans Git ni binaires pré-téléchargés.
+- **Phase 3** : suppression des anciens artefacts de distribution et nettoyage documentaire; la release GitHub v0.1.0 contenant l'ancien runtime regroupé est obsolète et doit être dépréciée manuellement.
+- **Phase 4** : nettoyage des quirks legacy, renommage du fichier en `README.md` et vérification des liens.
+- **Phase 5** : alignement de `OBJECTIF.md`, annotation des décisions historiques, suppression de l'ancien outil développeur et des contrats morts; archive renommée `lacitadelle-distribution.zip` et régénérée après le ménage.
 
 ## V1 — Terminée (2026-10-18)
+
+> **HISTORIQUE** — cet état précède les évolutions V2/V3 et les Phases 1-5 de distribution.
 
 ### Travaux accomplis
 
 - **Socle documentaire** : instructions projet, périmètre, stratégie Git, base llamafile, stratégie de vendorisation et contrats bootstrap, external et mémoire.
 - **Choix du runtime et du modèle** : llamafile 0.10.6 thin, `zipalign` et Qwen3-1.7B Q4_K_M en mode external.
-- **Bootstrap actuel** : `dev/tools/bootstrap.py` télécharge et vérifie le runtime préconstruit depuis GitHub Releases et le GGUF séparément. Le runtime thin et `zipalign` ne sont utilisés que pour le build développeur.
-- **Fabrication** : `dev/tools/setup_lacitadelle.py` assemble l'exécutable external d'environ 44 Mo.
+- **Bootstrap V1** : `dev/tools/bootstrap.py` téléchargeait et vérifiait les assets du runtime et du GGUF.
+- **Fabrication V1** : `dev/tools/setup_lacitadelle.py` assemblait l'exécutable external d'environ 44 Mo; cet outil a été supprimé en Phase 5.
 - **Lancement actuel** : `install.bat` lance le bootstrap sans construire le runtime ; `lancer.bat` démarre le serveur et le proxy puis ouvre le navigateur.
 - **Conversation et mémoire** : le serveur headless sert l'API locale et l'interface web ; `dev/tools/client.py` fournit un REPL relié à `dev/tools/citadelle_memory.py` et à la base SQLite à trois tables.
-- **Reproductibilité** : le décideur a confirmé le parcours de zéro ; l'installation retélécharge les assets requis, fabrique l'exécutable et permet le lancement.
+- **Reproductibilité V1** : le parcours de zéro a été confirmé; l'installation téléchargeait les assets puis fabriquait l'exécutable.
 - **Nettoyage documentaire Temps 2** : les mentions opérationnelles obsolètes liées à `main/` ont été retirées ; les historiques de décisions ont été conservés selon Solution A.
 
 ### Décisions clés
@@ -37,7 +47,7 @@ Ce document résume les travaux notables de la V1 et les évolutions prévues.
 - Inscription avec mot de passe, login scrypt, changement forcé de mot de passe et logout.
 - Sessions d'authentification avec cookie `Max-Age=86400` et expiration côté serveur.
 - Proxy local et webchat; sessions et messages filtrés par utilisateur.
-- Distribution préconstruite : runtime via GitHub Releases et GGUF séparé; `install.bat` ne lance pas le build.
+- Distribution actuelle : archive ZIP autonome; llamafile-thin et le GGUF sont téléchargés séparément par le bootstrap.
 - 73 tests permanents passent.
 
 ### V3.1 — Roadmap

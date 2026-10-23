@@ -8,7 +8,7 @@ venv/
 *.egg-info/
 build/
 dist/
-/lacitadelle-v2.zip
+/lacitadelle-distribution.zip
 
 # Modèles
 *.gguf

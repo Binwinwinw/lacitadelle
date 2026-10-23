@@ -2,8 +2,9 @@
 
 ## Rôle
 
-Télécharger et vérifier les binaires llamafile listés dans `llamafile_config.json`.
-Ne pas exécuter les binaires. Ne pas installer de dépendance.
+Télécharger et vérifier les assets listés dans `llamafile_config.json`.
+Le runtime llamafile-thin et le modèle GGUF sont des téléchargements séparés.
+Ne pas exécuter les assets. Ne pas installer de dépendance.
 
 ## Contrat de la configuration (`llamafile_config.json`)
 
@@ -38,21 +39,28 @@ Toute violation lève `BootstrapError` avec un message indiquant :
 ## Contrat des chemins
 
 - `CONFIG_PATH` = `dev/tools/llamafile_config.json` (relatif à la racine du projet).
-- `VENDOR_DIR` = `dev/tools/vendor/llamafile/`. Créé si absent (avec `mkdir(parents=True, exist_ok=True)`).
+- `DIST_DIR` = `dist/`, destination du runtime llamafile-thin. Sous Windows,
+  il est publié sous le nom `llamafile.exe`; sous POSIX, `llamafile`.
+- `VENDOR_DIR` = `dev/tools/vendor/llamafile/`, destination du GGUF.
+- Les répertoires de destination sont créés si absents (avec
+  `mkdir(parents=True, exist_ok=True)`).
 - Le dossier `dev/tools/vendor/` est gitignoré.
 
 ## Contrat de téléchargement
 
 ### Cycle par asset (avec mode réparateur)
 
-Pour chaque asset avec `required: true` :
+Pour chaque asset avec `required: true`, le répertoire de destination dépend
+de son identifiant logique : `llamafile-thin` va dans `DIST_DIR`, le modèle
+`qwen3-1.7b-q4km` dans `VENDOR_DIR`.
 
-1. **Fichier final présent dans `VENDOR_DIR/filename`** :
+1. **Fichier final présent dans son répertoire de destination** :
    - Calculer son SHA-256.
    - **Conforme** → asset OK, passer au suivant.
    - **Non conforme** → **suppression du fichier**, puis exécuter le cycle de téléchargement (étape 2). Message sur stderr : « Fichier existant X corrompu, réparation en cours. »
 2. **Fichier final absent (ou après suppression)** :
-   - Télécharger vers un fichier temporaire dans `VENDOR_DIR` (nom unique : `.tmp-<filename>-<pid>`).
+   - Télécharger vers un fichier temporaire dans le répertoire de destination
+     (nom unique : `.tmp-<filename>-<pid>`).
    - Calculer le SHA-256 du temporaire.
    - **Conforme** → publication atomique (renommer temporaire vers fichier final).
    - **Non conforme** → supprimer le temporaire, échec explicite. Message : « Checksum invalide pour X. Attendu Y, calculé Z. »

@@ -9,7 +9,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEV_DIR = PROJECT_ROOT / "dev"
-ARCHIVE_PATH = PROJECT_ROOT / "lacitadelle-v2.zip"
+ARCHIVE_PATH = PROJECT_ROOT / "lacitadelle-distribution.zip"
 
 MAX_FILE_SIZE = 10 * 1024 * 1024
 MAX_ARCHIVE_SIZE = 5 * 1024 * 1024

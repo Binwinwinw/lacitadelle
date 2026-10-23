@@ -1,5 +1,7 @@
 # Contrat du login multi-utilisateurs (V2)
 
+> **HISTORIQUE** — contrat V2 remplacé par V3.0 (voir [AUTH_CONTRACT.md](./AUTH_CONTRACT.md)). Conservé pour traçabilité.
+
 ## Contexte et objectif
 
 La V1 fournit un utilisateur par défaut (`lacitadelle`) et un client Python séparé qui persiste les conversations dans SQLite. La V2 ajoute une interface web avec login, servie par un proxy Python local. Le proxy possède la session utilisateur, applique l'isolation des données et relaie les requêtes d'inférence vers llamafile.

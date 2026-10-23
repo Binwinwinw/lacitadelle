@@ -37,7 +37,7 @@ Vérifiez manuellement `python --version` : Python 3.10 ou supérieur est requis
 
 ### Parcours rapide (Windows, sans Git)
 
-1. Décompressez `lacitadelle-v2.zip` dans un dossier accessible en écriture.
+1. Décompressez `lacitadelle-distribution.zip` dans un dossier accessible en écriture.
 2. Double-cliquez sur `install.bat`.
 3. Une fois l'installation terminée, `lancer.bat` démarre automatiquement.
 
@@ -45,7 +45,6 @@ Vérifiez manuellement `python --version` : Python 3.10 ou supérieur est requis
 Mozilla AI et le modèle GGUF depuis HuggingFace, puis lance `lancer.bat`.
 Le navigateur s'ouvre sur `http://localhost:8081`.
 
-**Aucune compilation ni exécution de zipalign sur l'ordinateur utilisateur.**
 Un antivirus peut bloquer `dist/llamafile.exe`; autorisez ce fichier si
 nécessaire.
 
@@ -72,10 +71,6 @@ Un compte créé par `create_admin.py` reçoit un mot de passe temporaire à cha
 - **Python n'est pas reconnu** : vérifiez que Python 3.10+ est dans le PATH.
 - **Le téléchargement échoue** : vérifiez la connexion et relancez
   `python dev/tools/bootstrap.py`.
-
-`dev/tools/setup_lacitadelle.py` reste un outil de build développeur
-historique; il ne fait pas partie de la distribution ni de l'installation
-utilisateur.
 
 Sur Unix, aucun script d'installation automatique n'est fourni dans cette
 version. Le bootstrap peut être lancé avec `python dev/tools/bootstrap.py`.
@@ -132,6 +127,6 @@ Fermez les deux fenêtres « Lacitadelle Server » et « Lacitadelle Proxy ».
 ## Structure du dépôt
 
 - `dev/` — code et documentation de La Citadelle
-- `lacitadelle-v2.zip` — archive générée par `python -B dev/tools/creer_archive.py`
+- `lacitadelle-distribution.zip` — archive générée par `python -B dev/tools/creer_archive.py`
 - `.memory/` — mémoire projet (décisions, instructions)
 - `AGENTS.md` — source de vérité des instructions agents

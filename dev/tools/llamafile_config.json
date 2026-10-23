@@ -17,13 +17,6 @@
       "filename": "Qwen3-1.7B-Q4_K_M.gguf",
       "required": true,
       "purpose": "Modèle Qwen3-1.7B Q4_K_M pour le mode external."
-    },
-    "zipalign": {
-      "url": "https://github.com/mozilla-ai/llamafile/releases/download/0.10.6/zipalign-0.10.6",
-      "sha256": "7eac59c658226027b365d92131babf06341f746fb20c0db33115bbdf5c5c6c4b",
-      "filename": "zipalign-0.10.6",
-      "required": false,
-      "purpose": "Outil d'assemblage utilisé uniquement par setup_lacitadelle.py côté développeur."
     }
   }
 }

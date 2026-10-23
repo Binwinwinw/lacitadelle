@@ -1,5 +1,7 @@
 # Plan de nettoyage de main/
 
+> **HISTORIQUE** — plan terminé (voir décision [2026-10-18]). Conservé pour traçabilité.
+
 ## Contexte
 
 Le dossier main/ (fork de mozilla-ai/llamafile) est présent dans le

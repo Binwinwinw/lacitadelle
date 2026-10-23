@@ -1,5 +1,7 @@
 # Contrat de la mémoire SQLite
 
+> **Note** : ce contrat couvre le schéma mémoire actuel. Les passages décrivant le client V1 et le login V2 sont historiques.
+
 ## Contexte
 
 La Citadelle doit offrir une mémoire persistante des conversations.
@@ -26,8 +28,7 @@ pour la V2 (traçage des instances de l'assistant).
    (utilisateur humain, pas l'assistant — le nom est cosmétique et
    peut être changé en V2).
 6. `citadelle_data/` est gitignoré (données utilisateur).
-7. La mémoire est gérée côté client (setup_lacitadelle.py ou futur
-   client), pas côté llamafile.
+7. La mémoire est gérée côté client ou proxy Python, pas côté llamafile.
 
 ## Schéma SQL V1
 
@@ -89,16 +90,16 @@ par l'utilisateur). V2+ : purge, archivage, chiffrement éventuel.
 
 ### Lancement automatique de llamafile par le client
 
-En V1, le client ne lance pas llamafile : l'utilisateur lance
+En V1, le client ne lance pas llamafile : l'utilisateur lançait
 `dist/lacitadelle.llamafile.exe` dans un terminal séparé, puis
-`python dev/tools/client.py` dans un autre. Ce choix sépare les
+`python dev/tools/client.py` dans un autre. Ce choix séparait les
 responsabilités (serveur d'inférence vs client conversationnel) et
 permet à l'utilisateur de voir les logs du serveur.
 
 En V2+, on pourrait envisager un lancement automatique par le
 client. Cela nécessiterait :
 
-- Le lancement du processus `lacitadelle.llamafile.exe` avec les
+- Le lancement du processus llamafile avec les
   arguments adéquats.
 - L'attente que le serveur HTTP soit prêt (polling sur `/v1/models`
   jusqu'à succès, avec timeout).

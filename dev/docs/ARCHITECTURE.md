@@ -20,14 +20,13 @@ webchat authentifié. Le runtime et le modèle restent séparés.
 
 - Fichier `dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf`, d'environ 1,28 Go.
 - Qwen3-1.7B Q4_K_M, licence Apache 2.0.
-- Téléchargé et vérifié par checksum SHA-256 par `dev/tools/bootstrap.py` ; il n'est pas embarqué dans le `.llamafile.exe`.
+- Téléchargé et vérifié par checksum SHA-256 par `dev/tools/bootstrap.py` ; il n'est pas embarqué dans `dist/llamafile.exe`.
 
 ### 3. Bootstrap et packaging
 
-- `dev/tools/llamafile_config.json` marque llamafile-thin et le GGUF comme requis; `zipalign` reste facultatif pour l'outil de build développeur.
+- `dev/tools/llamafile_config.json` marque llamafile-thin et le GGUF comme requis.
 - `dev/tools/bootstrap.py` télécharge llamafile-thin dans `dist/` et le GGUF dans `dev/tools/vendor/llamafile/`, puis vérifie les checksums.
-- `dev/tools/creer_archive.py` crée `lacitadelle-v2.zip` sans Git, runtime, GGUF, exécutables ni fichiers de plus de 10 MiB.
-- `dev/tools/setup_lacitadelle.py` demeure un outil développeur historique; il n'est pas utilisé par le parcours utilisateur.
+- `dev/tools/creer_archive.py` crée `lacitadelle-distribution.zip` sans Git, runtime, GGUF, exécutables ni fichiers de plus de 10 MiB.
 
 ### 4. Lancement
 
@@ -40,12 +39,12 @@ webchat authentifié. Le runtime et le modèle restent séparés.
 - `dev/tools/client.py` est un REPL séparé qui se connecte au serveur llamafile déjà lancé via l'API HTTP locale. Il ne démarre pas le serveur.
 - `dev/tools/citadelle_memory.py` gère la base `citadelle_data/memory.db` et ses trois tables V1 : `users`, `sessions` et `messages`.
 - Le client V1 utilise l'utilisateur par défaut `lacitadelle`, conserve les conversations localement et envoie au plus 15 messages de contexte.
-- Cette mémoire est disponible en V1 via le client Python, mais elle n'est ni embarquée dans le `.llamafile.exe` ni utilisée par l'interface web intégrée de llamafile.
-- La V1 n'a pas de login ni de comptes multi-utilisateurs actifs.
+- Le REPL historique V1 utilise le compte par défaut `lacitadelle`; le proxy web V3 utilise les helpers SQLite filtrés par utilisateur.
+- La V1 n'avait pas de login ni de comptes multi-utilisateurs.
 
 ## Flux de première installation
 
-1. L'utilisateur extrait `lacitadelle-v2.zip`; aucun clone Git n'est requis.
+1. L'utilisateur extrait `lacitadelle-distribution.zip`; aucun clone Git n'est requis.
 2. Il double-clique sur `install.bat`.
 3. `install.bat` lance `bootstrap.py`, qui télécharge llamafile-thin et le GGUF, puis vérifie leurs checksums.
 4. `install.bat` lance `lancer.bat`, qui démarre llamafile-thin et le proxy puis ouvre le navigateur sur `localhost:8081`.
@@ -130,5 +129,3 @@ d'administration web.
 ## Distribution et outils développeur
 
 - La release GitHub v0.1.0 contenant l'ancien runtime regroupé est **OBSOLÈTE**; le décideur doit la déprécier manuellement.
-- `setup_lacitadelle.py` reste un outil développeur historique et n'est pas requis pour installer ou lancer la distribution actuelle.
-- `zipalign` n'est pas utilisé par `install.bat` ni `lancer.bat`.
