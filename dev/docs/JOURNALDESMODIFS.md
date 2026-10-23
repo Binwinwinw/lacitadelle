@@ -110,7 +110,7 @@ ZIP restent locaux et exclus de Git.
 
 ## [2026-10-23] Phase 7E-Lot1 — Corrections critiques documentation
 
-**Commit** : Phase 7E-Lot1 (hash consultable dans l'historique Git)
+**Commit** : `635ef2f`
 
 **Fichiers modifiés** : `.github/copilot-instructions.md`,
 `dev/docs/MEMORY_CONTRACT.md`, `dev/docs/GIT_STRATEGY.md`,
@@ -125,3 +125,15 @@ séparés, schéma SQLite V3, chemins `dist/` et `vendor/` exacts, signalement
 sans restauration automatique, vocabulaire V3.1/authentification clarifié).
 La release v0.1.0 supprimée est signalée comme historique; `v3-distribution`
 reste prévue après Phase 7E-Lot3.
+
+## [2026-10-23] Synchronisation de la correction README français
+
+**Commit** : `81ab659` (merge normal de `cf1c26e`)
+
+**Fichiers modifiés** : `README.fr.md`.
+
+**Raison** : intégrer la correction de clarté apportée au guide utilisateur
+français sur la branche distante.
+
+**Impact** : documentation française synchronisée; aucune modification du
+code, des tests ou de l'archive de distribution.
