@@ -137,3 +137,18 @@ français sur la branche distante.
 
 **Impact** : documentation française synchronisée; aucune modification du
 code, des tests ou de l'archive de distribution.
+
+## [2026-10-23] Phase 7E-Lot1c — Restauration consigne de sécurité
+
+**Commit** : Phase 7E-Lot1c (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `README.fr.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : `cf1c26e` (merge `81ab659`) avait retiré l'avertissement de
+sécurité sur l'exposition de La Citadelle à un réseau ou à Internet. Les
+reformulations accidentelles « DISCUSSION/CHAT » et « Terminale » ont aussi
+été corrigées.
+
+**Impact** : avertissement de sécurité restauré et terminologie française
+clarifiée; aucun impact sur le code ou les tests.
