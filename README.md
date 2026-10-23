@@ -19,14 +19,14 @@ La Citadelle is a local AI chat application. Your conversations are processed on
 1. Download the latest archive from [GitHub Releases](https://github.com/Binwinwinw/lacitadelle/releases/latest) — the file is `lacitadelle-distribution.zip`.
 2. Unzip it into a folder where you have write access.
 3. Double-click `install.bat`. It checks that Python is available, downloads the llamafile runtime (about 42 MB) and Qwen3 model (about 1.28 GB), verifies their checksums, and starts `lancer.bat`.
-4. Your browser opens at `http://localhost:8081`. Select **Sign up** to create an account, then log in.
+4. Your browser opens at `http://localhost:8081`. Select **Sign up** (**Créer un compte**) to create an account, then log in.
 5. Start chatting.
 
 The first launch can take several minutes while the runtime and model download and the model loads. Later launches are much faster.
 
 ## Usage
 
-Create an account, log in, and select **+ New session** to start a conversation. Your conversations are saved locally and are available again when you log in later.
+Create an account, log in, and select **+ New session** (**+ Nouvelle session**) to start a conversation. Your conversations are saved locally and are available again when you log in later.
 
 ## Security
 

@@ -22,6 +22,9 @@ citadelle_data/
 *.zip
 backup/
 
+# TODO local, jamais versionné ni publié
+/TODO.md
+
 # Dépendance externe — NE JAMAIS versionner ni pousser sur GitHub
 # Binaires vendorisés (téléchargés par dev/tools/bootstrap.py)
 dev/tools/vendor/

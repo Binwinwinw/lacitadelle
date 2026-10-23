@@ -145,6 +145,13 @@ Elles ne sont pas disponibles dans le proxy V3.0.
 
 Les routes `/api/sessions`, `/api/sessions/{id}/messages` et les opérations de logout restent disponibles. Les API de sessions et messages continuent à filtrer chaque accès par `user_id` ; une ressource absente ou appartenant à un autre utilisateur ne doit pas être distinguable.
 
+- `POST /api/sessions/{id}/messages` accepte `Content-Type: application/json`
+  avec le corps `{"content": "..."}`. En cas de succès, la réponse est
+  `201 Created` avec le corps
+  `{"assistant_message": {"role": "assistant", "content": "..."}}`.
+- La requête reçoit `400 Bad Request` si `content` est vide ou n'est pas une
+  chaîne.
+
 ## Flux d'authentification
 
 1. L'utilisateur visite `/register`, choisit un nom et un mot de passe, puis confirme ce mot de passe.

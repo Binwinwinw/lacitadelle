@@ -38,6 +38,6 @@ Not lazy about: understanding the problem (read it fully and trace the real flow
 
 ## Tokens (Cursor sur ce dépôt)
 
-- Réponses proportionnelles à la tâche ; pas de todo list, audit global ni doc annexe sans demande (voir aussi `AGENTS.md` et `.cursor/.cursorrules`).
+- Réponses proportionnelles à la tâche ; pas de todo list, audit global ni doc annexe sans demande (voir aussi `AGENTS.md` et les règles de personnalisation locales de votre environnement ; à défaut, ce fichier seul suffit).
 - Préférer grep/cible local à l’exploration large ; un tour d’outils de moins vaut mieux qu’un refactor « au cas où ».
 - Ne pas reciter le contexte déjà visible pour l’utilisateur ; livrer le delta utile.

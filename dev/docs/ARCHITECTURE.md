@@ -31,7 +31,7 @@ webchat authentifié. Le runtime et le modèle restent séparés.
 ### 4. Lancement
 
 - Après extraction de l'archive, `install.bat` vérifie la présence de Python, lance le bootstrap puis démarre `lancer.bat`.
-- `lancer.bat` exécute `dist/llamafile.exe -m dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf`, démarre le proxy Python V3.0 et ouvre `http://localhost:8081`.
+- `lancer.bat` exécute `dist/llamafile.exe -m dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps`, démarre le proxy Python V3.0 et ouvre `http://localhost:8081`.
 - L'installation et le client Python nécessitent Python 3.10+ ; l'exécutable llamafile lui-même est le runtime d'inférence.
 
 ### 5. Client conversationnel et mémoire SQLite

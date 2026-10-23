@@ -650,7 +650,7 @@ def handle_post_message(
 
 
 class RequestHandler(BaseHTTPRequestHandler):
-    """Handler HTTP ; les routes connues répondent 501 tant qu'elles sont des stubs."""
+    """Les routes connues implémentent l'authentification, les sessions et les messages ; les routes admin V3.1 ne sont pas encore présentes."""
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path

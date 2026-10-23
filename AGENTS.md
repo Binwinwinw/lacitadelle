@@ -81,7 +81,7 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 
 ## Suivi et traçabilité
 
-Ce projet applique quatre règles structurelles pour garantir la traçabilité.
+Ce projet applique cinq règles structurelles pour garantir la traçabilité.
 Elles s'appliquent à tous les GO (décideur, IDE, agents IA).
 
 ### Règle 1 — TODO de session obligatoire
@@ -145,6 +145,16 @@ Corollaires :
 - Pas de création de fichier dans un dossier non couvert par `.gitignore`
   sans vérifier les règles d'exclusion.
 
+### Règle 5 — TODO.md maintenu à chaque GO
+
+`TODO.md` (racine, gitignoré) liste les tâches à venir en ordre
+anti-chronologique (plus récent en haut). À chaque fin de GO : la tâche
+terminée est retirée, la suivante promue, les tâches futures restent, les
+tâches abandonnées sont tracées dans `JOURNALDEBORD.md`.
+
+`TODO.md` n'est jamais commité, jamais publié dans l'archive, jamais référencé
+dans les documents publics. Il vit exclusivement en local.
+
 ## Où trouver quoi
 
 - Cadre produit et périmètre : `dev/docs/OBJECTIF.md`
@@ -166,7 +176,7 @@ Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à
 
 | Fichier | Contenu | À lire quand |
 | --- | --- | --- |
-| `.memory/decisions.md` | Décisions actées (18) | Avant toute action structurante |
+| `.memory/decisions.md` | Décisions actées (23) | Avant toute action structurante |
 | `.memory/instructions.md` | Rappel et pointeurs | En début de session |
 | `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
 | `.memory/quirks.md` | Pièges et particularités | Avant de coder |

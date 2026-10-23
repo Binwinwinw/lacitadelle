@@ -166,3 +166,20 @@ annotation et cinq décisions implicites non actées.
 **Impact** : traçabilité complète (23 décisions), trailer `Assisted-by` acté,
 tests intermittents reportés en Phase 8, quatre règles `AGENTS.md`
 formalisées, licence Apache 2.0 et documentation bilingue tracées.
+
+## [2026-10-23] Phase 7E-Lot3 — TODO.md + corrections doc P2
+
+**Commit** : Phase 7E-Lot3 (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `.gitignore`, `AGENTS.md`,
+`dev/docs/ARCHITECTURE.md`, `README.md`, `dev/tools/login_server.py`
+(docstring), `dev/docs/AUTH_CONTRACT.md`,
+`.github/agents/rules/ponytail.instructions.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`;
+`TODO.md` créé localement (gitignoré, non versionné).
+
+**Raison** : finaliser les corrections P2 de l'audit 7D et instaurer
+`TODO.md` local avec une stratégie anti-chronologique et un roulement.
+
+**Impact** : documentation alignée sur l'état réel; `TODO.md` reste local,
+gitignoré et absent de l'archive; la règle 5 est actée dans `AGENTS.md`.
