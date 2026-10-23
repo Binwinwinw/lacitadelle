@@ -8,6 +8,8 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 
 ## [2026-10-17] Modèle Qwen3-1.7B Q4_K_M pour le .llamafile v1
 
+*Supplantée partiellement par [2026-10-22] Distribution Phase 3 — voir décision du 2026-10-22.*
+
 **Contexte** : le cadrage du build `.llamafile` a identifié 4 décisions à prendre. Le décideur a tranché la première : le modèle GGUF.
 
 **Décision** :
@@ -65,6 +67,8 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 
 ## [2026-10-17] Base llamafile : Option X (binaire pré-compilé upstream)
 
+*Supplantée partiellement par [2026-10-22] Distribution Phase 3 — voir décision du 2026-10-22.*
+
 **Contexte** : le pipeline v1 doit produire un `.llamafile` à partir d'un GGUF et d'un binaire llamafile de base. Trois options étaient documentées dans `dev/docs/BASE_LLAMAFILE.md` (X : binaire pré-compilé, Y : compilation depuis `main/`, Z : hybride).
 
 **Décision** : Option X retenue par le décideur le 2026-10-17. Le binaire llamafile sera téléchargé depuis les releases upstream (version à figer après vérification factuelle). `main/` reste en référence documentaire, jamais compilé pour la v1.
@@ -99,6 +103,8 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 **Conséquences** : la prochaine tâche implémentera `load_config()` (la plus simple, sans I/O réseau), puis `compute_sha256()` et `download()` séparément. Le décideur exécutera le script lui-même pour tester.
 
 ## [2026-10-17] Contrat bootstrap.py formalisé avant implémentation
+
+*Supplantée partiellement par [2026-10-22] Distribution Phase 3 — voir décision du 2026-10-22.*
 
 **Contexte** : la revue du squelette de `bootstrap.py` a identifié plusieurs contrats manquants (validation de config, gestion des fichiers existants, comportement d'erreur, compatibilité Python). Le décideur a tranché ces contrats avant d'implémenter.
 
@@ -172,6 +178,8 @@ le Temps 2 (tâche séparée). Aucun code Python n'est affecté
 
 ## [2026-10-21] Séparation du build développeur et du run utilisateur
 
+*Supplantée partiellement par [2026-10-22] Distribution Phase 3 — voir décision du 2026-10-22.*
+
 **Contexte** : `install.bat` construisait le runtime avec `zipalign` sur
 l'ordinateur utilisateur. Ce binaire peut être bloqué par les politiques
 antivirus d'entreprise.
@@ -194,6 +202,8 @@ fois l'URL et le checksum réels renseignés. Le `.llamafile` reste soumis aux
 règles antivirus locales.
 
 ## [2026-10-21] Objectif v1 révisé : produit external assumé
+
+*Supplantée partiellement par [2026-10-22] Distribution Phase 3 — voir décision du 2026-10-22.*
 
 **Contexte** : le rapport de vérification documentaire a relevé que
 `OBJECTIF.md` décrivait un fichier unique avec modèle embarqué, sans Python ni
@@ -252,3 +262,25 @@ finale doit être utilisable sans clone Git.
 
 **Conséquences** : Python et une connexion Internet sont requis à la première
 installation. L'archive ne contient ni Git, ni runtime, ni modèle GGUF.
+
+## [2026-10-22] Phase 5 : décisions implicites actées
+
+**Contexte** : l'audit du 2026-10-22 a identifié cinq décisions prises
+oralement entre les Phases 1 et 4 sans entrée formelle dans `decisions.md`.
+
+**Décision(s)** :
+
+1. Suppression définitive de `dist/archives/lacitadelle.exe` (environ 1,3 Go),
+   artefact obsolète d'une génération précédente. Il n'est pas restauré.
+2. `setup_lacitadelle.py` est supprimé en Phase 5 ; cet outil développeur
+   était hors parcours utilisateur et son code est mort depuis la Phase 1.
+3. Le fichier README est nommé `README.md`, conformément à la convention.
+4. L'archive de distribution n'embarque pas `README.md` ; `LISEZMOI.txt` à
+   la racine sert d'entrée utilisateur.
+5. L'archive est renommée `lacitadelle-distribution.zip`, nom neutre sans
+   numéro de version afin d'éviter la collision entre V3.1 authentification
+   et V3.1 distribution.
+
+**Conséquences** : les décisions implicites sont tracées. Les décisions #1,
+#6, #9, #13 et #14 sont annotées comme partiellement supplantées sans
+réécriture de leur corps historique.

@@ -2,12 +2,18 @@
 
 Le produit livré comprend :
 
-- un runtime `.llamafile` préconstruit (environ 44 Mo) ;
-- un modèle GGUF externe Qwen3-1.7B Q4_K_M (environ 1,28 Go) ;
+- le runtime llamafile-thin 0.10.6, téléchargé dans `dist/` et renommé
+  `llamafile.exe` sous Windows ;
+- le modèle GGUF externe Qwen3-1.7B Q4_K_M, téléchargé dans
+  `dev/tools/vendor/llamafile/` ;
 - un proxy Python local (`login_server.py`) et un webchat.
 
-L'utilisateur clone le dépôt, lance `install.bat`, puis `lancer.bat`.
-Le navigateur ouvre le webchat sur `http://localhost:8081`.
+La distribution est une archive ZIP autonome, sans Git ni binaire intégré.
+L'utilisateur l'extrait, lance `install.bat`, puis `lancer.bat`. Le navigateur
+ouvre le webchat sur `http://localhost:8081`.
+
+La release GitHub v0.1.0 contenant l'ancien runtime regroupé est **OBSOLÈTE** ;
+elle doit être dépréciée manuellement par le décideur.
 
 ## 2. Public cible
 
@@ -25,13 +31,15 @@ script d'installation Unix n'est fourni actuellement.
 
 ## 4. Rapport à llamafile upstream (mozilla-ai/llamafile)
 
-llamafile est le RUNTIME et le FORMAT de distribution.
-La Citadelle produit des llamafiles personnalisés via un pipeline Python de fabrication, à partir d'assets upstream précompilés et d'un GGUF.
+llamafile est le runtime d'inférence. Le bootstrap télécharge le runtime
+llamafile-thin 0.10.6 depuis la release upstream mozilla-ai/llamafile et le
+GGUF séparément depuis Hugging Face. Aucun assemblage par `zipalign` n'est
+effectué sur le parcours utilisateur.
 
 ## 5. Famille de produit visée
 
-Famille 2 (application Python packagée + runtime external) avec une
-distribution préconstruite : le `.llamafile` est fourni via GitHub Releases.
+Famille 2 : application Python avec runtime external, distribuée dans une
+archive ZIP autonome sans Git ni binaires pré-téléchargés.
 
 ## 6. Périmètre et non-objectifs
 
@@ -46,6 +54,9 @@ distribution préconstruite : le `.llamafile` est fourni via GitHub Releases.
 
 - v1 = distribution external : runtime préconstruit, GGUF téléchargé séparément,
   proxy Python local et webchat.
-- Python est requis pour l'installation et le proxy ; le modèle est téléchargé
-  au premier lancement puis utilisé hors ligne.
+- Le runtime llamafile-thin et le modèle GGUF sont téléchargés et vérifiés par
+  checksum lors de l'installation ; ils sont ensuite utilisés hors ligne.
+- Le parcours utilisateur est : extraction de l'archive, `install.bat`, puis
+  `lancer.bat`.
+- Python est requis pour l'installation et le proxy.
 - L'administration web est reportée en V3.1 ; le multi-admin en V3.2.
