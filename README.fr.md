@@ -2,7 +2,7 @@
 
 [English](./README.md) | **Français**
 
-La Citadelle est une application locale de clavardage avec une IA. Vos conversations sont traitées sur votre appareil par un modèle local et ne sont pas envoyées à un service cloud. Lors de la première installation, l’application télécharge le moteur et le modèle depuis leurs sources officielles.
+La Citadelle est une application locale de DISCUSSION/CHAT avec une IA. Vos conversations sont traitées sur votre appareil par un modèle local et ne sont pas envoyées à un service cloud. Lors de la première installation, l’application télécharge le moteur et le modèle depuis leurs sources officielles.
 
 ## Installation
 
@@ -30,18 +30,18 @@ Créez un compte, connectez-vous, puis choisissez **+ Nouvelle session** pour d�
 
 ## Sécurité
 
-L’interface web et le serveur de modèle écoutent uniquement sur votre ordinateur. N’exposez pas La Citadelle à un réseau ni à Internet.
+L’interface web et le serveur de modèle écoutent uniquement sur votre ordinateur.
 
 ## Arrêter La Citadelle
 
-Fermez les deux fenêtres de commande :
+Fermez les deux fenêtres de votre Terminale :
 
 - **Lacitadelle Server** — serveur de modèle sur le port 8080.
 - **Lacitadelle Proxy** — interface web et authentification sur le port 8081.
 
 ## Dépannage
 
-- **L’antivirus bloque `dist\llamafile.exe` :** vérifiez la quarantaine de l’antivirus et autorisez le fichier si vous faites confiance à cette installation.
+- **Si votre antivirus bloque `dist\llamafile.exe` :** vérifiez la quarantaine de l’antivirus et autorisez le fichier si vous faites confiance à cette installation.
 - **Python n’est pas reconnu :** installez Python 3.10 ou version ultérieure et vérifiez que `python` est disponible dans le PATH.
 - **Un téléchargement échoue :** vérifiez votre connexion Internet et relancez `install.bat`.
 - **Le navigateur ne s’ouvre pas :** ouvrez manuellement `http://localhost:8081` après l’installation.
