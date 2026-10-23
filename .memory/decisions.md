@@ -379,3 +379,23 @@ un public francophone.
 **Conséquences** : la documentation est accessible aux publics anglophone et
 francophone; le maintien des deux langues est accepté pour la taille du
 projet.
+
+## [2026-10-23] Barre de progression stdlib pur dans bootstrap.py
+
+**Contexte** : `bootstrap.py` télécharge llamafile-thin (~42 Mo) et le GGUF
+(~1,28 Go) silencieusement. Pour un utilisateur non averti, un téléchargement
+long sans retour est anxiogène.
+
+**Décision(s)** :
+
+1. Ajouter une barre de progression ASCII en stdlib pur, sans `tqdm` ni `rich`.
+2. Afficher le pourcentage et les tailles téléchargée/totale quand
+   `Content-Length` est disponible; sinon afficher uniquement la taille
+   téléchargée.
+3. Rafraîchir la barre TTY avec `\r` et `flush=True`.
+4. En non-TTY, ne pas utiliser `\r` et écrire une ligne de progression au plus
+   toutes les cinq secondes.
+5. Effacer la barre TTY avant de remonter une erreur de téléchargement.
+
+**Conséquences** : retour de progression pour l'utilisateur final, tests
+dédiés TTY et non-TTY, sans dépendance externe.

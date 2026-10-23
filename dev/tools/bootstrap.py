@@ -24,6 +24,7 @@ import hashlib
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -39,6 +40,9 @@ DIST_DIR = PROJECT_ROOT / "dist"
 # Paramètres
 CHUNK_SIZE = 64 * 1024
 HTTP_TIMEOUT = 60
+PROGRESS_BAR_WIDTH = 30
+PROGRESS_TTY_INTERVAL = 0.1
+PROGRESS_LOG_INTERVAL = 5
 SHA256_LEN = 64
 RUNTIME_ASSET_NAME = "llamafile-thin"
 RUNTIME_FILENAME = "llamafile.exe" if sys.platform == "win32" else "llamafile"
@@ -210,6 +214,33 @@ def _make_executable(path: Path) -> None:
         ) from e
 
 
+def _format_size(size: int) -> str:
+    """Formate une taille en octets avec des unités ASCII."""
+    value = float(size)
+    for unit in ("o", "Ko", "Mo", "Go", "To"):
+        if value < 1000 or unit == "To":
+            return f"{value:.2f} {unit}" if unit != "o" else f"{size} o"
+        value /= 1000
+    return f"{size} o"
+
+
+def _format_progress(downloaded: int, total: int | None) -> str:
+    """Formate la progression en ASCII, avec ou sans taille totale connue."""
+    if total is None:
+        return f"{_format_size(downloaded)} telecharges"
+
+    percent = min(100, downloaded * 100 // total)
+    filled = min(PROGRESS_BAR_WIDTH, downloaded * PROGRESS_BAR_WIDTH // total)
+    if filled == PROGRESS_BAR_WIDTH:
+        bar = "=" * PROGRESS_BAR_WIDTH
+    else:
+        bar = "=" * filled + ">" + " " * (PROGRESS_BAR_WIDTH - filled - 1)
+    return (
+        f"[{bar}] {percent:3d}% "
+        f"{_format_size(downloaded)} / {_format_size(total)}"
+    )
+
+
 def download(url: str, dest: Path) -> None:
     """Télécharge `url` vers `dest` en streaming.
 
@@ -221,6 +252,39 @@ def download(url: str, dest: Path) -> None:
     """
     # S'assurer que le dossier parent existe
     dest.parent.mkdir(parents=True, exist_ok=True)
+    is_tty = sys.stdout.isatty()
+    downloaded = 0
+    total: int | None = None
+    progress_active = False
+    progress_width = 0
+    last_progress_at = 0.0
+    last_progress_line: str | None = None
+
+    def show_progress(*, force: bool = False) -> None:
+        nonlocal last_progress_at, last_progress_line
+        nonlocal progress_active, progress_width
+        now = time.monotonic()
+        interval = PROGRESS_TTY_INTERVAL if is_tty else PROGRESS_LOG_INTERVAL
+        if not force and now - last_progress_at < interval:
+            return
+
+        line = _format_progress(downloaded, total)
+        if not is_tty and line == last_progress_line:
+            return
+        if is_tty:
+            sys.stdout.write(f"\r{line}")
+            progress_active = True
+            progress_width = max(progress_width, len(line))
+        else:
+            sys.stdout.write(f"{line}\n")
+        sys.stdout.flush()
+        last_progress_at = now
+        last_progress_line = line
+
+    def clear_progress() -> None:
+        if is_tty and progress_active:
+            sys.stdout.write(f"\r{' ' * progress_width}\r")
+            sys.stdout.flush()
 
     try:
         req = urllib.request.Request(
@@ -228,23 +292,40 @@ def download(url: str, dest: Path) -> None:
             headers={"User-Agent": "LaCitadelle-bootstrap/1.0"},
         )
         with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as response:
+            try:
+                total = int(response.headers.get("Content-Length"))
+                if total <= 0:
+                    total = None
+            except (TypeError, ValueError):
+                total = None
             with dest.open("wb") as f:
+                show_progress(force=True)
                 while chunk := response.read(CHUNK_SIZE):
                     f.write(chunk)
+                    downloaded += len(chunk)
+                    show_progress()
+                show_progress(force=True)
+                if is_tty and progress_active:
+                    sys.stdout.write("\n")
+                    sys.stdout.flush()
+                    progress_active = False
     except urllib.error.HTTPError as e:
         # HTTPError hérite de URLError : traiter en premier pour préserver
         # le code HTTP dans le message.
+        clear_progress()
         _cleanup_partial(dest)
         raise BootstrapError(
             f"Erreur HTTP lors du téléchargement de {url} : "
             f"{e.code} {e.reason}"
         ) from e
     except urllib.error.URLError as e:
+        clear_progress()
         _cleanup_partial(dest)
         raise BootstrapError(
             f"Erreur réseau lors du téléchargement de {url} : {e.reason}"
         ) from e
     except (TimeoutError, OSError) as e:
+        clear_progress()
         _cleanup_partial(dest)
         raise BootstrapError(
             f"Erreur d'E/S lors du téléchargement de {url} : {e}"

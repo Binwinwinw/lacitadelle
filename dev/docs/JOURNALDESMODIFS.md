@@ -183,3 +183,18 @@ formalisées, licence Apache 2.0 et documentation bilingue tracées.
 
 **Impact** : documentation alignée sur l'état réel; `TODO.md` reste local,
 gitignoré et absent de l'archive; la règle 5 est actée dans `AGENTS.md`.
+
+## [2026-10-23] Phase 7F-A — Barre de progression stdlib
+
+**Commit** : Phase 7F-A (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/bootstrap.py`,
+`dev/tests/test_bootstrap_progress.py`, `.memory/decisions.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`;
+`TODO.md` mis à jour localement (gitignoré).
+
+**Raison** : rendre visibles les téléchargements de llamafile-thin et du
+GGUF pour les utilisateurs.
+
+**Impact** : progression ASCII en TTY et journalisée en non-TTY, deux tests
+dédiés, décision #24; aucun ajout de dépendance.
