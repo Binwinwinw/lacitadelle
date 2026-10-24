@@ -68,6 +68,9 @@ HTTP_TIMEOUT = 120
 SQLITE_TIMEOUT = 5.0
 MAX_POST_BODY_SIZE = 1_048_576
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
+ADMIN_USER_ACTION_RE = re.compile(
+    r"^/api/admin/users/(\d+)/(deactivate|activate)$"
+)
 USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_-]{3,50}$")
 ADMIN_USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_]{3,30}$")
 EXEMPT_PATHS_WHEN_MUST_CHANGE = {
@@ -396,6 +399,89 @@ def handle_get_api_admin_users(handler: BaseHTTPRequestHandler) -> None:
             },
         },
     )
+
+
+def handle_post_api_admin_user_deactivate(
+    handler: BaseHTTPRequestHandler,
+    user_id: int,
+) -> None:
+    """POST /api/admin/users/{id}/deactivate."""
+    admin_id = require_admin(handler)
+    if admin_id is None:
+        return
+
+    conn = _get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        user = conn.execute(
+            "SELECT role, is_active FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if user is None:
+            error_response(handler, "Utilisateur introuvable", HTTPStatus.NOT_FOUND)
+            return
+        if user_id == admin_id:
+            error_response(
+                handler,
+                "Auto-désactivation interdite",
+                HTTPStatus.FORBIDDEN,
+            )
+            return
+        if user["role"] == "admin" and user["is_active"] == 1:
+            active_admins = conn.execute(
+                "SELECT COUNT(*) FROM users "
+                "WHERE role = 'admin' AND is_active = 1"
+            ).fetchone()[0]
+            if active_admins <= 1:
+                error_response(
+                    handler,
+                    "Impossible de désactiver le dernier admin actif",
+                    HTTPStatus.FORBIDDEN,
+                )
+                return
+
+        conn.execute(
+            "UPDATE users SET is_active = 0 WHERE id = ?",
+            (user_id,),
+        )
+        conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+    for token, session_user_id in list(SESSIONS.items()):
+        if session_user_id == user_id:
+            revoke_session(token)
+    json_response(handler, {"message": "Utilisateur désactivé"})
+
+
+def handle_post_api_admin_user_activate(
+    handler: BaseHTTPRequestHandler,
+    user_id: int,
+) -> None:
+    """POST /api/admin/users/{id}/activate."""
+    if require_admin(handler) is None:
+        return
+
+    conn = _get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        user = conn.execute(
+            "SELECT id FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if user is None:
+            error_response(handler, "Utilisateur introuvable", HTTPStatus.NOT_FOUND)
+            return
+        conn.execute(
+            "UPDATE users SET is_active = 1 WHERE id = ?",
+            (user_id,),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    json_response(handler, {"message": "Utilisateur réactivé"})
 
 
 def handle_post_api_admin_users_create(handler: BaseHTTPRequestHandler) -> None:
@@ -1042,11 +1128,19 @@ class RequestHandler(BaseHTTPRequestHandler):
             elif path == "/api/sessions":
                 handle_post_api_sessions(self)
             else:
-                match = SESSION_MSG_RE.match(path)
-                if match:
-                    handle_post_message(self, int(match.group(1)))
+                admin_user_action = ADMIN_USER_ACTION_RE.fullmatch(path)
+                if admin_user_action:
+                    user_id = int(admin_user_action.group(1))
+                    if admin_user_action.group(2) == "deactivate":
+                        handle_post_api_admin_user_deactivate(self, user_id)
+                    else:
+                        handle_post_api_admin_user_activate(self, user_id)
                 else:
-                    self.send_error(HTTPStatus.NOT_FOUND)
+                    match = SESSION_MSG_RE.match(path)
+                    if match:
+                        handle_post_message(self, int(match.group(1)))
+                    else:
+                        self.send_error(HTTPStatus.NOT_FOUND)
         except NotImplementedError:
             self.send_error(HTTPStatus.NOT_IMPLEMENTED)
 

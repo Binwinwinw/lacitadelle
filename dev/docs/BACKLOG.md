@@ -86,21 +86,22 @@ forcé.
 
 #### 10B-3b — Désactiver/réactiver
 
-**Statut** : à implémenter.
-**Périmètre** : bouton dans `admin.html`, routes
-`POST /api/admin/users/{id}/deactivate` et
-`POST /api/admin/users/{id}/activate` (avec `require_admin`). Tests (action
-OK, cible soi-même → 403, cible dernier admin → 403).
+**Statut** : terminé (décision #41, 2026-10-24).
+**Périmètre livré** : boutons « Désactiver » / « Réactiver » avec
+confirmation simple; routes `POST /api/admin/users/{id}/deactivate` et
+`POST /api/admin/users/{id}/activate` protégées par `require_admin`.
+La désactivation est atomique avec la suppression des sessions
+conversationnelles (les messages sont supprimés par cascade), puis révoque
+les jetons d'authentification en mémoire. Le dernier admin actif et
+l'auto-désactivation sont protégés. `is_active=0` bloque le login.
 
 **Dépendances** : 10B-3a.
-**Questions ouvertes** :
-
-- Peut-on désactiver le dernier admin actif ? (probablement non, cohérent
-  avec 3d).
-- Un user désactivé voit-il ses sessions invalidées ?
+**Tests** : six tests couvrent les actions, les protections, l'invalidation
+des jetons, le login bloqué et l'accès non-admin.
 
 #### 10B-3c — Promouvoir/rétrograder
 
+**Statut** : à implémenter.
 **Périmètre** : bouton dans `admin.html`, routes
 `POST /api/admin/users/{id}/promote` et
 `POST /api/admin/users/{id}/demote` (avec `require_admin`). Contrainte : un

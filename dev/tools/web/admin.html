@@ -53,6 +53,7 @@
                                 <th>Actif</th>
                                 <th>Créé le</th>
                                 <th>Dernière connexion</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="admin-users"></tbody>
@@ -71,6 +72,43 @@
             const cell = document.createElement("td");
             cell.textContent = value;
             row.appendChild(cell);
+        }
+
+        async function changeUserStatus(user) {
+            const action = user.is_active === 1 ? "deactivate" : "activate";
+            const label = action === "deactivate" ? "Désactiver" : "Réactiver";
+            const confirmation = action === "deactivate"
+                ? `${label} ${user.username} ? Ses conversations seront supprimées et ses sessions de connexion révoquées.`
+                : `${label} ${user.username} ?`;
+            if (!window.confirm(confirmation)) {
+                return;
+            }
+
+            adminStatus.textContent = "";
+            try {
+                const response = await fetch(
+                    `/api/admin/users/${user.id}/${action}`,
+                    {
+                        method: "POST",
+                        credentials: "same-origin",
+                    },
+                );
+                const result = await response.json();
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    adminStatus.textContent =
+                        result.error || `Erreur : ${label.toLowerCase()}.`;
+                    return;
+                }
+                await loadUsers();
+                adminStatus.textContent = result.message;
+            } catch (error) {
+                adminStatus.textContent =
+                    `Erreur réseau : ${error.message}`;
+            }
         }
 
         async function loadUsers() {
@@ -108,6 +146,16 @@
                     addCell(row, user.is_active === 1 ? "Oui" : "Non");
                     addCell(row, user.created_at);
                     addCell(row, user.last_login_at || "Jamais");
+                    const actionsCell = document.createElement("td");
+                    const actionButton = document.createElement("button");
+                    actionButton.type = "button";
+                    actionButton.textContent =
+                        user.is_active === 1 ? "Désactiver" : "Réactiver";
+                    actionButton.addEventListener("click", () => {
+                        changeUserStatus(user);
+                    });
+                    actionsCell.appendChild(actionButton);
+                    row.appendChild(actionsCell);
                     usersBody.appendChild(row);
                 }
                 adminStatus.textContent = "";

@@ -464,3 +464,20 @@ du proxy, selon les décisions #39 et #40.
 une seule fois en console; message informatif si admin actif présent; erreur
 opérationnelle signalée sans retry ni arrêt du proxy. Quatre tests ajoutés,
 109 tests au total.
+
+## [2026-10-24] Phase 10B-3b — Désactivation et réactivation user
+
+**Commit** : Phase 10B-3b (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tests/test_admin.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+`TODO.md` a été mis à jour localement et reste gitignoré.
+
+**Raison** : permettre à un admin de désactiver/réactiver un utilisateur en
+respectant les protections du dernier admin et de l'auto-désactivation.
+
+**Impact** : routes protégées, confirmation UI, suppression des sessions de
+conversation et révocation des jetons d'authentification à la désactivation.
+Six tests ajoutés; 115 tests passent. Aucun code des lots 10B-3c/d/e modifié.

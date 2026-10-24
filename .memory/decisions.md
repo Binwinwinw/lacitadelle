@@ -798,3 +798,32 @@ et le décideur voit son mot de passe temporaire dans la console. Si un admin
 actif existe, aucun compte n'est ajouté et seul son username est affiché.
 La gestion d'un `superadmin` présent uniquement dans un backup reste hors
 périmètre.
+
+## [2026-10-24] Implémentation Phase 10B-3b : désactiver/réactiver
+
+**Contexte** : la décision #34 découpe le CRUD admin en cinq sous-lots.
+10B-3b ajoute la désactivation et la réactivation, après la création
+d'utilisateur de 10B-3a.
+
+**Décision(s)** :
+
+1. Ajouter `POST /api/admin/users/{id}/deactivate` et
+   `POST /api/admin/users/{id}/activate`, protégées par `require_admin`.
+2. Refuser l'auto-désactivation et la désactivation du dernier admin actif.
+3. À la désactivation, passer `is_active` à `0`, supprimer dans la même
+   transaction les lignes `sessions` de l'utilisateur (et donc ses messages
+   liés par cascade), puis révoquer tous ses jetons d'authentification en
+   mémoire du proxy.
+4. À la réactivation, remettre `is_active` à `1`; les anciennes sessions
+   supprimées ne sont pas restaurées et l'utilisateur doit se reconnecter.
+5. L'interface demande une confirmation simple avant chaque action; les
+   protections sont aussi appliquées côté serveur.
+6. Vérifier que `is_active=0` empêche le login et ajouter six tests couvrant
+   désactivation, protection du dernier admin, auto-désactivation,
+   réactivation, login bloqué et contrôle d'accès.
+
+**Conséquences** : les utilisateurs désactivés ne peuvent plus se connecter
+et leurs sessions de proxy sont invalidées; leur historique conversationnel
+est supprimé en cascade. Aucun rôle n'est modifié. Promotion, rétrogradation,
+suppression de compte et reset de mot de passe restent réservés aux lots
+10B-3c/d/e.

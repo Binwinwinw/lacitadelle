@@ -4,6 +4,7 @@ import json
 import sqlite3
 import sys
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import Request
 
@@ -18,6 +19,7 @@ from _helpers import (
     open_no_redirect,
 )
 import citadelle_memory
+import login_server
 
 
 def api_get(opener, base_url: str, path: str, token: str | None = None):
@@ -346,6 +348,192 @@ def test_create_user_temp_password_requires_change():
         login_as(opener, base_url, "newuser", "permanent123")
 
 
+def test_deactivate_user_ok():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        user_id = create_test_user(db_path, "alice", "secret123")
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+        user_token = login_as(opener, base_url, "alice", "secret123")
+
+        with api_get(opener, base_url, "/admin", admin_token) as response:
+            admin_page = response.read().decode("utf-8")
+        assert (
+            "Ses conversations seront supprimées et ses sessions de connexion "
+            "révoquées."
+        ) in admin_page
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            now = citadelle_memory._utcnow()
+            cursor = conn.execute(
+                "INSERT INTO sessions (user_id, title, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?)",
+                (user_id, "Alice session", now, now),
+            )
+            conn.execute(
+                "INSERT INTO messages (session_id, role, content, created_at) "
+                "VALUES (?, 'user', ?, ?)",
+                (cursor.lastrowid, "Message", now),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{user_id}/deactivate",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+            assert json.loads(response.read())["message"] == (
+                "Utilisateur désactivé"
+            )
+
+        assert user_token not in login_server.SESSIONS
+        assert user_token not in login_server.MUST_CHANGE
+        assert user_token not in login_server.SESSION_EXPIRY
+        with api_get(opener, base_url, "/api/me", user_token) as response:
+            assert response.code == 401
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            assert conn.execute(
+                "SELECT is_active FROM users WHERE id = ?",
+                (user_id,),
+            ).fetchone()[0] == 0
+            assert conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 0
+            assert conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0] == 0
+        finally:
+            conn.close()
+
+
+def test_deactivate_last_admin_forbidden():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(
+            db_path,
+            "admin",
+            "secret123",
+            role="admin",
+        )
+        with patch.object(login_server, "require_admin", return_value=admin_id + 1):
+            with api_post(
+                opener,
+                base_url,
+                f"/api/admin/users/{admin_id}/deactivate",
+                None,
+                {},
+            ) as response:
+                assert response.code == 403
+                assert json.loads(response.read())["error"] == (
+                    "Impossible de désactiver le dernier admin actif"
+                )
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            assert conn.execute(
+                "SELECT is_active FROM users WHERE id = ?",
+                (admin_id,),
+            ).fetchone()[0] == 1
+        finally:
+            conn.close()
+
+
+def test_deactivate_self_forbidden():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(
+            db_path,
+            "admin",
+            "secret123",
+            role="admin",
+        )
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{admin_id}/deactivate",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 403
+            assert json.loads(response.read())["error"] == (
+                "Auto-désactivation interdite"
+            )
+
+
+def test_activate_user_ok():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        create_test_user(db_path, "alice", "secret123", is_active=0)
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            "/api/admin/users/2/activate",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+            assert json.loads(response.read())["message"] == (
+                "Utilisateur réactivé"
+            )
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            assert conn.execute(
+                "SELECT is_active FROM users WHERE username = 'alice'"
+            ).fetchone()[0] == 1
+        finally:
+            conn.close()
+        login_as(opener, base_url, "alice", "secret123")
+
+
+def test_deactivated_user_cannot_login():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        user_id = create_test_user(db_path, "alice", "secret123")
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{user_id}/deactivate",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+
+        login_request = Request(
+            f"{base_url}/login",
+            data=urlencode(
+                {"username": "alice", "password": "secret123"}
+            ).encode("utf-8"),
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            method="POST",
+        )
+        with open_no_redirect(opener, login_request) as response:
+            assert response.code == 401
+
+
+def test_deactivate_requires_admin():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        user_id = create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{user_id}/deactivate",
+            token,
+            {},
+        ) as response:
+            assert response.code == 403
+
+
 def run_all():
     tests = [
         test_get_admin_requires_auth,
@@ -364,6 +552,12 @@ def run_all():
         test_create_user_requires_admin,
         test_create_user_requires_auth,
         test_create_user_temp_password_requires_change,
+        test_deactivate_user_ok,
+        test_deactivate_last_admin_forbidden,
+        test_deactivate_self_forbidden,
+        test_activate_user_ok,
+        test_deactivated_user_cannot_login,
+        test_deactivate_requires_admin,
     ]
     for test in tests:
         test()
