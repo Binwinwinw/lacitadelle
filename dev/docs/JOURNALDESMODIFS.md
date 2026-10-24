@@ -515,3 +515,21 @@ contradiction du workflow à admin unique par transfert atomique du rôle.
 **Impact** : transfert sans état à zéro admin, protections serveur,
 confirmations UI et invalidation des sessions/conversations du rétrogradé.
 Six tests ajoutés; 122 tests passent. Aucun changement 10B-3d/e.
+
+## [2026-10-24] Phase 10B-3d — Suppression physique d'un utilisateur
+
+**Commit** : Phase 10B-3d (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tests/test_admin.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : permettre la suppression admin d'un utilisateur avec double
+confirmation et protection des comptes privilégiés.
+
+**Impact** : suppression physique et cascade FK, invalidation des jetons,
+protections serveur du dernier admin et de l'auto-suppression. La table
+`metrics` n'existe pas dans le schéma actuel. Cinq tests ajoutés;
+127 tests passent. Aucun reset de mot de passe ajouté.

@@ -176,6 +176,22 @@
                         });
                         actionsCell.appendChild(demoteButton);
                     }
+                    const isLastActiveAdmin =
+                        user.role === "admin"
+                        && user.is_active === 1
+                        && summary.active_admins <= 1;
+                    if (
+                        user.username !== currentUsername
+                        && !isLastActiveAdmin
+                    ) {
+                        const deleteButton = document.createElement("button");
+                        deleteButton.type = "button";
+                        deleteButton.textContent = "Supprimer";
+                        deleteButton.addEventListener("click", () => {
+                            deleteUser(user);
+                        });
+                        actionsCell.appendChild(deleteButton);
+                    }
                     row.appendChild(actionsCell);
                     usersBody.appendChild(row);
                 }
@@ -219,6 +235,49 @@
                 }
                 await loadUsers();
                 adminStatus.textContent = result.message;
+            } catch (error) {
+                adminStatus.textContent =
+                    `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        async function deleteUser(user) {
+            if (!window.confirm(
+                `Supprimer définitivement ${user.username} ? ` +
+                "Toutes ses conversations et données seront perdues. " +
+                "Action irréversible."
+            )) {
+                return;
+            }
+            if (window.prompt(
+                `Tapez "${user.username}" pour confirmer :`
+            ) !== user.username) {
+                window.alert("Suppression annulée.");
+                return;
+            }
+
+            adminStatus.textContent = "";
+            try {
+                const response = await fetch(
+                    `/api/admin/users/${user.id}/delete`,
+                    {
+                        method: "POST",
+                        credentials: "same-origin",
+                    },
+                );
+                const result = await response.json();
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    adminStatus.textContent =
+                        result.error || "Erreur lors de la suppression.";
+                    return;
+                }
+                await loadUsers();
+                adminStatus.textContent =
+                    `Utilisateur ${result.username} supprimé.`;
             } catch (error) {
                 adminStatus.textContent =
                     `Erreur réseau : ${error.message}`;

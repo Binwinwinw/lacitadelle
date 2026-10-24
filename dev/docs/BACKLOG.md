@@ -117,29 +117,25 @@ l'accès non-admin.
 
 #### 10B-3d — Supprimer un utilisateur
 
-**Statut** : à implémenter.
-**Périmètre** : bouton dans `admin.html`, route
-`POST /api/admin/users/{id}/delete` (avec `require_admin`). Protections :
+**Statut** : terminé (décision #44, 2026-10-24).
+**Périmètre livré** : bouton « Supprimer » avec double confirmation
+(confirmation puis saisie exacte du username); route
+`POST /api/admin/users/{id}/delete` protégée par `require_admin`.
 
-- Impossible de supprimer le dernier admin.
-- Impossible de se supprimer soi-même.
-- Message de confirmation côté UI.
-- Suppression en cascade (sessions, messages, préférences, metrics) via
-  `ON DELETE CASCADE`.
+Protections serveur : impossible de supprimer le dernier admin actif ou de
+se supprimer soi-même. Suppression physique de `users` dans une transaction;
+la cascade FK supprime sessions, messages et préférences, puis les jetons
+en mémoire sont révoqués. La table `metrics` n'existe pas dans le schéma
+actuel; aucun backup applicatif n'est créé.
 
-Tests (suppression OK, dernier admin → 403, autosuppression → 403, cascade
-vérifiée).
+**Tests** : cinq tests couvrent suppression/cascade, dernier admin,
+auto-suppression, non-admin et utilisateur absent.
 
 **Dépendances** : 10B-3c.
-**Questions ouvertes** :
-
-- Suppression logique (`is_active=0`) ou physique (`DELETE`) ?
-  - Soft : garde l'historique, mais complexifie les requêtes.
-  - Physique : supprime tout, plus propre.
-- Les messages d'un utilisateur supprimé sont-ils conservés ?
 
 #### 10B-3e — Reset du mot de passe par l'admin
 
+**Statut** : à implémenter.
 **Périmètre** : bouton dans `admin.html`, route
 `POST /api/admin/users/{id}/reset-password` (avec `require_admin`). L'admin
 génère un mot de passe temporaire (ou en choisit un) et force

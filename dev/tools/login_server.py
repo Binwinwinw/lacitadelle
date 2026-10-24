@@ -69,7 +69,7 @@ SQLITE_TIMEOUT = 5.0
 MAX_POST_BODY_SIZE = 1_048_576
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
 ADMIN_USER_ACTION_RE = re.compile(
-    r"^/api/admin/users/(\d+)/(deactivate|activate|promote|demote)$"
+    r"^/api/admin/users/(\d+)/(deactivate|activate|promote|demote|delete)$"
 )
 USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_-]{3,50}$")
 ADMIN_USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_]{3,30}$")
@@ -558,6 +558,56 @@ def handle_post_api_admin_user_demote(
             "role": "user",
             "message": "Utilisateur rétrogradé",
         },
+    )
+
+
+def handle_post_api_admin_user_delete(
+    handler: BaseHTTPRequestHandler,
+    user_id: int,
+) -> None:
+    """POST /api/admin/users/{id}/delete : supprime un compte."""
+    admin_id = require_admin(handler)
+    if admin_id is None:
+        return
+
+    conn = _get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        user = conn.execute(
+            "SELECT username, role, is_active FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if user is None:
+            error_response(handler, "Utilisateur introuvable", HTTPStatus.NOT_FOUND)
+            return
+        if user_id == admin_id:
+            error_response(
+                handler,
+                "Impossible de se supprimer soi-même",
+                HTTPStatus.FORBIDDEN,
+            )
+            return
+        if user["role"] == "admin" and user["is_active"] == 1:
+            if count_active_admins(conn) <= 1:
+                error_response(
+                    handler,
+                    "Impossible de supprimer le dernier admin actif",
+                    HTTPStatus.FORBIDDEN,
+                )
+                return
+
+        username = user["username"]
+        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+    for token, session_user_id in list(SESSIONS.items()):
+        if session_user_id == user_id:
+            revoke_session(token)
+    json_response(
+        handler,
+        {"id": user_id, "username": username, "deleted": True},
     )
 
 
@@ -1303,8 +1353,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                         handle_post_api_admin_user_activate(self, user_id)
                     elif action == "promote":
                         handle_post_api_admin_user_promote(self, user_id)
-                    else:
+                    elif action == "demote":
                         handle_post_api_admin_user_demote(self, user_id)
+                    else:
+                        handle_post_api_admin_user_delete(self, user_id)
                 else:
                     match = SESSION_MSG_RE.match(path)
                     if match:

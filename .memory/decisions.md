@@ -888,3 +888,28 @@ transfert atomique de l'admin appelant vers la cible.
 son propre rôle dans une seule transaction. Le précédent admin devient user,
 est déconnecté et perd ses conversations stockées. Aucune promotion multiple,
 suppression de compte ou reset n'est ajouté; les lots 10B-3d/e restent séparés.
+
+## [2026-10-24] Implémentation Phase 10B-3d : suppression d'un utilisateur
+
+**Contexte** : la décision #34 découpe le CRUD admin en cinq sous-lots.
+10B-3d implémente la suppression physique d'un utilisateur par un admin.
+
+**Décision(s)** :
+
+1. Ajouter `POST /api/admin/users/{id}/delete`, protégé par `require_admin`.
+2. Supprimer physiquement la ligne `users` dans une transaction; `PRAGMA
+   foreign_keys=ON` et les clés `ON DELETE CASCADE` suppriment sessions,
+   messages et préférences liées. La table `metrics` n'existe pas dans le
+   schéma actuel.
+3. Refuser l'auto-suppression et la suppression du dernier admin actif.
+4. Révoquer en mémoire les jetons de l'utilisateur supprimé après le commit.
+5. Exiger une double confirmation UI : confirmation puis saisie exacte du
+   username. Indiquer que l'action est irréversible et ne pas créer de backup.
+6. Tester suppression et cascade, dernier admin, auto-suppression, non-admin
+   et utilisateur absent.
+
+**Conséquences** : un admin peut supprimer un autre user; ses données
+persistées et sessions d'authentification sont supprimées sans possibilité
+de restauration par l'application. La suppression du dernier admin actif et
+l'auto-suppression restent interdites. Le reset de mot de passe (10B-3e)
+reste à implémenter.

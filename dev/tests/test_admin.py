@@ -837,6 +837,145 @@ def test_demote_requires_admin():
             assert response.code == 403
 
 
+def test_delete_user_ok_cascades_and_revokes_sessions():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        user_id = create_test_user(db_path, "alice", "secret123")
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+        user_token = login_as(opener, base_url, "alice", "secret123")
+        citadelle_memory.migrate_to_v4(db_path)
+        session_id = create_session_with_message(db_path, user_id)
+        with citadelle_memory._connect(db_path) as conn:
+            citadelle_memory.set_preferences(
+                conn,
+                user_id,
+                theme="dark",
+                font_size="large",
+            )
+
+        with api_get(opener, base_url, "/admin", admin_token) as response:
+            admin_page = response.read().decode("utf-8")
+        assert "Supprimer" in admin_page
+        assert "window.confirm" in admin_page
+        assert "window.prompt" in admin_page
+        assert "user.username !== currentUsername" in admin_page
+        assert "summary.active_admins <= 1" in admin_page
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{user_id}/delete",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+            result = json.loads(response.read())
+        assert result == {
+            "id": user_id,
+            "username": "alice",
+            "deleted": True,
+        }
+        assert user_token not in login_server.SESSIONS
+        with api_get(opener, base_url, "/api/me", user_token) as response:
+            assert response.code == 401
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            assert conn.execute(
+                "SELECT COUNT(*) FROM users WHERE id = ?",
+                (user_id,),
+            ).fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT COUNT(*) FROM sessions WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT COUNT(*) FROM messages WHERE session_id = ?",
+                (session_id,),
+            ).fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT COUNT(*) FROM preferences WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()[0] == 0
+        finally:
+            conn.close()
+
+
+def test_delete_last_admin_forbidden():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        with patch.object(login_server, "require_admin", return_value=admin_id + 1):
+            with api_post(
+                opener,
+                base_url,
+                f"/api/admin/users/{admin_id}/delete",
+                None,
+                {},
+            ) as response:
+                assert response.code == 403
+                assert json.loads(response.read())["error"] == (
+                    "Impossible de supprimer le dernier admin actif"
+                )
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            assert conn.execute(
+                "SELECT COUNT(*) FROM users WHERE id = ?",
+                (admin_id,),
+            ).fetchone()[0] == 1
+        finally:
+            conn.close()
+
+
+def test_delete_self_forbidden():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{admin_id}/delete",
+            token,
+            {},
+        ) as response:
+            assert response.code == 403
+            assert json.loads(response.read())["error"] == (
+                "Impossible de se supprimer soi-même"
+            )
+
+
+def test_delete_user_requires_admin():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{admin_id}/delete",
+            token,
+            {},
+        ) as response:
+            assert response.code == 403
+
+
+def test_delete_user_not_found():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            "/api/admin/users/999/delete",
+            token,
+            {},
+        ) as response:
+            assert response.code == 404
+
+
 def run_all():
     tests = [
         test_get_admin_requires_auth,
@@ -868,6 +1007,11 @@ def run_all():
         test_demote_last_admin_forbidden,
         test_demote_self_forbidden,
         test_demote_requires_admin,
+        test_delete_user_ok_cascades_and_revokes_sessions,
+        test_delete_last_admin_forbidden,
+        test_delete_self_forbidden,
+        test_delete_user_requires_admin,
+        test_delete_user_not_found,
     ]
     for test in tests:
         test()
