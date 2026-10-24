@@ -481,3 +481,19 @@ respectant les protections du dernier admin et de l'auto-désactivation.
 **Impact** : routes protégées, confirmation UI, suppression des sessions de
 conversation et révocation des jetons d'authentification à la désactivation.
 Six tests ajoutés; 115 tests passent. Aucun code des lots 10B-3c/d/e modifié.
+
+## [2026-10-24] Phase 10B-3b-bis — Suppression explicite des messages
+
+**Commit** : Phase 10B-3b-bis (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tests/test_admin.py`, `.memory/decisions.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+`TODO.md` a été mis à jour localement et reste gitignoré.
+
+**Raison** : garantir que la désactivation supprime les messages associés
+aux sessions, sans dépendre uniquement de la cascade SQLite.
+
+**Impact** : suppression explicite messages → sessions → désactivation dans
+la transaction; test d'intégration avec FK désactivées, réactivation et
+vérification d'une liste vide. Décision #42; 116 tests passent.

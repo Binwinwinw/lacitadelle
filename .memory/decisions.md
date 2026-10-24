@@ -827,3 +827,30 @@ et leurs sessions de proxy sont invalidées; leur historique conversationnel
 est supprimé en cascade. Aucun rôle n'est modifié. Promotion, rétrogradation,
 suppression de compte et reset de mot de passe restent réservés aux lots
 10B-3c/d/e.
+
+## [2026-10-24] Correctif 10B-3b-bis : suppression explicite des messages
+
+**Contexte** : le test manuel a observé des sessions et messages encore
+présents après désactivation. Le diagnostic a confirmé que le handler
+contenait déjà `DELETE FROM sessions`, un commit dans la transaction et une
+connexion avec `PRAGMA foreign_keys=ON`; le schéma déclare aussi
+`ON DELETE CASCADE` de `messages` vers `sessions`. L'inventaire courant
+montre les utilisateurs actifs et les lignes concernées, mais ne permet pas
+de déterminer si elles ont été recréées après réactivation ou si le test a
+utilisé une ancienne instance du proxy.
+
+**Décision(s)** :
+
+1. Supprimer explicitement les `messages` des sessions du user avant de
+   supprimer ses lignes `sessions`, puis passer `is_active=0`; les trois
+   opérations restent dans la même transaction.
+2. Enrichir le test pour vérifier les compteurs avant/après, puis réactiver
+   le user, le reconnecter et confirmer que sa liste de sessions est vide.
+   Le test désactive les clés étrangères sur la connexion d'essai pour
+   vérifier que la suppression des messages ne dépend pas de la cascade.
+3. Ne pas modifier les autres comportements de désactivation/réactivation.
+
+**Conséquences** : la suppression des messages est garantie explicitement,
+même si la cascade SQLite ne s'applique pas. Les sessions et leur historique
+ne sont pas restaurés à la réactivation; l'utilisateur repart avec une
+liste vide.

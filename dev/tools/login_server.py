@@ -441,10 +441,15 @@ def handle_post_api_admin_user_deactivate(
                 return
 
         conn.execute(
-            "UPDATE users SET is_active = 0 WHERE id = ?",
+            "DELETE FROM messages WHERE session_id IN "
+            "(SELECT id FROM sessions WHERE user_id = ?)",
             (user_id,),
         )
         conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        conn.execute(
+            "UPDATE users SET is_active = 0 WHERE id = ?",
+            (user_id,),
+        )
         conn.commit()
     finally:
         conn.close()

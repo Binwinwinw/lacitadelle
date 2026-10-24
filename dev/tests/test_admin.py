@@ -409,6 +409,85 @@ def test_deactivate_user_ok():
             conn.close()
 
 
+def test_deactivate_explicitly_deletes_messages_and_reactivates_empty():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        user_id = create_test_user(db_path, "alice", "secret123")
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+        login_as(opener, base_url, "alice", "secret123")
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            now = citadelle_memory._utcnow()
+            cursor = conn.execute(
+                "INSERT INTO sessions (user_id, title, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?)",
+                (user_id, "Alice session", now, now),
+            )
+            conn.execute(
+                "INSERT INTO messages (session_id, role, content, created_at) "
+                "VALUES (?, 'user', ?, ?)",
+                (cursor.lastrowid, "Message", now),
+            )
+            conn.commit()
+            assert conn.execute(
+                "SELECT COUNT(*) FROM sessions WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()[0] == 1
+            assert conn.execute(
+                "SELECT COUNT(*) FROM messages WHERE session_id = ?",
+                (cursor.lastrowid,),
+            ).fetchone()[0] == 1
+        finally:
+            conn.close()
+
+        get_db_connection = login_server._get_db_connection
+
+        def connect_without_foreign_keys():
+            conn = get_db_connection()
+            conn.execute("PRAGMA foreign_keys = OFF")
+            return conn
+
+        with patch.object(
+            login_server,
+            "_get_db_connection",
+            side_effect=connect_without_foreign_keys,
+        ):
+            with api_post(
+                opener,
+                base_url,
+                f"/api/admin/users/{user_id}/deactivate",
+                admin_token,
+                {},
+            ) as response:
+                assert response.code == 200
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            assert conn.execute(
+                "SELECT COUNT(*) FROM sessions WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT COUNT(*) FROM messages"
+            ).fetchone()[0] == 0
+        finally:
+            conn.close()
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{user_id}/activate",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+        user_token = login_as(opener, base_url, "alice", "secret123")
+        with api_get(opener, base_url, "/api/sessions", user_token) as response:
+            assert response.code == 200
+            assert json.loads(response.read())["sessions"] == []
+
+
 def test_deactivate_last_admin_forbidden():
     with admin_test_context() as (base_url, opener, db_path):
         admin_id = create_test_user(
@@ -553,6 +632,7 @@ def run_all():
         test_create_user_requires_auth,
         test_create_user_temp_password_requires_change,
         test_deactivate_user_ok,
+        test_deactivate_explicitly_deletes_messages_and_reactivates_empty,
         test_deactivate_last_admin_forbidden,
         test_deactivate_self_forbidden,
         test_activate_user_ok,
