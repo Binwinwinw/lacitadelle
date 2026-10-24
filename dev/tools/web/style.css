@@ -335,6 +335,27 @@ body {
   min-height: 1.25rem;
 }
 
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  padding: 0.6rem;
+  border-bottom: 1px solid #444;
+}
+
+html[data-theme="light"] .admin-users-table th,
+html[data-theme="light"] .admin-users-table td {
+  border-color: #ddd;
+}
+
 html[data-font-size="small"] {
   font-size: 14px;
 }

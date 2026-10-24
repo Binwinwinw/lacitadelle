@@ -337,3 +337,20 @@ conservant l'ancien mot de passe comme vérification et le gate obligatoire.
 **Impact** : template neutre, tests volontaires ajoutés, assertion obsolète
 du mode non-obligatoire actualisée; `401` retenu pour ancien mot de passe
 erroné/manquant; 89 tests validés. Aucun autre code serveur modifié.
+
+## [2026-10-24] Phase 10B-2 — Administration read-only
+
+**Commit** : Phase 10B-2 (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tools/web/chat.html`,
+`dev/tools/web/chat.js`, `dev/tools/web/settings.html`,
+`dev/tools/web/style.css`, `dev/tests/test_admin.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : livrer la première tranche admin du Mode B-1, en lecture seule,
+avec contrôle de rôle côté serveur.
+
+**Impact** : page `/admin`, API protégée sans `password_hash`, lien
+conditionnel et neuf tests; CRUD, logs et indicateurs restent reportés.

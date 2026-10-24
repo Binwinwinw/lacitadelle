@@ -207,6 +207,49 @@ def get_authenticated_user_id(handler: BaseHTTPRequestHandler) -> int | None:
     return get_user_from_token(token)
 
 
+def require_admin(handler: BaseHTTPRequestHandler) -> int | None:
+    """Vérifie en base le rôle admin et répond en cas d'accès refusé."""
+    path = urlparse(handler.path).path
+    is_api = path.startswith("/api/")
+    token = read_cookie_token(handler)
+    user_id = get_user_from_token(token)
+    if user_id is None:
+        if is_api:
+            error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        else:
+            redirect(handler, "/login")
+        return None
+
+    conn = _get_db_connection()
+    try:
+        user = conn.execute(
+            "SELECT role, is_active FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+    if user is None or user["is_active"] != 1:
+        if token is not None:
+            revoke_session(token)
+        if is_api:
+            error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        else:
+            redirect(handler, "/login")
+        return None
+    if user["role"] != "admin":
+        if is_api:
+            error_response(
+                handler,
+                "Accès réservé à l'administration",
+                HTTPStatus.FORBIDDEN,
+            )
+        else:
+            handler.send_error(HTTPStatus.FORBIDDEN)
+        return None
+    return user_id
+
+
 def redirect(handler: BaseHTTPRequestHandler, location: str) -> None:
     """Envoie une redirection HTTP 302."""
     handler.send_response(HTTPStatus.FOUND)
@@ -284,6 +327,67 @@ def handle_get_settings(handler: BaseHTTPRequestHandler) -> None:
         redirect(handler, "/login")
         return
     serve_static(handler, "settings.html")
+
+
+def handle_get_admin(handler: BaseHTTPRequestHandler) -> None:
+    """GET /admin : sert la vue admin en lecture seule."""
+    if require_admin(handler) is None:
+        return
+    serve_static(handler, "admin.html")
+
+
+def handle_get_api_me(handler: BaseHTTPRequestHandler) -> None:
+    """GET /api/me : retourne le nom et le rôle de la session courante."""
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    token = read_cookie_token(handler)
+    conn = _get_db_connection()
+    try:
+        user = conn.execute(
+            "SELECT username, role, is_active FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    if user is None or user["is_active"] != 1:
+        if token is not None:
+            revoke_session(token)
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    json_response(handler, {"username": user["username"], "role": user["role"]})
+
+
+def handle_get_api_admin_users(handler: BaseHTTPRequestHandler) -> None:
+    """GET /api/admin/users : liste les comptes sans données secrètes."""
+    if require_admin(handler) is None:
+        return
+    conn = _get_db_connection()
+    try:
+        users = [
+            dict(row)
+            for row in conn.execute(
+                "SELECT id, username, role, is_active, must_change_password, "
+                "created_at, last_login_at FROM users ORDER BY id"
+            ).fetchall()
+        ]
+    finally:
+        conn.close()
+    json_response(
+        handler,
+        {
+            "users": users,
+            "summary": {
+                "user_count": len(users),
+                "active_admins": sum(
+                    user["role"] == "admin" and user["is_active"] == 1
+                    for user in users
+                ),
+                "disabled_users": sum(user["is_active"] != 1 for user in users),
+            },
+        },
+    )
 
 
 def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
@@ -756,7 +860,7 @@ def handle_post_message(
 
 
 class RequestHandler(BaseHTTPRequestHandler):
-    """Les routes connues implémentent l'authentification, les sessions et les messages ; les routes admin V3.1 ne sont pas encore présentes."""
+    """Gère l'authentification, le chat et l'administration en lecture seule."""
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
@@ -771,6 +875,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_change_password(self)
             elif path == "/settings":
                 handle_get_settings(self)
+            elif path == "/admin":
+                handle_get_admin(self)
             elif path == "/":
                 handle_get_index(self)
             elif path == "/login.html":
@@ -787,6 +893,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_api_sessions(self)
             elif path == "/api/preferences":
                 handle_get_preferences(self)
+            elif path == "/api/me":
+                handle_get_api_me(self)
+            elif path == "/api/admin/users":
+                handle_get_api_admin_users(self)
             else:
                 match = SESSION_MSG_RE.match(path)
                 if match:

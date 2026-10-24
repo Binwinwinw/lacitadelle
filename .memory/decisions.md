@@ -583,3 +583,33 @@ dans `handle_post_change_password`, qui bloquait le changement volontaire.
 validation de l'ancien. Le mode obligatoire reste actif et les erreurs
 d'ancien mot de passe restent en `401`. Aucun autre changement de
 `login_server.py` n'est fait en Phase 10B-1b.
+
+## [2026-10-24] Implémentation Phase 10B-2 : admin read-only
+
+**Contexte** : la décision #30 prévoit une section admin dans le Mode B-1.
+La Phase 10B-2 implémente la première tranche : page `/admin` avec liste des
+utilisateurs en lecture seule, contrôle d'accès serveur et lien conditionnel
+dans la sidebar.
+
+**Décision(s)** :
+
+1. Ajouter la route `GET /admin` avec une page séparée.
+2. Ajouter l'endpoint `GET /api/admin/users` avec une liste de champs
+   explicitement autorisés, sans `password_hash`.
+3. Ajouter `GET /api/me`, limité au nom d'utilisateur et au rôle, pour
+   déterminer l'affichage du lien admin.
+4. Vérifier le rôle `admin` et l'état actif en base à chaque requête protégée;
+   rediriger une session absente pour la page, renvoyer `401` pour l'API et
+   `403` à un utilisateur non-admin.
+5. Ajouter `admin.html` en lecture seule, avec la liste et le résumé des
+   comptes; afficher la contrainte d'un seul admin actif jusqu'à V3.2.
+6. Afficher le lien Administration uniquement pour les admins dans les
+   sidebars du chat et des réglages.
+7. Ajouter neuf tests dédiés, notamment l'absence de fuite de
+   `password_hash` et le maintien du gate `must_change_password`.
+8. Reporter le CRUD admin à la Phase 10B-3; les logs et indicateurs restent
+   en 10B-4/5.
+
+**Conséquences** : les admins disposent d'une vue d'ensemble des comptes sans
+capacité de modification. Le contrôle d'accès reste côté serveur; le CRUD,
+les logs et les indicateurs ne sont pas inclus.

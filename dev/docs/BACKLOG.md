@@ -21,12 +21,12 @@ le journal des phases.
 [`.memory/decisions.md`](../../.memory/decisions.md).
 
 **Avancement** : la tranche 10B-1 (préférences utilisateur) est terminée
-(décision #31). Restent la gestion des comptes admin (10B-2/3), les logs
-(10B-4) et les indicateurs (10B-5).
+(décision #31). La tranche 10B-2 (admin read-only) est terminée
+(décision #33). Restent le CRUD admin (10B-3), les logs (10B-4) et les
+indicateurs (10B-5).
 
 La tranche 10B-1b (changement volontaire du mot de passe) est terminée
-(décision #32). L'administration, les logs et les indicateurs restent hors
-de cette tranche.
+(décision #32). Les logs et les indicateurs restent hors de cette tranche.
 
 **Périmètre** :
 

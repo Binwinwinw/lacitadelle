@@ -11,6 +11,9 @@
         <aside class="sidebar">
             <h2>La Citadelle</h2>
             <a href="/" class="sidebar-link">Retour au chat</a>
+            <a href="/admin" id="admin-link" class="sidebar-link" hidden>
+                Administration
+            </a>
             <form method="POST" action="/logout">
                 <button type="submit" class="logout-btn">Déconnexion</button>
             </form>
@@ -48,6 +51,7 @@
         const statusMessage = document.getElementById("settings-status");
         const themeSelect = document.getElementById("theme");
         const fontSizeSelect = document.getElementById("font-size");
+        const adminLink = document.getElementById("admin-link");
 
         function applyPreferences(preferences) {
             document.documentElement.dataset.theme = preferences.theme;
@@ -73,6 +77,26 @@
                 themeSelect.value = preferences.theme;
                 fontSizeSelect.value = preferences.font_size;
                 applyPreferences(preferences);
+            } catch (error) {
+                statusMessage.textContent = `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        async function loadAdminLink() {
+            try {
+                const response = await fetch("/api/me", {
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    statusMessage.textContent = "Erreur de vérification du rôle.";
+                    return;
+                }
+                const user = await response.json();
+                adminLink.hidden = user.role !== "admin";
             } catch (error) {
                 statusMessage.textContent = `Erreur réseau : ${error.message}`;
             }
@@ -114,6 +138,7 @@
         });
 
         loadPreferences();
+        loadAdminLink();
     </script>
 </body>
 </html>

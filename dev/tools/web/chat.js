@@ -10,6 +10,7 @@ const userInput = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
 const newSessionBtn = document.getElementById("new-session");
 const statusDiv = document.getElementById("status");
+const adminLink = document.getElementById("admin-link");
 
 function showStatus(message, isError = false) {
 	statusDiv.textContent = message;
@@ -49,6 +50,26 @@ async function loadPreferences() {
 			return;
 		}
 		applyPreferences(await response.json());
+	} catch (error) {
+		showStatus(`Erreur réseau : ${error.message}`, true);
+	}
+}
+
+async function loadAdminLink() {
+	try {
+		const response = await fetch("/api/me", {
+			credentials: "same-origin",
+		});
+		if (response.status === 401) {
+			window.location.href = "/login";
+			return;
+		}
+		if (!response.ok) {
+			showStatus("Erreur de vérification du rôle.", true);
+			return;
+		}
+		const user = await response.json();
+		adminLink.hidden = user.role !== "admin";
 	} catch (error) {
 		showStatus(`Erreur réseau : ${error.message}`, true);
 	}
@@ -238,4 +259,5 @@ userInput.addEventListener("keydown", (event) => {
 newSessionBtn.addEventListener("click", createNewSession);
 
 loadPreferences();
+loadAdminLink();
 loadSessions();

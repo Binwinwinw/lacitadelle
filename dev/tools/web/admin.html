@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Citadelle - Administration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-layout">
+        <aside class="sidebar">
+            <h2>La Citadelle</h2>
+            <a href="/" class="sidebar-link">Retour au chat</a>
+            <a href="/settings" class="sidebar-link">Réglages</a>
+            <a href="/admin" class="sidebar-link" aria-current="page">Administration</a>
+            <form method="POST" action="/logout">
+                <button type="submit" class="logout-btn">Déconnexion</button>
+            </form>
+        </aside>
+        <main class="chat-main settings-main">
+            <h1>Administration</h1>
+            <section class="settings-section" aria-labelledby="summary-heading">
+                <h2 id="summary-heading">Résumé</h2>
+                <p>Utilisateurs : <span id="user-count">—</span></p>
+                <p>Admins actifs (maximum 1 jusqu'à V3.2) :
+                    <span id="active-admin-count">—</span></p>
+                <p>Utilisateurs désactivés : <span id="disabled-user-count">—</span></p>
+            </section>
+            <section class="settings-section" aria-labelledby="users-heading">
+                <h2 id="users-heading">Utilisateurs</h2>
+                <p id="admin-status" class="settings-status" role="status"
+                   aria-live="polite">Chargement...</p>
+                <div class="admin-table-wrap">
+                    <table class="admin-users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom d'utilisateur</th>
+                                <th>Rôle</th>
+                                <th>Actif</th>
+                                <th>Créé le</th>
+                                <th>Dernière connexion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        const adminStatus = document.getElementById("admin-status");
+        const usersBody = document.getElementById("admin-users");
+
+        function addCell(row, value) {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch("/api/admin/users", {
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (response.status === 403) {
+                    adminStatus.textContent = "Accès réservé à l'administration.";
+                    return;
+                }
+                if (!response.ok) {
+                    adminStatus.textContent = "Erreur de chargement des utilisateurs.";
+                    return;
+                }
+
+                const data = await response.json();
+                const summary = data.summary;
+                document.getElementById("user-count").textContent =
+                    String(summary.user_count);
+                document.getElementById("active-admin-count").textContent =
+                    String(summary.active_admins);
+                document.getElementById("disabled-user-count").textContent =
+                    String(summary.disabled_users);
+                usersBody.replaceChildren();
+                for (const user of data.users) {
+                    const row = document.createElement("tr");
+                    addCell(row, String(user.id));
+                    addCell(row, user.username);
+                    addCell(row, user.role);
+                    addCell(row, user.is_active === 1 ? "Oui" : "Non");
+                    addCell(row, user.created_at);
+                    addCell(row, user.last_login_at || "Jamais");
+                    usersBody.appendChild(row);
+                }
+                adminStatus.textContent = "";
+            } catch (error) {
+                adminStatus.textContent =
+                    `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>
