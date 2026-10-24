@@ -290,3 +290,16 @@ CHANGELOG et maintenir les références projet et règles structurelles.
 
 **Impact** : tableau de fichiers et parcours de lecture ajoutés, décisions
 #27–29 actées, règle 8 ajoutée; aucun code ni test modifié.
+
+## [2026-10-23] Phase 10A — Conception Mode B-1
+
+**Commit** : Phase 10A (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : acter la conception Mode B-1 après validation du décideur.
+
+**Impact** : huit choix de conception consignés en décision #30 et B-1
+passé à « à implémenter (spec validée) ». Aucun code, test ou template
+modifié.

@@ -495,3 +495,40 @@ pointeur maintenu; si un fichier pointé est déplacé ou renommé, mettre à jo
 
 **Conséquences** : la numérotation des règles structurelles passe de 7 à 8.
 `CHANGELOG.md` reste cohérent avec les journaux, la Roadmap et le Backlog.
+
+## [2026-10-23] Conception Mode B-1 : page de réglages
+
+**Contexte** : `BACKLOG.md` définit Mode B-1 comme une page de réglages user
+et admin avec logs et indicateurs. Les huit questions ouvertes ont été
+présentées au décideur avant actage; la spécification a été validée en Phase
+10A, sans changement de code.
+
+**Décision(s)** :
+
+1. Ajouter un `GET /settings` dans la sidebar, visible pour tout utilisateur
+   authentifié, avec des sections conditionnelles selon le rôle.
+2. Pour le user : réutiliser `/change-password`; stocker en SQLite par compte
+   le thème sombre/clair et la taille de texte petite/normale/grande. Garder
+   l'interface en français; exclure la pagination des sessions de B-1.
+3. Pour l'admin : prévoir la gestion complète des comptes selon le contrat
+   V3.1, les logs/indicateurs et un accès à B-2. B-1 n'implémente pas le
+   changement de modèle.
+4. Vérifier les droits côté serveur à chaque requête, revalider le rôle en
+   base, renvoyer 401 pour une session absente et 403 à un user non-admin.
+   Garder le proxy sur loopback jusqu'aux protections V3.1 avant écoute
+   réseau.
+5. Rafraîchir les logs par polling toutes les cinq secondes quand l'onglet
+   est visible.
+6. Capturer dans le proxy des événements structurés d'inférence, sans
+   prompt, réponse générée ni secrets; filtrer par session pour un user et
+   globalement pour un admin.
+7. Mesurer la latence autour de l'appel modèle. Calculer tokens/s seulement
+   depuis les compteurs d'usage effectivement retournés; sinon afficher
+   « indisponible », sans estimation. Définir les sessions actives comme les
+   tokens d'authentification non expirés en mémoire.
+8. Persister les métadonnées dans une table SQLite liée au user/session, sans
+   contenu de conversation et avec la durée de vie de la base locale.
+
+**Conséquences** : Mode B-1 est spécifié et peut passer au statut « à
+implémenter ». Les routes de réglages/logs et la persistance associée restent
+à développer dans un GO séparé; aucun code n'est modifié en Phase 10A.

@@ -14,31 +14,43 @@ le journal des phases.
 
 ## Mode B-1 — Page de réglages (user + admin)
 
-**Statut** : à concevoir.  
+**Statut** : à implémenter (spec validée).  
 **Décision actée** : 2026-10-23.  
 **Dépendances** : aucune.
+**Spec validée** : voir la décision #30 dans
+[`.memory/decisions.md`](../../.memory/decisions.md).
 
 **Périmètre** :
 
-- Ajouter un bouton « Réglages » dans le chat.
-- Présenter des sections conditionnelles selon le rôle (`user` ou `admin`).
-- Pour un user : changement de mot de passe et préférences d'affichage.
-- Pour un admin : gestion des comptes, accès au changement de modèle B-2 et
-  aux logs d'inférence avec indicateurs. Cette partie fusionne l'ancien B-3.
-- Vérifier les autorisations côté serveur, pas uniquement dans l'interface.
-- Afficher les logs et indicateurs selon le rôle :
-  - admin : logs d'inférence globaux;
-  - user : logs limités à ses propres sessions;
-  - indicateurs : tokens/s, latence et sessions actives.
+- La page `GET /settings` est accessible aux utilisateurs authentifiés, avec
+  une entrée dans la sidebar après « Nouvelle session » et des sections
+  conditionnelles selon le rôle.
+- Le user peut changer son mot de passe via `/change-password` et régler le
+  thème (sombre/clair) et la taille du texte (petite/normale/grande). Les
+  préférences sont enregistrées par compte en SQLite. La langue reste le
+  français; les options de pagination des sessions sont hors B-1.
+- La section admin donne accès à la gestion complète des comptes selon
+  `AUTH_CONTRACT.md` (V3.1), aux logs/indicateurs et à B-2. Les opérations
+  admin restent protégées par les règles du contrat; B-1 n'implémente pas le
+  changement de modèle.
+- Les autorisations sont vérifiées côté serveur à chaque requête : 401 pour
+  une session absente et 403 pour un user non-admin. Le rôle est revalidé en
+  base. Le proxy reste sur loopback jusqu'aux protections V3.1 avant toute
+  écoute réseau.
+- Les logs sont rafraîchis par polling toutes les cinq secondes lorsque
+  l'onglet est visible. Le proxy enregistre des événements d'inférence
+  structurés (date, user/session, résultat, durée et compteurs disponibles),
+  sans prompt, réponse générée, mot de passe ou cookie.
+- La latence est mesurée autour de l'appel au modèle. Les tokens/s utilisent
+  uniquement les compteurs d'usage effectivement renvoyés par l'API; sinon
+  l'indicateur est indisponible, sans estimation. Les sessions actives sont
+  les tokens d'authentification non expirés conservés en mémoire du proxy.
+- Les événements et indicateurs sont persistés dans une table SQLite dédiée,
+  filtrable par user/session. Ils suivent le cycle de vie de la base locale;
+  aucun contenu de conversation n'est stocké.
 
-**Questions ouvertes** (à trancher en conception) :
-
-- Quelles préférences user inclure exactement : thème, langue, taille de
-  police et options liées aux sessions ?
-- Utiliser SSE ou polling pour les logs ?
-- Les vues admin (globales) et user (filtrées par session) partagent-elles le
-  même affichage ?
-- Persister les logs dans un fichier rotatif ou dans une table en base ?
+**Questions tranchées** : les huit choix de conception sont consignés dans la
+décision #30 de `.memory/decisions.md`.
 
 **Moment de traitement** : à décider par le décideur.
 
