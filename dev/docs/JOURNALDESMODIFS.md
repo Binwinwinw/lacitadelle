@@ -398,3 +398,21 @@ futur de la base sans l'exécuter.
 **Impact** : la règle CSS respecte `hidden`; règle 9 et décision #36
 documentées. Aucun changement d'autorisation serveur ni suppression de
 données.
+
+## [2026-10-24] Phase 10-cleanup — Base locale et superadmin
+
+**Commit** : Phase 10-cleanup (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `.memory/decisions.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+La base locale `citadelle_data/memory.db` et son backup restent gitignorés.
+
+**Raison** : supprimer les comptes et données de test après sauvegarde
+vérifiée, puis créer un compte administrateur propre.
+
+**Impact** : trois comptes, trois sessions, 20 messages et une préférence
+supprimés en cascade; un `superadmin` actif créé avec changement de mot de
+passe requis. 105 tests passent. `create_admin.py` a levé une erreur
+d'encodage après l'insertion, à l'impression de son avertissement; l'état
+SQLite a été vérifié. Validation manuelle encore attendue; mot de passe
+absent des documents et du commit.

@@ -682,3 +682,31 @@ traçabilité est également actée : toute décision doit être ajoutée à
 **Conséquences** : les comptes `user` ne voient pas le lien d'administration.
 Les nouvelles décisions et tâches sont tracées immédiatement dans le
 `TODO.md` local. Le nettoyage de la base n'est pas exécuté dans ce GO.
+
+## [2026-10-24] Nettoyage base locale et création d'un admin propre
+
+**Contexte** : la base locale contenait trois comptes legacy :
+`phase6c-admin` (mot de passe perdu), `admin` (`role='user'`) et
+`phase6c-chat` (compte de test). Elle contenait aussi trois sessions,
+20 messages et une préférence; aucune table `metrics` n'existait. Le
+décideur a confirmé la suppression, après sauvegarde vérifiée.
+
+**Décision(s)** :
+
+1. Sauvegarder la base avant toute modification dans
+   `citadelle_data/memory.db.backup-2026-10-24`.
+2. Supprimer tous les comptes de la base locale avec `DELETE FROM users`,
+   en activant les clés étrangères pour supprimer en cascade sessions,
+   messages et préférences.
+3. Créer `superadmin` via `create_admin.py`, avec rôle admin, compte actif,
+   mot de passe temporaire affiché une seule fois et
+   `must_change_password=1`.
+4. Ne jamais consigner le mot de passe dans les journaux, décisions,
+   `TODO.md` ou Git.
+5. Laisser au décideur la validation manuelle de la connexion, du changement
+   obligatoire de mot de passe, de l'accès `/admin` et de la création d'un
+   user depuis l'interface.
+
+**Conséquences** : la base active contient un seul compte admin et aucune
+session, conversation ou préférence héritée. Le backup conserve l'ancien état
+pour une restauration éventuelle. La validation manuelle reste à effectuer.
