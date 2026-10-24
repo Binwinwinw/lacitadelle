@@ -260,3 +260,18 @@ les traces actuelles; vérifier le statut de la release `v3-distribution`.
 release dans `AGENTS.md`; la release `v3-distribution` a été confirmée sur
 GitHub, donc aucune correction de release n'était nécessaire. Aucun code ni
 test modifié.
+
+## [2026-10-23] Phase 9C — Backlog versionné Mode B
+
+**Commit** : Phase 9C (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`, `dev/docs/ROADMAP.md`,
+`AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`;
+`TODO.md` mis à jour localement (gitignoré).
+
+**Raison** : consigner les tâches Mode B validées, leur dépendance et les
+questions restant à trancher en conception.
+
+**Impact** : B-1 inclut l'ancien B-3; B-2 exige rollback automatique et
+whitelist testée avec dérogation avertie. Règle 7 de suivi ajoutée; aucun
+code, test ou décision mémoire modifié.

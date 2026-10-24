@@ -155,5 +155,16 @@ test de non-régression sur 200 requêtes et validation répétée de la suite.
   le brief, mais reste non vérifiée par l'IDE.
 - Tests : 76, validés 10/10 runs en Phase 8b.
 - Décisions : 26 actées.
-- Règles : six règles structurelles dans `AGENTS.md`.
+- Règles : sept règles structurelles dans `AGENTS.md`.
 - Tâches à venir : voir `TODO.md` (local, gitignoré).
+
+## Prochaines phases possibles (non clôturées)
+
+Voir [`BACKLOG.md`](./BACKLOG.md) pour le détail. Ces phases ne sont pas
+clôturées; elles ne deviendront des entrées définitives de cette Roadmap
+qu'après leur implémentation.
+
+- **Mode B-1** : page de réglages (user + admin + logs et indicateurs).
+- **Mode B-2** : changement de modèle admin, avec rollback obligatoire et
+  whitelist curée.
+- **Nettoyage base locale** : à effectuer au moment de la production.

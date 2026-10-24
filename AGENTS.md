@@ -81,7 +81,7 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 
 ## Suivi et traçabilité
 
-Ce projet applique six règles structurelles pour garantir la traçabilité.
+Ce projet applique sept règles structurelles pour garantir la traçabilité.
 Elles s'appliquent à tous les GO (décideur, IDE, agents IA).
 
 ### Règle 1 — TODO de session obligatoire
@@ -161,6 +161,24 @@ Mettre à jour `dev/docs/ROADMAP.md` à la clôture d'une phase majeure pour
 consigner son objectif, son livrable et les commits et décisions associés.
 Ne pas créer une entrée par GO; les phases majeures restent celles validées
 dans la Roadmap.
+
+### Règle 7 — BACKLOG.md maintenu (versionné)
+
+`dev/docs/BACKLOG.md` est le plan de route daté des tâches validées,
+versionné et public sur GitHub. Chaque tâche décrit son statut, sa date de
+décision, ses dépendances, son périmètre, ses questions ouvertes et son
+moment de traitement (à décider).
+
+À chaque nouvelle tâche validée, ajouter une entrée datée dans `BACKLOG.md`.
+À chaque clôture, mettre son statut à jour. Ne pas créer une entrée par GO.
+
+Relation avec `TODO.md` (local, gitignoré) :
+
+- `BACKLOG.md` : plan versionné et daté, public, tâches validées uniquement.
+- `TODO.md` : pense-bête immédiat, local, pouvant contenir des notes internes.
+
+Ne pas dupliquer dans `BACKLOG.md` le détail des décisions de
+`.memory/decisions.md`.
 
 ## Où trouver quoi
 
