@@ -710,3 +710,31 @@ décideur a confirmé la suppression, après sauvegarde vérifiée.
 **Conséquences** : la base active contient un seul compte admin et aucune
 session, conversation ou préférence héritée. Le backup conserve l'ancien état
 pour une restauration éventuelle. La validation manuelle reste à effectuer.
+
+## [2026-10-24] Création admin manuelle et encodage UTF-8 Windows
+
+**Contexte** : l'exécution précédente de `create_admin.py` avait créé
+`superadmin`, puis échoué lors de l'affichage d'un avertissement Unicode
+sous Windows cp1252. Le décideur a ensuite mené manuellement la création et
+le test admin; la base contient maintenant `superadmin` et `didier`. Lors de
+ce GO, l'inventaire différait de l'état attendu; la transaction de
+suppression a été annulée sans écriture et le décideur a explicitement
+ordonné de ne rien supprimer.
+
+**Décision(s)** :
+
+1. Sur Windows, configurer stdout et stderr en UTF-8 dans `create_admin.py`
+   avant les sorties CLI, afin que l'avertissement n'échoue pas après
+   l'insertion du compte.
+2. Le décideur lance `create_admin.py` depuis son propre terminal pour voir
+   et noter le mot de passe affiché une seule fois. L'IDE ne lance pas le
+   script, ne génère pas et ne consigne aucun mot de passe.
+3. En cas de divergence entre l'inventaire attendu et la base actuelle,
+   annuler la suppression et demander instruction; aucun compte/donnée
+   supplémentaire ne sera supprimé sans autorisation.
+4. Conserver la base actuelle, avec `superadmin` admin actif et `didier`
+   user actif; aucune suppression n'a été effectuée pendant ce GO.
+
+**Conséquences** : la sortie CLI Windows utilise UTF-8; 105 tests passent.
+La base a été vérifiée en lecture seule. Les mots de passe ne figurent dans
+aucun document ni commit.

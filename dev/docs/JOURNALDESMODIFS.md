@@ -416,3 +416,19 @@ passe requis. 105 tests passent. `create_admin.py` a levé une erreur
 d'encodage après l'insertion, à l'impression de son avertissement; l'état
 SQLite a été vérifié. Validation manuelle encore attendue; mot de passe
 absent des documents et du commit.
+
+## [2026-10-24] Phase 10-cleanup-ter — Encodage CLI et transfert manuel
+
+**Commit** : Phase 10-cleanup-ter (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/create_admin.py`,
+`.memory/decisions.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : corriger l'erreur d'encodage Windows du CLI et respecter le
+transfert manuel du mot de passe au décideur.
+
+**Impact** : stdout/stderr basculés en UTF-8 sous Windows; 4 tests ciblés et
+105 tests passent. Le décideur a confirmé la création manuelle de
+`superadmin` puis `didier`; état vérifié en lecture seule. Aucune suppression
+de base effectuée par l'IDE; mot de passe absent du commit.

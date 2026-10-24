@@ -97,6 +97,10 @@ def create_first_admin(
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.platform == "win32":
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(
         description="Crée le premier admin de La Citadelle."
     )
