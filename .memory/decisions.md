@@ -659,3 +659,26 @@ documenté dans `BACKLOG.md`.
 **Conséquences** : un admin peut créer un compte user dont le mot de passe
 doit être changé à la première connexion. La désactivation, la promotion,
 la suppression et le reset restent reportés aux sous-lots 10B-3b/c/d/e.
+
+## [2026-10-24] Correctif menu Administration conditionnel + règle 9
+
+**Contexte** : le test manuel de Phase 10B-3a a révélé que le lien
+« Administration » apparaît pour les comptes `user`. Une nouvelle règle de
+traçabilité est également actée : toute décision doit être ajoutée à
+`TODO.md` dès qu'elle est prise.
+
+**Décision(s)** :
+
+1. Le lien « Administration » reste caché par défaut et n'est révélé que
+   lorsque `/api/me` confirme `role='admin'`; le CSS doit respecter l'attribut
+   HTML `hidden`.
+2. Ajouter la règle 9 à `AGENTS.md` : consigner immédiatement dans `TODO.md`
+   toute nouvelle décision, architecture ou proposition actée.
+3. Acter le nettoyage futur de la base locale : supprimer les comptes
+   `phase6c-admin`, `admin` et `phase6c-chat`, puis créer `superadmin`. Cette
+   opération destructive est réservée à un GO Phase 10-cleanup distinct,
+   avec sauvegarde vérifiée et confirmation explicite.
+
+**Conséquences** : les comptes `user` ne voient pas le lien d'administration.
+Les nouvelles décisions et tâches sont tracées immédiatement dans le
+`TODO.md` local. Le nettoyage de la base n'est pas exécuté dans ce GO.

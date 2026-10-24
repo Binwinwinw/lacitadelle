@@ -42,7 +42,7 @@ Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
 
 1. **README.md / README.fr.md** : comprendre le produit pour l'utilisateur final.
 2. **CONTRIBUTING.md / CONTRIBUTING.fr.md** : comprendre comment contribuer.
-3. **AGENTS.md** : comprendre les règles de collaboration (8 règles structurelles).
+3. **AGENTS.md** : comprendre les règles de collaboration (9 règles structurelles).
 4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 8b).
 5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
 6. **.memory/decisions.md** : comprendre les décisions actées (26 décisions datées).
@@ -120,7 +120,7 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 
 ## Suivi et traçabilité
 
-Ce projet applique huit règles structurelles pour garantir la traçabilité.
+Ce projet applique neuf règles structurelles pour garantir la traçabilité.
 Elles s'appliquent à tous les GO (décideur, IDE, agents IA).
 
 ### Règle 1 — TODO de session obligatoire
@@ -228,6 +228,19 @@ d'historique réels : `JOURNALDEBORD.md`, `JOURNALDESMODIFS.md`, `ROADMAP.md`,
 Il ne duplique pas le contenu des journaux. En cas de déplacement ou de
 renommage d'un de ces fichiers, mettre à jour `CHANGELOG.md` dans le même
 commit.
+
+### Règle 9 — Traçabilité immédiate dans TODO.md
+
+Toute nouvelle décision, architecture ou proposition actée pendant une
+conversation ou un GO doit être intégrée à `TODO.md` (local, gitignoré)
+immédiatement, sans attendre la fin du GO.
+
+Cela évite la perte de contexte entre deux sessions et garantit que les
+décisions sont tracées au moment où elles sont prises.
+
+`TODO.md` reste la source de vérité pour les tâches à venir. Une décision
+actée mais non planifiée doit apparaître dans la section « À trancher » de
+`TODO.md`.
 
 ## Périmètre et non-objectifs
 

@@ -382,3 +382,19 @@ temporaire généré, affiché une seule fois et changé à la première connexi
 
 **Impact** : route protégée, formulaire admin, validation et sept tests;
 aucune action 10B-3b/c/d/e, aucun log ni indicateur ajouté.
+
+## [2026-10-24] Phase 10B-2b — Menu admin conditionnel et règle 9
+
+**Commit** : Phase 10B-2b (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/web/style.css`, `AGENTS.md`,
+`.memory/decisions.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : corriger l'affichage du lien Administration pour les comptes
+user, acter la traçabilité immédiate dans `TODO.md` et tracer le nettoyage
+futur de la base sans l'exécuter.
+
+**Impact** : la règle CSS respecte `hidden`; règle 9 et décision #36
+documentées. Aucun changement d'autorisation serveur ni suppression de
+données.
