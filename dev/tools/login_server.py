@@ -40,6 +40,7 @@ from citadelle_memory import (
     create_session,
     create_session_for_user,
     ensure_default_user,
+    generate_strong_password,
     get_messages,
     get_messages_for_user,
     get_preferences,
@@ -67,6 +68,7 @@ SQLITE_TIMEOUT = 5.0
 MAX_POST_BODY_SIZE = 1_048_576
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
 USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_-]{3,50}$")
+ADMIN_USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_]{3,30}$")
 EXEMPT_PATHS_WHEN_MUST_CHANGE = {
     "/change-password",
     "/logout",
@@ -87,6 +89,11 @@ SESSION_EXPIRY: dict[str, float] = {}
 
 class LoginError(Exception):
     """Erreur attendue du serveur de login."""
+
+
+def generate_temp_password() -> str:
+    """Génère un mot de passe temporaire cryptographiquement sûr de 16 caractères."""
+    return generate_strong_password(16)
 
 
 def _get_db_connection() -> sqlite3.Connection:
@@ -387,6 +394,91 @@ def handle_get_api_admin_users(handler: BaseHTTPRequestHandler) -> None:
                 "disabled_users": sum(user["is_active"] != 1 for user in users),
             },
         },
+    )
+
+
+def handle_post_api_admin_users_create(handler: BaseHTTPRequestHandler) -> None:
+    """POST /api/admin/users : crée un utilisateur avec un mot de passe temporaire."""
+    if require_admin(handler) is None:
+        return
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+    except (TypeError, ValueError):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if content_length <= 0 or content_length > 4096:
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    try:
+        payload = json.loads(
+            _read_post_body(handler, content_length).decode("utf-8")
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if not isinstance(payload, dict):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    username = payload.get("username")
+    if not isinstance(username, str):
+        error_response(
+            handler,
+            "Nom d'utilisateur invalide",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    username = username.strip()
+    if not ADMIN_USERNAME_REGEX.fullmatch(username):
+        error_response(
+            handler,
+            "Nom d'utilisateur invalide",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+
+    conn = _get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        if conn.execute(
+            "SELECT 1 FROM users WHERE username = ? LIMIT 1",
+            (username,),
+        ).fetchone():
+            error_response(
+                handler,
+                "Nom d'utilisateur déjà pris",
+                HTTPStatus.CONFLICT,
+            )
+            return
+        temp_password = generate_temp_password()
+        cursor = conn.execute(
+            "INSERT INTO users "
+            "(username, password_hash, role, is_active, "
+            "must_change_password, created_at, last_login_at) "
+            "VALUES (?, ?, 'user', 1, 1, ?, NULL)",
+            (
+                username,
+                hash_password(temp_password),
+                datetime.now(timezone.utc).isoformat(),
+            ),
+        )
+        conn.commit()
+        if cursor.lastrowid is None:
+            raise sqlite3.DatabaseError("Impossible de récupérer l'identifiant")
+        user_id = cursor.lastrowid
+    finally:
+        conn.close()
+
+    json_response(
+        handler,
+        {
+            "id": user_id,
+            "username": username,
+            "temp_password": temp_password,
+            "message": (
+                "Utilisateur créé. Le mot de passe temporaire ne sera plus affiché."
+            ),
+        },
+        HTTPStatus.CREATED,
     )
 
 
@@ -942,6 +1034,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_change_password(self)
             elif path == "/settings/preferences":
                 handle_post_settings_preferences(self)
+            elif path == "/api/admin/users":
+                handle_post_api_admin_users_create(self)
             elif path == "/logout":
                 handle_post_logout(self)
             elif path == "/api/sessions":

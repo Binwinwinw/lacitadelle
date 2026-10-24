@@ -367,3 +367,18 @@ séquentiels avant toute implémentation.
 
 **Impact** : décision #34 et périmètres, dépendances et questions ouvertes
 documentés; aucun code ni test modifié.
+
+## [2026-10-24] Phase 10B-3a — Création d'utilisateur admin
+
+**Commit** : Phase 10B-3a (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tests/test_admin.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : permettre à un admin de créer un compte user avec mot de passe
+temporaire généré, affiché une seule fois et changé à la première connexion.
+
+**Impact** : route protégée, formulaire admin, validation et sept tests;
+aucune action 10B-3b/c/d/e, aucun log ni indicateur ajouté.

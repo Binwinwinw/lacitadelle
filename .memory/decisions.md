@@ -635,3 +635,27 @@ propre GO, son commit et ses tests :
 **Conséquences** : chaque sous-lot est testé avant le suivant. Aucun sous-lot
 ne peut commencer avant la validation du précédent. Le découpage est
 documenté dans `BACKLOG.md`.
+
+## [2026-10-24] Implémentation Phase 10B-3a : création d'utilisateur (admin)
+
+**Contexte** : la décision #34 découpe la Phase 10B-3 en cinq sous-lots.
+10B-3a implémente la création d'utilisateur par un admin.
+
+**Décision(s)** :
+
+1. Ajouter la route `POST /api/admin/users`, protégée par `require_admin`.
+2. Générer côté serveur un mot de passe temporaire aléatoire de 16 caractères,
+   avec un générateur cryptographiquement sûr.
+3. Retourner le mot de passe temporaire une seule fois dans la réponse JSON de
+   création; ne jamais le journaliser ni le rendre récupérable via l'API.
+4. Forcer `must_change_password=1` à la création.
+5. Créer uniquement des comptes `role='user'`; la promotion est réservée à
+   10B-3c.
+6. Valider le nom d'utilisateur : 3 à 30 caractères, lettres ASCII,
+   chiffres et underscore, et unicité.
+7. Tester la création, le doublon, les noms invalides, les autorisations,
+   puis la connexion avec le mot de passe temporaire et le changement forcé.
+
+**Conséquences** : un admin peut créer un compte user dont le mot de passe
+doit être changé à la première connexion. La désactivation, la promotion,
+la suppression et le reset restent reportés aux sous-lots 10B-3b/c/d/e.

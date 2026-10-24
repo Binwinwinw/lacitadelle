@@ -65,28 +65,28 @@ décision #30 de `.memory/decisions.md`.
 
 ### 10B-3 — CRUD admin (découpé en 5 sous-lots)
 
-**Statut** : à implémenter (découpage acté #34).
+**Statut** : en cours (10B-3a terminé; 10B-3b à implémenter).
 **Décision actée** : 2026-10-24.
 **Dépendances** : 10B-2 (admin read-only terminé).
 
 #### 10B-3a — Créer un utilisateur
 
-**Périmètre** : formulaire dans `admin.html`, route
-`POST /api/admin/users` (avec `require_admin`). Validation : username
-unique, mot de passe min. 8, rôle `user` par défaut. Tests (création OK,
-username dupliqué, mot de passe court, non-admin → 403).
+**Statut** : terminé (décision #35, 2026-10-24).
+**Périmètre livré** : formulaire dans `admin.html`, route
+`POST /api/admin/users` protégée par `require_admin`, validation du nom
+d'utilisateur (3-30 caractères, alphanumérique ASCII et underscore,
+unicité), mot de passe temporaire aléatoire de 16 caractères affiché une
+seule fois, rôle `user` et `must_change_password=1` forcés. Le mot de passe
+n'est pas inclus dans l'API de lecture des utilisateurs.
 
 **Dépendances** : 10B-2.
-**Questions ouvertes** :
-
-- Le mot de passe est-il généré (aléatoire) ou choisi par l'admin ?
-- `must_change_password=1` est-il forcé à la création (l'utilisateur doit
-  changer son mot de passe à la première connexion) ?
-- Un admin peut-il créer un autre admin dès 3a, ou seulement des users
-  (promotion en 3c) ?
+**Tests** : création et hash, doublon, nom trop court/invalide,
+authentification et autorisation admin, connexion temporaire et changement
+forcé.
 
 #### 10B-3b — Désactiver/réactiver
 
+**Statut** : à implémenter.
 **Périmètre** : bouton dans `admin.html`, routes
 `POST /api/admin/users/{id}/deactivate` et
 `POST /api/admin/users/{id}/activate` (avec `require_admin`). Tests (action

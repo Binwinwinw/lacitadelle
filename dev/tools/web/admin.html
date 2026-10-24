@@ -26,6 +26,19 @@
                     <span id="active-admin-count">—</span></p>
                 <p>Utilisateurs désactivés : <span id="disabled-user-count">—</span></p>
             </section>
+            <section class="settings-section"
+                     aria-labelledby="create-user-heading">
+                <h2 id="create-user-heading">Créer un utilisateur</h2>
+                <form id="create-user-form" class="settings-form">
+                    <label for="new-username">Nom d'utilisateur</label>
+                    <input type="text" id="new-username" name="username"
+                           required minlength="3" maxlength="30"
+                           pattern="[a-zA-Z0-9_]+">
+                    <button type="submit" class="settings-save">Créer</button>
+                </form>
+                <div id="create-user-result" class="settings-status"
+                     role="status" aria-live="polite"></div>
+            </section>
             <section class="settings-section" aria-labelledby="users-heading">
                 <h2 id="users-heading">Utilisateurs</h2>
                 <p id="admin-status" class="settings-status" role="status"
@@ -51,6 +64,8 @@
     <script>
         const adminStatus = document.getElementById("admin-status");
         const usersBody = document.getElementById("admin-users");
+        const createUserForm = document.getElementById("create-user-form");
+        const createUserResult = document.getElementById("create-user-result");
 
         function addCell(row, value) {
             const cell = document.createElement("td");
@@ -101,6 +116,66 @@
                     `Erreur réseau : ${error.message}`;
             }
         }
+
+        createUserForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            createUserResult.replaceChildren();
+            const username = document.getElementById("new-username").value.trim();
+            try {
+                const response = await fetch("/api/admin/users", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username }),
+                    credentials: "same-origin",
+                });
+                const data = await response.json();
+                if (response.status === 201) {
+                    const created = document.createElement("p");
+                    created.textContent = `Utilisateur ${data.username} créé.`;
+                    const passwordLabel = document.createElement("p");
+                    passwordLabel.textContent =
+                        "Mot de passe temporaire (à communiquer par un canal sûr, il ne sera plus affiché) :";
+                    const password = document.createElement("code");
+                    password.className = "temp-password";
+                    password.textContent = data.temp_password;
+                    const copyButton = document.createElement("button");
+                    copyButton.type = "button";
+                    copyButton.textContent = "Copier";
+                    copyButton.addEventListener("click", async () => {
+                        try {
+                            await navigator.clipboard.writeText(data.temp_password);
+                            copyButton.textContent = "Copié !";
+                        } catch (error) {
+                            copyButton.textContent = "Copie impossible";
+                        }
+                    });
+                    const warning = document.createElement("p");
+                    warning.className = "warning";
+                    warning.textContent =
+                        "L'utilisateur devra changer son mot de passe à la première connexion.";
+                    createUserResult.append(
+                        created,
+                        passwordLabel,
+                        password,
+                        document.createTextNode(" "),
+                        copyButton,
+                        warning,
+                    );
+                    document.getElementById("new-username").value = "";
+                    loadUsers();
+                } else if (response.status === 401) {
+                    window.location.href = "/login";
+                } else if (response.status === 403) {
+                    createUserResult.textContent = "Accès refusé.";
+                } else {
+                    createUserResult.textContent =
+                        data.error || "Erreur lors de la création.";
+                }
+            } catch (error) {
+                createUserResult.textContent =
+                    `Erreur réseau ou réponse invalide : ${error.message}`;
+            }
+        });
 
         loadUsers();
     </script>
