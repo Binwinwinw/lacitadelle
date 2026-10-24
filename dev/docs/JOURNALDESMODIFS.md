@@ -432,3 +432,17 @@ transfert manuel du mot de passe au décideur.
 105 tests passent. Le décideur a confirmé la création manuelle de
 `superadmin` puis `didier`; état vérifié en lecture seule. Aucune suppression
 de base effectuée par l'IDE; mot de passe absent du commit.
+
+## [2026-10-24] Phase 10C-PLAN — Auto-création admin au démarrage
+
+**Commit** : Phase 10C-PLAN (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+`TODO.md` a également été mis à jour localement et reste gitignoré.
+
+**Raison** : acter la création automatique du premier admin et documenter
+son périmètre avant l'implémentation.
+
+**Impact** : décision #39, Phase 10C, dépendances, périmètre et questions
+ouvertes documentés. Aucun code ni test modifié.

@@ -738,3 +738,33 @@ ordonné de ne rien supprimer.
 **Conséquences** : la sortie CLI Windows utilise UTF-8; 105 tests passent.
 La base a été vérifiée en lecture seule. Les mots de passe ne figurent dans
 aucun document ni commit.
+
+## [2026-10-24] Auto-création d'un admin au démarrage (Phase 10C)
+
+**Contexte** : après une première installation ou un nettoyage de base, aucun
+admin actif n'existe et l'utilisateur ne peut pas accéder à `/admin` pour
+créer des comptes. Aujourd'hui, le premier admin doit être créé manuellement
+avec `create_admin.py`, ce qui est peu ergonomique.
+
+**Décision(s)** :
+
+1. Au démarrage de `login_server.py`, dans `main()`, vérifier si la base
+   active contient au moins un compte avec `role='admin'` et `is_active=1`.
+2. S'il n'existe aucun admin actif, créer automatiquement `superadmin`
+   (`role='admin'`, `is_active=1`, `must_change_password=1`) avec un mot de
+   passe généré aléatoirement.
+3. Afficher ce mot de passe une seule fois dans la console du proxy avec
+   une consigne claire de le noter.
+4. Si un admin actif existe, afficher un message informatif avec son username
+   seulement, sans exposer de mot de passe.
+5. Ne pas prendre en charge le cas où la base active est vide mais un
+   `superadmin` existe uniquement dans un backup; le serveur ne consulte que
+   la base active.
+
+**Conséquences** : la première installation et un nettoyage complet peuvent
+être suivis d'une connexion admin sans lancement manuel de
+`create_admin.py`. Les installations ayant déjà un admin actif affichent
+seulement un message informatif et ne créent pas de doublon. La gestion de
+l'échec de création, l'écriture du mot de passe dans un fichier et une
+désactivation éventuelle de l'auto-création restent à examiner en Review
+pendant l'implémentation de Phase 10C.

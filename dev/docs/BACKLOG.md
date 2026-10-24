@@ -158,6 +158,39 @@ non-admin → 403).
 
 ---
 
+## Phase 10C — Auto-création d'un admin au démarrage
+
+**Statut** : à implémenter (décision #39).
+**Décision actée** : 2026-10-24.
+**Dépendances** : aucune (indépendant de B-1).
+
+**Périmètre** :
+
+- Dans `login_server.py` (`main()`), détecter si la base active contient au
+  moins un admin actif.
+- Si aucun admin actif n'existe, créer `superadmin` avec rôle admin, compte
+  actif, changement de mot de passe obligatoire et mot de passe généré
+  aléatoirement; afficher ce mot de passe une seule fois dans la console
+  proxy avec une consigne explicite de le noter.
+- Si un admin actif existe, afficher un message informatif indiquant son
+  username seulement, sans mot de passe.
+- Ne pas prendre en charge le cas d'une base active vide avec un
+  `superadmin` présent uniquement dans un backup; la détection porte sur la
+  base active.
+- Tests à prévoir : auto-création, absence de doublon si admin actif déjà
+  présent et contenu des messages affichés.
+
+**Questions ouvertes** (à trancher pendant la Review d'implémentation) :
+
+- Le mot de passe doit-il être enregistré dans un fichier en plus de son
+  affichage en console ?
+- Que faire si la création échoue (base corrompue, permissions) ?
+- L'auto-création doit-elle être désactivable par variable d'environnement ?
+
+**Moment de traitement** : à décider par le décideur.
+
+---
+
 ## Mode B-2 — Changement de modèle (admin)
 
 **Statut** : à concevoir.  
