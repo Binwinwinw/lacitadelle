@@ -613,3 +613,25 @@ dans la sidebar.
 **Conséquences** : les admins disposent d'une vue d'ensemble des comptes sans
 capacité de modification. Le contrôle d'accès reste côté serveur; le CRUD,
 les logs et les indicateurs ne sont pas inclus.
+
+## [2026-10-24] Phase 10B-3 : découpage en 5 sous-lots
+
+**Contexte** : Phase 10B-2 (admin read-only) est terminée. Phase 10B-3
+(CRUD admin) est un chantier trop gros pour un seul GO (créer, supprimer,
+promouvoir, désactiver, reset). Un découpage est nécessaire pour maîtriser
+la complexité et les tests.
+
+**Décision(s)** : Phase 10B-3 est découpée en 5 sous-lots, chacun avec son
+propre GO, son commit et ses tests :
+
+1. 10B-3a : créer un utilisateur (formulaire, validation, route POST).
+2. 10B-3b : désactiver/réactiver un utilisateur.
+3. 10B-3c : promouvoir/rétrograder, avec la contrainte d'un seul admin actif.
+4. 10B-3d : supprimer un utilisateur, avec protections du dernier admin et
+   contre l'autosuppression.
+5. 10B-3e : reset du mot de passe par l'admin, avec changement forcé à la
+   prochaine connexion.
+
+**Conséquences** : chaque sous-lot est testé avant le suivant. Aucun sous-lot
+ne peut commencer avant la validation du précédent. Le découpage est
+documenté dans `BACKLOG.md`.

@@ -22,7 +22,8 @@ le journal des phases.
 
 **Avancement** : la tranche 10B-1 (préférences utilisateur) est terminée
 (décision #31). La tranche 10B-2 (admin read-only) est terminée
-(décision #33). Restent le CRUD admin (10B-3), les logs (10B-4) et les
+(décision #33). Le CRUD admin (10B-3) est découpé ci-dessous en cinq
+sous-lots (décision #34). Restent également les logs (10B-4) et les
 indicateurs (10B-5).
 
 La tranche 10B-1b (changement volontaire du mot de passe) est terminée
@@ -61,6 +62,99 @@ La tranche 10B-1b (changement volontaire du mot de passe) est terminée
 décision #30 de `.memory/decisions.md`.
 
 **Moment de traitement** : à décider par le décideur.
+
+### 10B-3 — CRUD admin (découpé en 5 sous-lots)
+
+**Statut** : à implémenter (découpage acté #34).
+**Décision actée** : 2026-10-24.
+**Dépendances** : 10B-2 (admin read-only terminé).
+
+#### 10B-3a — Créer un utilisateur
+
+**Périmètre** : formulaire dans `admin.html`, route
+`POST /api/admin/users` (avec `require_admin`). Validation : username
+unique, mot de passe min. 8, rôle `user` par défaut. Tests (création OK,
+username dupliqué, mot de passe court, non-admin → 403).
+
+**Dépendances** : 10B-2.
+**Questions ouvertes** :
+
+- Le mot de passe est-il généré (aléatoire) ou choisi par l'admin ?
+- `must_change_password=1` est-il forcé à la création (l'utilisateur doit
+  changer son mot de passe à la première connexion) ?
+- Un admin peut-il créer un autre admin dès 3a, ou seulement des users
+  (promotion en 3c) ?
+
+#### 10B-3b — Désactiver/réactiver
+
+**Périmètre** : bouton dans `admin.html`, routes
+`POST /api/admin/users/{id}/deactivate` et
+`POST /api/admin/users/{id}/activate` (avec `require_admin`). Tests (action
+OK, cible soi-même → 403, cible dernier admin → 403).
+
+**Dépendances** : 10B-3a.
+**Questions ouvertes** :
+
+- Peut-on désactiver le dernier admin actif ? (probablement non, cohérent
+  avec 3d).
+- Un user désactivé voit-il ses sessions invalidées ?
+
+#### 10B-3c — Promouvoir/rétrograder
+
+**Périmètre** : bouton dans `admin.html`, routes
+`POST /api/admin/users/{id}/promote` et
+`POST /api/admin/users/{id}/demote` (avec `require_admin`). Contrainte : un
+seul admin actif (jusqu'à V3.2). Tests (promotion OK, rétrogradation OK si
+un autre admin existe, tentative de créer un 2e admin → 400).
+
+**Dépendances** : 10B-3b.
+**Questions ouvertes** :
+
+- Si on rétrograde le dernier admin, faut-il refuser ou promouvoir
+  automatiquement un autre ?
+- La contrainte « un seul admin actif » est-elle temporaire (V3.2) ou
+  définitive ?
+
+#### 10B-3d — Supprimer un utilisateur
+
+**Périmètre** : bouton dans `admin.html`, route
+`POST /api/admin/users/{id}/delete` (avec `require_admin`). Protections :
+
+- Impossible de supprimer le dernier admin.
+- Impossible de se supprimer soi-même.
+- Message de confirmation côté UI.
+- Suppression en cascade (sessions, messages, préférences, metrics) via
+  `ON DELETE CASCADE`.
+
+Tests (suppression OK, dernier admin → 403, autosuppression → 403, cascade
+vérifiée).
+
+**Dépendances** : 10B-3c.
+**Questions ouvertes** :
+
+- Suppression logique (`is_active=0`) ou physique (`DELETE`) ?
+  - Soft : garde l'historique, mais complexifie les requêtes.
+  - Physique : supprime tout, plus propre.
+- Les messages d'un utilisateur supprimé sont-ils conservés ?
+
+#### 10B-3e — Reset du mot de passe par l'admin
+
+**Périmètre** : bouton dans `admin.html`, route
+`POST /api/admin/users/{id}/reset-password` (avec `require_admin`). L'admin
+génère un mot de passe temporaire (ou en choisit un) et force
+`must_change_password=1`. Tests (reset OK, `must_change_password` forcé,
+non-admin → 403).
+
+**Dépendances** : 10B-3d.
+**Questions ouvertes** :
+
+- Le mot de passe est-il généré (aléatoire) ou choisi par l'admin ?
+- L'affichage est-il unique (une seule fois) ou réaffichable ?
+- Comment l'utilisateur est-il notifié (email, log) ?
+  - Pas de mail dans le projet actuel → log ?
+
+**Moment de traitement** : un sous-lot par GO, dans l'ordre 10B-3a à
+10B-3e. Le sous-lot suivant ne commence qu'après validation du précédent.
 
 ---
 

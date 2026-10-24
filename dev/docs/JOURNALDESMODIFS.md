@@ -354,3 +354,16 @@ avec contrôle de rôle côté serveur.
 
 **Impact** : page `/admin`, API protégée sans `password_hash`, lien
 conditionnel et neuf tests; CRUD, logs et indicateurs restent reportés.
+
+## [2026-10-24] Phase 10B-3-PLAN — Découpage CRUD admin
+
+**Commit** : Phase 10B-3-PLAN (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : acter et détailler le découpage du CRUD admin en cinq sous-lots
+séquentiels avant toute implémentation.
+
+**Impact** : décision #34 et périmètres, dépendances et questions ouvertes
+documentés; aucun code ni test modifié.
