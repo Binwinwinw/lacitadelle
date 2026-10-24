@@ -275,3 +275,18 @@ questions restant à trancher en conception.
 **Impact** : B-1 inclut l'ancien B-3; B-2 exige rollback automatique et
 whitelist testée avec dérogation avertie. Règle 7 de suivi ajoutée; aucun
 code, test ou décision mémoire modifié.
+
+## [2026-10-23] Phase 9D — Parcours documentaire et CHANGELOG pointeur
+
+**Commit** : Phase 9D (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `CHANGELOG.md`, `AGENTS.md`,
+`.memory/decisions.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`. `TODO.md` vérifié, sans tâche 9D à retirer;
+inchangé.
+
+**Raison** : définir l'ordre de lecture des documents, fournir un pointeur
+CHANGELOG et maintenir les références projet et règles structurelles.
+
+**Impact** : tableau de fichiers et parcours de lecture ajoutés, décisions
+#27–29 actées, règle 8 ajoutée; aucun code ni test modifié.

@@ -14,6 +14,45 @@ llamafile-thin et le GGUF; `lancer.bat` démarre le runtime et le proxy. La
 distribution V3 est `lacitadelle-distribution.zip`, sans Git ni binaires
 intégrés. V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
+## Références projet
+
+| Fichier | Rôle |
+| --- | --- |
+| [README.md](./README.md) / [README.fr.md](./README.fr.md) | Guide du produit pour l'utilisateur |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) / [CONTRIBUTING.fr.md](./CONTRIBUTING.fr.md) | Guide de contribution |
+| [LICENSE](./LICENSE) | Licence du projet |
+| [CHANGELOG.md](./CHANGELOG.md) | Pointeur vers les documents d'historique |
+| [AGENTS.md](./AGENTS.md) | Instructions et règles agents |
+| [ARCHITECTURE.md](./dev/docs/ARCHITECTURE.md) | Architecture et flux |
+| [OBJECTIF.md](./dev/docs/OBJECTIF.md) | Objectifs et périmètre produit |
+| [ROADMAP.md](./dev/docs/ROADMAP.md) | Histoire du projet par phase |
+| [BACKLOG.md](./dev/docs/BACKLOG.md) | Tâches futures validées |
+| [JOURNALDEBORD.md](./dev/docs/JOURNALDEBORD.md) | Chronologie des sessions |
+| [JOURNALDESMODIFS.md](./dev/docs/JOURNALDESMODIFS.md) | Synthèse par commit |
+| [.memory/decisions.md](./.memory/decisions.md) | Décisions actées |
+| [.memory/instructions.md](./.memory/instructions.md) | Rappel et pointeurs agents |
+| [.memory/preferences.md](./.memory/preferences.md) | Préférences du décideur |
+| [.memory/quirks.md](./.memory/quirks.md) | Particularités et pièges |
+| [.memory/security.md](./.memory/security.md) | Règles de sécurité |
+| [TODO.md](./TODO.md) | Pense-bête immédiat, local et gitignoré |
+
+## Ordre de lecture pour un contributeur ou un agent
+
+Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
+
+1. **README.md / README.fr.md** : comprendre le produit pour l'utilisateur final.
+2. **CONTRIBUTING.md / CONTRIBUTING.fr.md** : comprendre comment contribuer.
+3. **AGENTS.md** : comprendre les règles de collaboration (8 règles structurelles).
+4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 8b).
+5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
+6. **.memory/decisions.md** : comprendre les décisions actées (26 décisions datées).
+7. **dev/docs/JOURNALDEBORD.md / dev/docs/JOURNALDESMODIFS.md** : consulter la chronologie des sessions et la synthèse par commit.
+8. **TODO.md** (local, gitignoré, si présent) : consulter le pense-bête immédiat du décideur.
+9. **CHANGELOG.md** : suivre ses pointeurs vers les documents d'historique.
+
+Après cette lecture, un contributeur ou un agent connaît le produit, les règles,
+l'histoire, les décisions et les tâches futures validées.
+
 ## Règles agents
 
 Les règles complètes sont dans `.github/agents/rules/*.instructions.md` (format
@@ -81,7 +120,7 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 
 ## Suivi et traçabilité
 
-Ce projet applique sept règles structurelles pour garantir la traçabilité.
+Ce projet applique huit règles structurelles pour garantir la traçabilité.
 Elles s'appliquent à tous les GO (décideur, IDE, agents IA).
 
 ### Règle 1 — TODO de session obligatoire
@@ -180,13 +219,15 @@ Relation avec `TODO.md` (local, gitignoré) :
 Ne pas dupliquer dans `BACKLOG.md` le détail des décisions de
 `.memory/decisions.md`.
 
-## Où trouver quoi
+### Règle 8 — CHANGELOG.md maintenu (pointeur)
 
-- Cadre produit et périmètre : `dev/docs/OBJECTIF.md`
-- Décisions : `.memory/decisions.md`
-- Journal de bord : `dev/docs/JOURNALDEBORD.md`
-- Modifications et TODO vivant : `dev/docs/JOURNALDESMODIFS.md`
-- Code et documentation : `dev/`
+`CHANGELOG.md` (racine) est un pointeur maintenu vers les documents
+d'historique réels : `JOURNALDEBORD.md`, `JOURNALDESMODIFS.md`, `ROADMAP.md`,
+`BACKLOG.md` et `.memory/decisions.md`.
+
+Il ne duplique pas le contenu des journaux. En cas de déplacement ou de
+renommage d'un de ces fichiers, mettre à jour `CHANGELOG.md` dans le même
+commit.
 
 ## Périmètre et non-objectifs
 

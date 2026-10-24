@@ -448,3 +448,50 @@ de la connexion pouvait interrompre le client.
 requêtes dans la limite, et les sessions `must_change_password` restent
 bloquées sans abandon de connexion observé. La dette de tests intermittents
 de la décision #20 est fermée.
+
+## [2026-10-23] Espaces Markdown intentionnels acceptés (BACKLOG.md)
+
+**Contexte** : lors du commit Phase 9C (`3642cde`), `git diff --cached
+--check` a signalé quatre espaces de fin de ligne dans `BACKLOG.md` (lignes
+17–18 et 49–50). Ces espaces sont des sauts de ligne Markdown intentionnels
+(deux espaces en fin de ligne = `<br>`), pas des erreurs.
+
+**Décision(s)** :
+
+1. Les espaces Markdown intentionnels sont acceptés.
+2. `git diff --cached --check` peut signaler des faux positifs sur les
+   fichiers Markdown; ne pas corriger sans raison.
+3. Le commit `3642cde` est laissé tel quel, sans commit correctif.
+
+**Conséquences** : pas de bruit dans l'historique Git. Les fichiers Markdown
+gardent leur mise en forme intentionnelle.
+
+## [2026-10-23] CHANGELOG.md pointeur maintenu
+
+**Contexte** : le projet n'utilise pas de `CHANGELOG.md` détaillé au sens du
+versioning sémantique strict. Un agent ou un contributeur qui le cherche par
+habitude pourrait croire qu'il n'existe pas.
+
+**Décision(s)** :
+
+1. Créer `CHANGELOG.md` à la racine comme pointeur.
+2. Le faire pointer vers `JOURNALDEBORD.md`, `JOURNALDESMODIFS.md`,
+   `ROADMAP.md`, `BACKLOG.md` et `.memory/decisions.md`.
+3. Ne pas dupliquer le contenu des journaux.
+4. Maintenir ce pointeur en cas de déplacement ou de renommage d'un fichier
+   pointé.
+
+**Conséquences** : le document fournit un point d'entrée vers l'historique
+sans dupliquer son contenu.
+
+## [2026-10-23] Règle 8 : CHANGELOG.md maintenu
+
+**Contexte** : la décision #28 crée `CHANGELOG.md` comme pointeur. Une règle
+est nécessaire pour en garantir la cohérence.
+
+**Décision(s)** : acter la règle 8 dans `AGENTS.md` : `CHANGELOG.md` est un
+pointeur maintenu; si un fichier pointé est déplacé ou renommé, mettre à jour
+`CHANGELOG.md` dans le même commit.
+
+**Conséquences** : la numérotation des règles structurelles passe de 7 à 8.
+`CHANGELOG.md` reste cohérent avec les journaux, la Roadmap et le Backlog.
