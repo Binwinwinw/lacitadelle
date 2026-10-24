@@ -244,3 +244,19 @@ la Roadmap à la clôture des phases majeures.
 **Impact** : Roadmap macroscopique traçable, sept phases validées, règle 6
 ajoutée à la section de suivi; aucune modification du code, des tests ou des
 décisions mémoire.
+
+## [2026-10-23] Phase 9B — Correction des compteurs AGENTS.md
+
+**Commit** : Phase 9B (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`. `TODO.md` vérifié, sans ligne de compteurs à
+retirer; inchangé.
+
+**Raison** : aligner les compteurs de tests et de décisions d'`AGENTS.md` sur
+les traces actuelles; vérifier le statut de la release `v3-distribution`.
+
+**Impact** : compteurs corrigés (76 tests, 26 décisions). Aucune mention de
+release dans `AGENTS.md`; la release `v3-distribution` a été confirmée sur
+GitHub, donc aucune correction de release n'était nécessaire. Aucun code ni
+test modifié.
