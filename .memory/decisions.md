@@ -532,3 +532,28 @@ présentées au décideur avant actage; la spécification a été validée en Ph
 **Conséquences** : Mode B-1 est spécifié et peut passer au statut « à
 implémenter ». Les routes de réglages/logs et la persistance associée restent
 à développer dans un GO séparé; aucun code n'est modifié en Phase 10A.
+
+## [2026-10-24] Implémentation Phase 10B-1 : route /settings et préférences user
+
+**Contexte** : la décision #30 spécifie le Mode B-1. La Phase 10B-1
+implémente la première tranche : route `/settings`, template et préférences
+user (thème et taille de texte) persistées en SQLite.
+
+**Décision(s)** :
+
+1. Ajouter une table `preferences` liée à `users` par `user_id`, avec
+   contraintes `CHECK` pour `theme` et `font_size`.
+2. Ajouter la migration idempotente `migrate_to_v4()`, appelée depuis
+   `init_db()` et au démarrage du proxy après la migration V3.
+3. Ajouter `GET /settings`, `GET /api/preferences` et
+   `POST /settings/preferences`.
+4. Ajouter `settings.html` et un lien dans la sidebar du chat.
+5. Valider les valeurs de thème et de taille de texte; ne lire ou modifier
+   que les préférences du compte authentifié.
+6. Ajouter neuf tests dédiés à la route, aux préférences et à la migration.
+7. Ne pas inclure la section admin/CRUD (10B-2/3), les logs (10B-4) ni les
+   indicateurs (10B-5).
+
+**Conséquences** : les utilisateurs peuvent personnaliser le thème et la
+taille du texte. L'administration et les logs restent à implémenter dans
+leurs tranches dédiées. Aucun autre code ni test existant n'est modifié.

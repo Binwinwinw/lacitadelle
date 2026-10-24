@@ -30,6 +30,30 @@ function showMessagesPlaceholder(text) {
 	messagesDiv.replaceChildren(placeholder);
 }
 
+function applyPreferences(preferences) {
+	document.documentElement.dataset.theme = preferences.theme;
+	document.documentElement.dataset.fontSize = preferences.font_size;
+}
+
+async function loadPreferences() {
+	try {
+		const response = await fetch("/api/preferences", {
+			credentials: "same-origin",
+		});
+		if (response.status === 401) {
+			window.location.href = "/login";
+			return;
+		}
+		if (!response.ok) {
+			showStatus("Erreur de chargement des préférences.", true);
+			return;
+		}
+		applyPreferences(await response.json());
+	} catch (error) {
+		showStatus(`Erreur réseau : ${error.message}`, true);
+	}
+}
+
 function renderSessions(sessions) {
 	sessionsList.replaceChildren();
 	if (!sessions.length) {
@@ -213,4 +237,5 @@ userInput.addEventListener("keydown", (event) => {
 
 newSessionBtn.addEventListener("click", createNewSession);
 
+loadPreferences();
 loadSessions();

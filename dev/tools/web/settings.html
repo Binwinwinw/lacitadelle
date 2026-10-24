@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Citadelle - Réglages</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-layout">
+        <aside class="sidebar">
+            <h2>La Citadelle</h2>
+            <a href="/" class="sidebar-link">Retour au chat</a>
+            <form method="POST" action="/logout">
+                <button type="submit" class="logout-btn">Déconnexion</button>
+            </form>
+        </aside>
+        <main class="chat-main settings-main">
+            <h1>Réglages</h1>
+            <section class="settings-section" aria-labelledby="account-heading">
+                <h2 id="account-heading">Mon compte</h2>
+                <p>Nom d'utilisateur : <span id="settings-username">Chargement...</span></p>
+                <a href="/change-password" class="sidebar-link">Changer le mot de passe</a>
+            </section>
+            <section class="settings-section" aria-labelledby="preferences-heading">
+                <h2 id="preferences-heading">Préférences</h2>
+                <form id="preferences-form" class="settings-form">
+                    <label for="theme">Thème</label>
+                    <select id="theme" name="theme" required>
+                        <option value="light">Clair</option>
+                        <option value="dark">Sombre</option>
+                    </select>
+                    <label for="font-size">Taille du texte</label>
+                    <select id="font-size" name="font_size" required>
+                        <option value="small">Petite</option>
+                        <option value="normal">Normale</option>
+                        <option value="large">Grande</option>
+                    </select>
+                    <button type="submit" class="settings-save">Enregistrer</button>
+                </form>
+                <p id="settings-status" class="settings-status" role="status"
+                   aria-live="polite"></p>
+            </section>
+        </main>
+    </div>
+    <script>
+        const preferencesForm = document.getElementById("preferences-form");
+        const statusMessage = document.getElementById("settings-status");
+        const themeSelect = document.getElementById("theme");
+        const fontSizeSelect = document.getElementById("font-size");
+
+        function applyPreferences(preferences) {
+            document.documentElement.dataset.theme = preferences.theme;
+            document.documentElement.dataset.fontSize = preferences.font_size;
+        }
+
+        async function loadPreferences() {
+            try {
+                const response = await fetch("/api/preferences", {
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    statusMessage.textContent = "Erreur de chargement des réglages.";
+                    return;
+                }
+                const preferences = await response.json();
+                document.getElementById("settings-username").textContent =
+                    preferences.username;
+                themeSelect.value = preferences.theme;
+                fontSizeSelect.value = preferences.font_size;
+                applyPreferences(preferences);
+            } catch (error) {
+                statusMessage.textContent = `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        preferencesForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            statusMessage.textContent = "";
+            try {
+                const response = await fetch("/settings/preferences", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        theme: themeSelect.value,
+                        font_size: fontSizeSelect.value,
+                    }),
+                    credentials: "same-origin",
+                });
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    const result = await response.json();
+                    statusMessage.textContent =
+                        result.error || "Erreur d'enregistrement des préférences.";
+                    return;
+                }
+                const preferences = await response.json();
+                applyPreferences(preferences);
+                statusMessage.textContent = "Préférences enregistrées.";
+            } catch (error) {
+                statusMessage.textContent = `Erreur réseau : ${error.message}`;
+            }
+        });
+
+        loadPreferences();
+    </script>
+</body>
+</html>

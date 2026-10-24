@@ -42,12 +42,15 @@ from citadelle_memory import (
     ensure_default_user,
     get_messages,
     get_messages_for_user,
+    get_preferences,
     get_session_for_user,
     hash_password,
     init_db,
     list_sessions,
     list_sessions_for_user,
     migrate_to_v3,
+    migrate_to_v4,
+    set_preferences,
     verify_password,
 )
 
@@ -275,6 +278,14 @@ def handle_get_change_password(handler: BaseHTTPRequestHandler) -> None:
     serve_static(handler, "change-password.html")
 
 
+def handle_get_settings(handler: BaseHTTPRequestHandler) -> None:
+    """GET /settings : affiche les réglages de l'utilisateur connecté."""
+    if get_authenticated_user_id(handler) is None:
+        redirect(handler, "/login")
+        return
+    serve_static(handler, "settings.html")
+
+
 def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
     """POST /login : vérifie le mot de passe et ouvre une session."""
     try:
@@ -500,6 +511,30 @@ def handle_get_api_sessions(
     json_response(handler, {"sessions": sessions})
 
 
+def handle_get_preferences(handler: BaseHTTPRequestHandler) -> None:
+    """GET /api/preferences : retourne le nom et les préférences du user."""
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    conn = _get_db_connection()
+    try:
+        user = conn.execute(
+            "SELECT username FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if user is None:
+            error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+            return
+        preferences = get_preferences(conn, user_id)
+    finally:
+        conn.close()
+    json_response(
+        handler,
+        {"username": user["username"], **preferences},
+    )
+
+
 def handle_post_api_sessions(
     handler: BaseHTTPRequestHandler,
 ) -> None:
@@ -536,6 +571,62 @@ def handle_post_api_sessions(
         handler,
         {"session_id": session_id, "title": title},
         HTTPStatus.CREATED,
+    )
+
+
+def handle_post_settings_preferences(
+    handler: BaseHTTPRequestHandler,
+) -> None:
+    """POST /settings/preferences : valide et enregistre les préférences."""
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+    except (TypeError, ValueError):
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if content_length <= 0 or content_length > 4096:
+        error_response(handler, "Requête invalide", HTTPStatus.BAD_REQUEST)
+        return
+    try:
+        body = json.loads(
+            _read_post_body(handler, content_length).decode("utf-8")
+        )
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        error_response(handler, "JSON invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if not isinstance(body, dict):
+        error_response(handler, "Corps invalide", HTTPStatus.BAD_REQUEST)
+        return
+    theme = body.get("theme")
+    font_size = body.get("font_size")
+    if theme not in ("light", "dark"):
+        error_response(handler, "Thème invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if font_size not in ("small", "normal", "large"):
+        error_response(
+            handler,
+            "Taille de texte invalide",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    conn = _get_db_connection()
+    try:
+        if conn.execute(
+            "SELECT 1 FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone() is None:
+            error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+            return
+        set_preferences(conn, user_id, theme, font_size)
+        conn.commit()
+    finally:
+        conn.close()
+    json_response(
+        handler,
+        {"saved": True, "theme": theme, "font_size": font_size},
     )
 
 
@@ -681,6 +772,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_register(self)
             elif path == "/change-password":
                 handle_get_change_password(self)
+            elif path == "/settings":
+                handle_get_settings(self)
             elif path == "/":
                 handle_get_index(self)
             elif path == "/login.html":
@@ -695,6 +788,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 serve_static(self, "chat.js")
             elif path == "/api/sessions":
                 handle_get_api_sessions(self)
+            elif path == "/api/preferences":
+                handle_get_preferences(self)
             else:
                 match = SESSION_MSG_RE.match(path)
                 if match:
@@ -738,6 +833,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_register(self)
             elif path == "/change-password":
                 handle_post_change_password(self)
+            elif path == "/settings/preferences":
+                handle_post_settings_preferences(self)
             elif path == "/logout":
                 handle_post_logout(self)
             elif path == "/api/sessions":
@@ -759,6 +856,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 def main() -> int:
     """Migre la base V3 puis démarre le serveur local."""
     migrate_to_v3()
+    migrate_to_v4()
     SESSIONS.clear()
     MUST_CHANGE.clear()
     SESSION_EXPIRY.clear()

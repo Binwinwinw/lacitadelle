@@ -303,3 +303,20 @@ CHANGELOG et maintenir les références projet et règles structurelles.
 **Impact** : huit choix de conception consignés en décision #30 et B-1
 passé à « à implémenter (spec validée) ». Aucun code, test ou template
 modifié.
+
+## [2026-10-24] Phase 10B-1 — Réglages et préférences utilisateur
+
+**Commit** : Phase 10B-1 (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tools/web/settings.html`,
+`dev/tools/web/chat.html`, `dev/tools/web/chat.js`,
+`dev/tools/web/style.css`, `dev/tests/test_settings.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : implémenter la tranche utilisateur validée de B-1 : page de
+réglages, préférence de thème et taille du texte en SQLite.
+
+**Impact** : migration idempotente, routes protégées et validées, lien
+sidebar, neuf tests dédiés; admin/CRUD, logs et indicateurs restent reportés.

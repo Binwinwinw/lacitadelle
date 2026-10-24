@@ -99,6 +99,18 @@ CREATE TABLE messages (
 );
 """
 
+SCHEMA_PREFERENCES_SQL = """
+CREATE TABLE IF NOT EXISTS preferences (
+    user_id INTEGER PRIMARY KEY,
+    theme TEXT NOT NULL DEFAULT 'light'
+        CHECK (theme IN ('light', 'dark')),
+    font_size TEXT NOT NULL DEFAULT 'normal'
+        CHECK (font_size IN ('small', 'normal', 'large')),
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+"""
+
 
 def _users_has_password_hash(conn: sqlite3.Connection) -> bool:
     """Détecte si le schéma V3 est déjà appliqué."""
@@ -229,10 +241,53 @@ def _connect(db_path: Path | None = None) -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
+def migrate_to_v4(db_path: Path | None = None) -> None:
+    """Ajoute la table des préférences utilisateur de façon idempotente."""
+    with _connect(db_path) as conn:
+        conn.executescript(SCHEMA_PREFERENCES_SQL)
+
+
 def init_db(db_path: Path | None = None) -> None:
     """Initialise la base et crée les tables si absentes."""
     with _connect(db_path) as conn:
         conn.executescript(SCHEMA_SQL)
+    migrate_to_v4(db_path)
+
+
+def get_preferences(
+    conn: sqlite3.Connection,
+    user_id: int,
+) -> dict[str, str]:
+    """Retourne les préférences du user, ou les valeurs par défaut."""
+    row = conn.execute(
+        "SELECT theme, font_size FROM preferences WHERE user_id = ?",
+        (user_id,),
+    ).fetchone()
+    if row is None:
+        return {"theme": "light", "font_size": "normal"}
+    return dict(row)
+
+
+def set_preferences(
+    conn: sqlite3.Connection,
+    user_id: int,
+    theme: str,
+    font_size: str,
+) -> None:
+    """Crée ou met à jour les préférences d'un user."""
+    if theme not in ("light", "dark"):
+        raise ValueError("Thème invalide")
+    if font_size not in ("small", "normal", "large"):
+        raise ValueError("Taille de texte invalide")
+    conn.execute(
+        "INSERT INTO preferences (user_id, theme, font_size, updated_at) "
+        "VALUES (?, ?, ?, ?) "
+        "ON CONFLICT(user_id) DO UPDATE SET "
+        "theme = excluded.theme, "
+        "font_size = excluded.font_size, "
+        "updated_at = excluded.updated_at",
+        (user_id, theme, font_size, _utcnow()),
+    )
 
 
 def ensure_default_user(db_path: Path | None = None) -> int:

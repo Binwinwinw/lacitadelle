@@ -14,11 +14,15 @@ le journal des phases.
 
 ## Mode B-1 — Page de réglages (user + admin)
 
-**Statut** : à implémenter (spec validée).  
+**Statut** : partiellement implémenté (spec validée).
 **Décision actée** : 2026-10-23.  
 **Dépendances** : aucune.
 **Spec validée** : voir la décision #30 dans
 [`.memory/decisions.md`](../../.memory/decisions.md).
+
+**Avancement** : la tranche 10B-1 (préférences utilisateur) est terminée
+(décision #31). Restent la gestion des comptes admin (10B-2/3), les logs
+(10B-4) et les indicateurs (10B-5).
 
 **Périmètre** :
 
