@@ -307,6 +307,32 @@ def ensure_default_user(db_path: Path | None = None) -> int:
         return cur.lastrowid
 
 
+def ensure_admin_exists(
+    db_path: Path | None = None,
+) -> tuple[bool, str, str | None, str]:
+    """Crée le compte admin initial s'il n'existe aucun admin actif."""
+    with _connect(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        admin = conn.execute(
+            "SELECT username FROM users "
+            "WHERE role = 'admin' AND is_active = 1 LIMIT 1"
+        ).fetchone()
+        if admin is not None:
+            username = admin["username"]
+            return False, username, None, f"Admin existant : {username}"
+
+        username = "superadmin"
+        password = generate_strong_password()
+        conn.execute(
+            "INSERT INTO users "
+            "(username, password_hash, role, is_active, "
+            "must_change_password, created_at, last_login_at) "
+            "VALUES (?, ?, 'admin', 1, 1, ?, NULL)",
+            (username, hash_password(password), _utcnow()),
+        )
+        return True, username, password, "Admin 'superadmin' créé."
+
+
 def create_session(
     title: str | None = None,
     db_path: Path | None = None,

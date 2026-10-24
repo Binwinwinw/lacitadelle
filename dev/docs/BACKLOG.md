@@ -160,34 +160,29 @@ non-admin → 403).
 
 ## Phase 10C — Auto-création d'un admin au démarrage
 
-**Statut** : à implémenter (décision #39).
+**Statut** : terminé (décision #40, 2026-10-24).
 **Décision actée** : 2026-10-24.
 **Dépendances** : aucune (indépendant de B-1).
 
-**Périmètre** :
+**Périmètre livré** :
 
-- Dans `login_server.py` (`main()`), détecter si la base active contient au
-  moins un admin actif.
-- Si aucun admin actif n'existe, créer `superadmin` avec rôle admin, compte
-  actif, changement de mot de passe obligatoire et mot de passe généré
-  aléatoirement; afficher ce mot de passe une seule fois dans la console
-  proxy avec une consigne explicite de le noter.
-- Si un admin actif existe, afficher un message informatif indiquant son
-  username seulement, sans mot de passe.
-- Ne pas prendre en charge le cas d'une base active vide avec un
-  `superadmin` présent uniquement dans un backup; la détection porte sur la
-  base active.
-- Tests à prévoir : auto-création, absence de doublon si admin actif déjà
-  présent et contenu des messages affichés.
+- `citadelle_memory.ensure_admin_exists()` vérifie l'existence d'un admin
+  actif dans la base courante de façon transactionnelle. Si aucun n'existe,
+  le helper crée `superadmin` actif avec `must_change_password=1`.
+- `login_server.main()` appelle le helper après les migrations. Le mot de
+  passe généré est affiché une fois dans la console; un admin actif existant
+  produit seulement un message avec son username.
+- En cas d'erreur de migration/création, le proxy affiche l'erreur et l'action
+  manuelle sans retry et poursuit son démarrage.
+- Aucun fichier de mot de passe ni option par variable d'environnement.
+- Le cas d'un `superadmin` présent uniquement dans un backup reste non
+  supporté.
 
-**Questions ouvertes** (à trancher pendant la Review d'implémentation) :
+**Tests** : quatre tests couvrent la création et son hash, l'admin actif
+existant, l'admin inactif et les messages de démarrage/erreur.
 
-- Le mot de passe doit-il être enregistré dans un fichier en plus de son
-  affichage en console ?
-- Que faire si la création échoue (base corrompue, permissions) ?
-- L'auto-création doit-elle être désactivable par variable d'environnement ?
-
-**Moment de traitement** : à décider par le décideur.
+**Moment de traitement** : terminé; test manuel par le décideur à effectuer
+sur la base locale.
 
 ---
 

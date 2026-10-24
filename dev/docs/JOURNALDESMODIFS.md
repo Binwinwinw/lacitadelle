@@ -446,3 +446,21 @@ son périmètre avant l'implémentation.
 
 **Impact** : décision #39, Phase 10C, dépendances, périmètre et questions
 ouvertes documentés. Aucun code ni test modifié.
+
+## [2026-10-24] Phase 10C — Auto-création admin au démarrage
+
+**Commit** : Phase 10C (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tests/test_auto_admin.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+`TODO.md` a été mis à jour localement et reste gitignoré.
+
+**Raison** : implémenter la création du premier compte admin au démarrage
+du proxy, selon les décisions #39 et #40.
+
+**Impact** : `superadmin` auto-créé sans admin actif; mot de passe affiché
+une seule fois en console; message informatif si admin actif présent; erreur
+opérationnelle signalée sans retry ni arrêt du proxy. Quatre tests ajoutés,
+109 tests au total.

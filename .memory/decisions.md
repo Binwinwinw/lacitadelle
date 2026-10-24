@@ -768,3 +768,33 @@ seulement un message informatif et ne créent pas de doublon. La gestion de
 l'échec de création, l'écriture du mot de passe dans un fichier et une
 désactivation éventuelle de l'auto-création restent à examiner en Review
 pendant l'implémentation de Phase 10C.
+
+## [2026-10-24] Implémentation Phase 10C : auto-création admin au démarrage
+
+**Contexte** : la décision #39 acte l'auto-création d'un administrateur au
+démarrage si aucun admin actif n'existe. La Phase 10C implémente cette
+logique. Les décisions d'implémentation précisent les choix Q1/Q2/Q3.
+
+**Décision(s)** :
+
+1. Ajouter `ensure_admin_exists(db_path=None)` dans `citadelle_memory.py`;
+   utiliser le hash scrypt et le générateur de mot de passe existants.
+2. Appeler le helper au démarrage de `login_server.py`, dans `main()`,
+   après les migrations. Créer `superadmin` avec
+   `role='admin'`, `is_active=1` et `must_change_password=1` si aucun admin
+   actif n'existe.
+3. Afficher le mot de passe une seule fois sur la console proxy (Q1);
+   ne pas créer de fichier de mot de passe.
+4. Si un admin actif existe, afficher son username seulement. En cas
+   d'échec de migration ou de création, afficher une erreur claire et
+   l'action manuelle, ne pas retenter et laisser le serveur démarrer (Q2).
+5. Ne prévoir aucune variable d'environnement pour désactiver la création
+   (Q3).
+6. Ajouter quatre tests sur création, doublon, admin inactif, affichage
+   console et poursuite du démarrage en cas d'erreur.
+
+**Conséquences** : une base sans admin actif reçoit un compte `superadmin`
+et le décideur voit son mot de passe temporaire dans la console. Si un admin
+actif existe, aucun compte n'est ajouté et seul son username est affiché.
+La gestion d'un `superadmin` présent uniquement dans un backup reste hors
+périmètre.

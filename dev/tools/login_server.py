@@ -40,6 +40,7 @@ from citadelle_memory import (
     create_session,
     create_session_for_user,
     ensure_default_user,
+    ensure_admin_exists,
     generate_strong_password,
     get_messages,
     get_messages_for_user,
@@ -1056,28 +1057,36 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 def main() -> int:
     """Migre la base V3 puis démarre le serveur local."""
-    migrate_to_v3()
-    migrate_to_v4()
+    if sys.platform == "win32":
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8")
     SESSIONS.clear()
     MUST_CHANGE.clear()
     SESSION_EXPIRY.clear()
-    conn = sqlite3.connect(str(MEMORY_DB_PATH), timeout=SQLITE_TIMEOUT)
     try:
-        has_admin = conn.execute(
-            "SELECT 1 FROM users WHERE role = 'admin' LIMIT 1"
-        ).fetchone()
-    except sqlite3.Error as exc:
-        print(f"ERREUR DB : {exc}", file=sys.stderr)
-        return 1
-    finally:
-        conn.close()
-    if has_admin is None:
+        migrate_to_v3()
+        migrate_to_v4()
+        created, _, password, message = ensure_admin_exists()
+    except (OSError, sqlite3.Error, ValueError, MemoryError) as exc:
         print(
-            "ATTENTION : aucun administrateur n'existe en base.\n"
-            "Lancez : python dev/tools/create_admin.py\n"
-            "(le proxy démarre quand même, mais /register créera le premier admin).",
+            f"[ADMIN] ERREUR lors de la migration/vérification/création : {exc}",
             file=sys.stderr,
         )
+        print(
+            "[ADMIN] Action manuelle : python dev/tools/create_admin.py "
+            "--username superadmin",
+            file=sys.stderr,
+        )
+    else:
+        print(f"[ADMIN] {message}")
+        if created and password is not None:
+            print(f"[ADMIN] Mot de passe superadmin : {password}")
+            print(
+                "[ADMIN] Notez ce mot de passe; il ne sera plus affiché."
+            )
+
     server = HTTPServer((PROXY_HOST, PROXY_PORT), RequestHandler)
     print(f"Proxy La Citadelle démarré sur http://{PROXY_HOST}:{PROXY_PORT}")
     try:
