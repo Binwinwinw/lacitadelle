@@ -228,3 +228,19 @@ avant consommation de leur corps.
 **Impact** : le corps POST est lu une seule fois avant les contrôles, sous
 une limite de 1 Mio et en conservant les plafonds propres aux routes; test
 de non-régression 401/403 ajouté; 76 tests validés 10/10, sans dépendance.
+
+## [2026-10-23] Phase 9A — Roadmap historique et règle de suivi
+
+**Commit** : Phase 9A (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/docs/ROADMAP.md`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+`TODO.md` vérifié, sans entrée Roadmap à retirer; inchangé.
+
+**Raison** : regrouper l'histoire V1–Phase 8b à partir des traces Git,
+décisions, journaux et validations du décideur; formaliser la mise à jour de
+la Roadmap à la clôture des phases majeures.
+
+**Impact** : Roadmap macroscopique traçable, sept phases validées, règle 6
+ajoutée à la section de suivi; aucune modification du code, des tests ou des
+décisions mémoire.

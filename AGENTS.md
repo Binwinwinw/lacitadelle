@@ -81,7 +81,7 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 
 ## Suivi et traçabilité
 
-Ce projet applique cinq règles structurelles pour garantir la traçabilité.
+Ce projet applique six règles structurelles pour garantir la traçabilité.
 Elles s'appliquent à tous les GO (décideur, IDE, agents IA).
 
 ### Règle 1 — TODO de session obligatoire
@@ -154,6 +154,13 @@ tâches abandonnées sont tracées dans `JOURNALDEBORD.md`.
 
 `TODO.md` n'est jamais commité, jamais publié dans l'archive, jamais référencé
 dans les documents publics. Il vit exclusivement en local.
+
+### Règle 6 — ROADMAP.md maintenue à chaque phase majeure
+
+Mettre à jour `dev/docs/ROADMAP.md` à la clôture d'une phase majeure pour
+consigner son objectif, son livrable et les commits et décisions associés.
+Ne pas créer une entrée par GO; les phases majeures restent celles validées
+dans la Roadmap.
 
 ## Où trouver quoi
 
