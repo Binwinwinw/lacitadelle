@@ -101,23 +101,23 @@ des jetons, le login bloqué et l'accès non-admin.
 
 #### 10B-3c — Promouvoir/rétrograder
 
-**Statut** : à implémenter.
-**Périmètre** : bouton dans `admin.html`, routes
-`POST /api/admin/users/{id}/promote` et
-`POST /api/admin/users/{id}/demote` (avec `require_admin`). Contrainte : un
-seul admin actif (jusqu'à V3.2). Tests (promotion OK, rétrogradation OK si
-un autre admin existe, tentative de créer un 2e admin → 400).
+**Statut** : terminé (décision #43, 2026-10-24).
+**Périmètre livré** : routes protégées pour promouvoir et rétrograder,
+boutons et confirmations UI. La promotion d'un user actif transfère
+atomiquement le rôle admin de l'appelant à la cible, maintenant exactement
+un admin actif jusqu'à V3.2. La rétrogradation protège le dernier admin et
+interdit l'auto-rétrogradation. Les sessions de connexion et conversations
+du compte rétrogradé sont invalidées/supprimées; les conversations ne sont
+pas restaurées à la réactivation.
 
 **Dépendances** : 10B-3b.
-**Questions ouvertes** :
-
-- Si on rétrograde le dernier admin, faut-il refuser ou promouvoir
-  automatiquement un autre ?
-- La contrainte « un seul admin actif » est-elle temporaire (V3.2) ou
-  définitive ?
+**Tests** : six tests couvrent le transfert atomique, les cibles invalides,
+la rétrogradation, les protections du dernier admin et de soi-même, et
+l'accès non-admin.
 
 #### 10B-3d — Supprimer un utilisateur
 
+**Statut** : à implémenter.
 **Périmètre** : bouton dans `admin.html`, route
 `POST /api/admin/users/{id}/delete` (avec `require_admin`). Protections :
 

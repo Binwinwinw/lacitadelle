@@ -854,3 +854,37 @@ utilisé une ancienne instance du proxy.
 même si la cascade SQLite ne s'applique pas. Les sessions et leur historique
 ne sont pas restaurés à la réactivation; l'utilisateur repart avec une
 liste vide.
+
+
+## [2026-10-24] Implémentation Phase 10B-3c : promouvoir/rétrograder
+
+**Contexte** : la décision #34 limite le CRUD admin à un admin actif jusqu'à
+V3.2. La règle initiale Q1 (refuser la promotion dès qu'un admin existe)
+rendait la promotion impossible avec `require_admin` et l'interdiction de
+rétrograder le dernier admin. Le décideur a clarifié Q1 en choisissant un
+transfert atomique de l'admin appelant vers la cible.
+
+**Décision(s)** :
+
+1. Ajouter `POST /api/admin/users/{id}/promote` et
+   `POST /api/admin/users/{id}/demote`, toutes deux protégées par
+   `require_admin`.
+2. Promouvoir un user actif transfère atomiquement le rôle admin de
+   l'appelant à la cible. À tout instant après commit, il reste exactement
+   un admin actif; l'admin appelant devient `user`.
+3. Refuser la promotion d'un utilisateur désactivé ou déjà admin.
+4. Refuser l'auto-rétrogradation et la rétrogradation du dernier admin actif.
+5. À la rétrogradation, supprimer dans la transaction les messages et
+   sessions conversationnelles du compte, puis passer son rôle à `user`;
+   révoquer aussi ses jetons d'authentification en mémoire. Cela s'applique
+   également à l'admin appelant rétrogradé lors du transfert.
+6. Ajouter des confirmations UI décrivant le transfert et la suppression
+   des conversations; ne pas afficher le bouton de rétrogradation sur son
+   propre compte.
+7. Ajouter six tests couvrant transfert, cibles invalides, rétrogradation,
+   dernier admin, auto-rétrogradation et accès non-admin.
+
+**Conséquences** : un admin peut promouvoir un user actif en lui transférant
+son propre rôle dans une seule transaction. Le précédent admin devient user,
+est déconnecté et perd ses conversations stockées. Aucune promotion multiple,
+suppression de compte ou reset n'est ajouté; les lots 10B-3d/e restent séparés.

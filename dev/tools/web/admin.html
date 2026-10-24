@@ -67,6 +67,7 @@
         const usersBody = document.getElementById("admin-users");
         const createUserForm = document.getElementById("create-user-form");
         const createUserResult = document.getElementById("create-user-result");
+        let currentUsername = null;
 
         function addCell(row, value) {
             const cell = document.createElement("td");
@@ -155,10 +156,92 @@
                         changeUserStatus(user);
                     });
                     actionsCell.appendChild(actionButton);
+                    if (user.role === "user" && user.is_active === 1) {
+                        const promoteButton = document.createElement("button");
+                        promoteButton.type = "button";
+                        promoteButton.textContent = "Promouvoir";
+                        promoteButton.addEventListener("click", () => {
+                            changeUserRole(user, "promote");
+                        });
+                        actionsCell.appendChild(promoteButton);
+                    } else if (
+                        user.role === "admin"
+                        && user.username !== currentUsername
+                    ) {
+                        const demoteButton = document.createElement("button");
+                        demoteButton.type = "button";
+                        demoteButton.textContent = "Rétrograder";
+                        demoteButton.addEventListener("click", () => {
+                            changeUserRole(user, "demote");
+                        });
+                        actionsCell.appendChild(demoteButton);
+                    }
                     row.appendChild(actionsCell);
                     usersBody.appendChild(row);
                 }
                 adminStatus.textContent = "";
+            } catch (error) {
+                adminStatus.textContent =
+                    `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        async function changeUserRole(user, action) {
+            const confirmation = action === "promote"
+                ? `Promouvoir ${user.username} et transférer le rôle admin ? Votre rôle deviendra user, vos conversations seront supprimées et vous devrez vous reconnecter.`
+                : `Rétrograder ${user.username} ? Ses conversations seront supprimées et sa connexion révoquée.`;
+            if (!window.confirm(confirmation)) {
+                return;
+            }
+
+            adminStatus.textContent = "";
+            try {
+                const response = await fetch(
+                    `/api/admin/users/${user.id}/${action}`,
+                    {
+                        method: "POST",
+                        credentials: "same-origin",
+                    },
+                );
+                const result = await response.json();
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    adminStatus.textContent =
+                        result.error || `Erreur : ${action}.`;
+                    return;
+                }
+                if (action === "promote") {
+                    window.location.href = "/login";
+                    return;
+                }
+                await loadUsers();
+                adminStatus.textContent = result.message;
+            } catch (error) {
+                adminStatus.textContent =
+                    `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        async function loadCurrentAdmin() {
+            try {
+                const response = await fetch("/api/me", {
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    adminStatus.textContent =
+                        "Erreur de vérification du compte admin.";
+                    return;
+                }
+                const user = await response.json();
+                currentUsername = user.username;
+                await loadUsers();
             } catch (error) {
                 adminStatus.textContent =
                     `Erreur réseau : ${error.message}`;
@@ -210,7 +293,7 @@
                         warning,
                     );
                     document.getElementById("new-username").value = "";
-                    loadUsers();
+                    loadCurrentAdmin();
                 } else if (response.status === 401) {
                     window.location.href = "/login";
                 } else if (response.status === 403) {

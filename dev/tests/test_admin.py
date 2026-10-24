@@ -46,6 +46,28 @@ def api_post(opener, base_url: str, path: str, token: str | None, body: dict):
     return open_no_redirect(opener, request)
 
 
+def create_session_with_message(db_path: Path, user_id: int) -> int:
+    conn = sqlite3.connect(str(db_path))
+    try:
+        conn.execute("PRAGMA foreign_keys = ON")
+        now = citadelle_memory._utcnow()
+        cursor = conn.execute(
+            "INSERT INTO sessions (user_id, title, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?)",
+            (user_id, "Role change", now, now),
+        )
+        session_id = int(cursor.lastrowid)
+        conn.execute(
+            "INSERT INTO messages (session_id, role, content, created_at) "
+            "VALUES (?, 'user', ?, ?)",
+            (session_id, "Conversation history", now),
+        )
+        conn.commit()
+        return session_id
+    finally:
+        conn.close()
+
+
 def admin_test_context():
     return api_test_context()
 
@@ -613,6 +635,208 @@ def test_deactivate_requires_admin():
             assert response.code == 403
 
 
+def test_promote_user_transfers_admin_atomically():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        user_id = create_test_user(db_path, "alice", "secret123")
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+        user_token = login_as(opener, base_url, "alice", "secret123")
+        session_id = create_session_with_message(db_path, admin_id)
+
+        with api_get(opener, base_url, "/admin", admin_token) as response:
+            page = response.read().decode("utf-8")
+        assert "Promouvoir" in page
+        assert "Rétrograder" in page
+        assert "user.username !== currentUsername" in page
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{user_id}/promote",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+            result = json.loads(response.read())
+        assert result["username"] == "alice"
+        assert result["role"] == "admin"
+
+        assert admin_token not in login_server.SESSIONS
+        assert admin_token not in login_server.MUST_CHANGE
+        assert admin_token not in login_server.SESSION_EXPIRY
+        with api_get(opener, base_url, "/api/me", admin_token) as response:
+            assert response.code == 401
+        with api_get(opener, base_url, "/api/me", user_token) as response:
+            assert json.loads(response.read())["role"] == "admin"
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            roles = dict(
+                conn.execute("SELECT id, role FROM users").fetchall()
+            )
+            assert roles == {admin_id: "user", user_id: "admin"}
+            assert conn.execute(
+                "SELECT COUNT(*) FROM users "
+                "WHERE role = 'admin' AND is_active = 1"
+            ).fetchone()[0] == 1
+            assert conn.execute(
+                "SELECT COUNT(*) FROM sessions WHERE user_id = ?",
+                (admin_id,),
+            ).fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT COUNT(*) FROM messages WHERE session_id = ?",
+                (session_id,),
+            ).fetchone()[0] == 0
+        finally:
+            conn.close()
+
+
+def test_promote_rejects_admin_and_inactive_user():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        already_admin_id = create_test_user(
+            db_path,
+            "other_admin",
+            "secret123",
+            role="admin",
+            is_active=0,
+        )
+        inactive_user_id = create_test_user(
+            db_path,
+            "inactive",
+            "secret123",
+            is_active=0,
+        )
+        token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{already_admin_id}/promote",
+            token,
+            {},
+        ) as response:
+            assert response.code == 400
+            assert json.loads(response.read())["error"] == (
+                "Cet utilisateur est déjà admin"
+            )
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{inactive_user_id}/promote",
+            token,
+            {},
+        ) as response:
+            assert response.code == 400
+            assert json.loads(response.read())["error"] == (
+                "Un utilisateur désactivé ne peut pas être promu"
+            )
+
+
+def test_demote_other_admin_invalidates_sessions():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        other_admin_id = create_test_user(
+            db_path,
+            "other_admin",
+            "secret123",
+            role="admin",
+        )
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+        other_admin_token = login_as(
+            opener,
+            base_url,
+            "other_admin",
+            "secret123",
+        )
+        session_id = create_session_with_message(db_path, other_admin_id)
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{other_admin_id}/demote",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+            result = json.loads(response.read())
+        assert result["username"] == "other_admin"
+        assert result["role"] == "user"
+        assert other_admin_token not in login_server.SESSIONS
+        with api_get(opener, base_url, "/api/me", other_admin_token) as response:
+            assert response.code == 401
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            roles = dict(conn.execute("SELECT id, role FROM users").fetchall())
+            assert roles == {admin_id: "admin", other_admin_id: "user"}
+            assert conn.execute(
+                "SELECT COUNT(*) FROM users "
+                "WHERE role = 'admin' AND is_active = 1"
+            ).fetchone()[0] == 1
+            assert conn.execute(
+                "SELECT COUNT(*) FROM sessions WHERE user_id = ?",
+                (other_admin_id,),
+            ).fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT COUNT(*) FROM messages WHERE session_id = ?",
+                (session_id,),
+            ).fetchone()[0] == 0
+        finally:
+            conn.close()
+
+
+def test_demote_last_admin_forbidden():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        with patch.object(login_server, "require_admin", return_value=admin_id + 1):
+            with api_post(
+                opener,
+                base_url,
+                f"/api/admin/users/{admin_id}/demote",
+                None,
+                {},
+            ) as response:
+                assert response.code == 403
+                assert json.loads(response.read())["error"] == (
+                    "Impossible de rétrograder le dernier admin actif"
+                )
+
+
+def test_demote_self_forbidden():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{admin_id}/demote",
+            token,
+            {},
+        ) as response:
+            assert response.code == 403
+            assert json.loads(response.read())["error"] == (
+                "Impossible de se rétrograder soi-même"
+            )
+
+
+def test_demote_requires_admin():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{admin_id}/demote",
+            token,
+            {},
+        ) as response:
+            assert response.code == 403
+
+
 def run_all():
     tests = [
         test_get_admin_requires_auth,
@@ -638,6 +862,12 @@ def run_all():
         test_activate_user_ok,
         test_deactivated_user_cannot_login,
         test_deactivate_requires_admin,
+        test_promote_user_transfers_admin_atomically,
+        test_promote_rejects_admin_and_inactive_user,
+        test_demote_other_admin_invalidates_sessions,
+        test_demote_last_admin_forbidden,
+        test_demote_self_forbidden,
+        test_demote_requires_admin,
     ]
     for test in tests:
         test()

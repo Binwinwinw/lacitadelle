@@ -69,7 +69,7 @@ SQLITE_TIMEOUT = 5.0
 MAX_POST_BODY_SIZE = 1_048_576
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
 ADMIN_USER_ACTION_RE = re.compile(
-    r"^/api/admin/users/(\d+)/(deactivate|activate)$"
+    r"^/api/admin/users/(\d+)/(deactivate|activate|promote|demote)$"
 )
 USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_-]{3,50}$")
 ADMIN_USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_]{3,30}$")
@@ -397,6 +397,166 @@ def handle_get_api_admin_users(handler: BaseHTTPRequestHandler) -> None:
                 ),
                 "disabled_users": sum(user["is_active"] != 1 for user in users),
             },
+        },
+    )
+
+
+def count_active_admins(conn: sqlite3.Connection) -> int:
+    """Retourne le nombre d'administrateurs actifs."""
+    return conn.execute(
+        "SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = 1"
+    ).fetchone()[0]
+
+
+def handle_post_api_admin_user_promote(
+    handler: BaseHTTPRequestHandler,
+    user_id: int,
+) -> None:
+    """POST /api/admin/users/{id}/promote : transfère le rôle admin."""
+    admin_id = require_admin(handler)
+    if admin_id is None:
+        return
+
+    conn = _get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        admin = conn.execute(
+            "SELECT role, is_active FROM users WHERE id = ?",
+            (admin_id,),
+        ).fetchone()
+        target = conn.execute(
+            "SELECT username, role, is_active FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if target is None:
+            error_response(handler, "Utilisateur introuvable", HTTPStatus.NOT_FOUND)
+            return
+        if admin is None or admin["role"] != "admin" or admin["is_active"] != 1:
+            error_response(handler, "Admin non actif", HTTPStatus.FORBIDDEN)
+            return
+        if target["role"] == "admin":
+            error_response(
+                handler,
+                "Cet utilisateur est déjà admin",
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+        if target["is_active"] != 1:
+            error_response(
+                handler,
+                "Un utilisateur désactivé ne peut pas être promu",
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+        if count_active_admins(conn) != 1:
+            error_response(
+                handler,
+                "Le transfert exige exactement un admin actif",
+                HTTPStatus.CONFLICT,
+            )
+            return
+
+        conn.execute(
+            "DELETE FROM messages WHERE session_id IN "
+            "(SELECT id FROM sessions WHERE user_id = ?)",
+            (admin_id,),
+        )
+        conn.execute("DELETE FROM sessions WHERE user_id = ?", (admin_id,))
+        conn.execute(
+            "UPDATE users SET role = 'user' WHERE id = ?",
+            (admin_id,),
+        )
+        conn.execute(
+            "UPDATE users SET role = 'admin' WHERE id = ?",
+            (user_id,),
+        )
+        conn.commit()
+        username = target["username"]
+    finally:
+        conn.close()
+
+    for token, session_user_id in list(SESSIONS.items()):
+        if session_user_id == admin_id:
+            revoke_session(token)
+    json_response(
+        handler,
+        {
+            "id": user_id,
+            "username": username,
+            "role": "admin",
+            "message": (
+                f"Rôle admin transféré à {username}; votre compte devient user."
+            ),
+        },
+    )
+
+
+def handle_post_api_admin_user_demote(
+    handler: BaseHTTPRequestHandler,
+    user_id: int,
+) -> None:
+    """POST /api/admin/users/{id}/demote."""
+    admin_id = require_admin(handler)
+    if admin_id is None:
+        return
+
+    conn = _get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        user = conn.execute(
+            "SELECT username, role, is_active FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if user is None:
+            error_response(handler, "Utilisateur introuvable", HTTPStatus.NOT_FOUND)
+            return
+        if user["role"] != "admin":
+            error_response(
+                handler,
+                "Cet utilisateur n'est pas admin",
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+        if user_id == admin_id:
+            error_response(
+                handler,
+                "Impossible de se rétrograder soi-même",
+                HTTPStatus.FORBIDDEN,
+            )
+            return
+        if user["is_active"] == 1 and count_active_admins(conn) <= 1:
+            error_response(
+                handler,
+                "Impossible de rétrograder le dernier admin actif",
+                HTTPStatus.FORBIDDEN,
+            )
+            return
+
+        conn.execute(
+            "DELETE FROM messages WHERE session_id IN "
+            "(SELECT id FROM sessions WHERE user_id = ?)",
+            (user_id,),
+        )
+        conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        conn.execute(
+            "UPDATE users SET role = 'user' WHERE id = ?",
+            (user_id,),
+        )
+        conn.commit()
+        username = user["username"]
+    finally:
+        conn.close()
+
+    for token, session_user_id in list(SESSIONS.items()):
+        if session_user_id == user_id:
+            revoke_session(token)
+    json_response(
+        handler,
+        {
+            "id": user_id,
+            "username": username,
+            "role": "user",
+            "message": "Utilisateur rétrogradé",
         },
     )
 
@@ -1136,10 +1296,15 @@ class RequestHandler(BaseHTTPRequestHandler):
                 admin_user_action = ADMIN_USER_ACTION_RE.fullmatch(path)
                 if admin_user_action:
                     user_id = int(admin_user_action.group(1))
-                    if admin_user_action.group(2) == "deactivate":
+                    action = admin_user_action.group(2)
+                    if action == "deactivate":
                         handle_post_api_admin_user_deactivate(self, user_id)
-                    else:
+                    elif action == "activate":
                         handle_post_api_admin_user_activate(self, user_id)
+                    elif action == "promote":
+                        handle_post_api_admin_user_promote(self, user_id)
+                    else:
+                        handle_post_api_admin_user_demote(self, user_id)
                 else:
                     match = SESSION_MSG_RE.match(path)
                     if match:

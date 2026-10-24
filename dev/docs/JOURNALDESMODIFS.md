@@ -497,3 +497,21 @@ aux sessions, sans dépendre uniquement de la cascade SQLite.
 **Impact** : suppression explicite messages → sessions → désactivation dans
 la transaction; test d'intégration avec FK désactivées, réactivation et
 vérification d'une liste vide. Décision #42; 116 tests passent.
+
+
+## [2026-10-24] Phase 10B-3c — Promotion/rétrogradation avec transfert admin
+
+**Commit** : Phase 10B-3c (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tests/test_admin.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+`TODO.md` a été mis à jour localement et reste gitignoré.
+
+**Raison** : implémenter promotion et rétrogradation en résolvant la
+contradiction du workflow à admin unique par transfert atomique du rôle.
+
+**Impact** : transfert sans état à zéro admin, protections serveur,
+confirmations UI et invalidation des sessions/conversations du rétrogradé.
+Six tests ajoutés; 122 tests passent. Aucun changement 10B-3d/e.
