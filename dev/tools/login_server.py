@@ -415,9 +415,6 @@ def handle_post_change_password(handler: BaseHTTPRequestHandler) -> None:
     if token is None or user_id is None:
         error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
         return
-    if not must_change_required(token):
-        error_response(handler, "Changement non requis", HTTPStatus.FORBIDDEN)
-        return
     try:
         content_length = int(handler.headers.get("Content-Length", "0"))
     except (TypeError, ValueError):

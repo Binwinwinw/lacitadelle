@@ -24,6 +24,10 @@ le journal des phases.
 (décision #31). Restent la gestion des comptes admin (10B-2/3), les logs
 (10B-4) et les indicateurs (10B-5).
 
+La tranche 10B-1b (changement volontaire du mot de passe) est terminée
+(décision #32). L'administration, les logs et les indicateurs restent hors
+de cette tranche.
+
 **Périmètre** :
 
 - La page `GET /settings` est accessible aux utilisateurs authentifiés, avec

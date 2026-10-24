@@ -557,3 +557,29 @@ user (thème et taille de texte) persistées en SQLite.
 **Conséquences** : les utilisateurs peuvent personnaliser le thème et la
 taille du texte. L'administration et les logs restent à implémenter dans
 leurs tranches dédiées. Aucun autre code ni test existant n'est modifié.
+
+## [2026-10-24] Correctif changement de mot de passe volontaire
+
+**Contexte** : le test manuel de Phase 10B-1 a révélé que le lien « Changer
+le mot de passe » depuis `/settings` menait à une page qui refusait le
+changement. Le décideur a supprimé le contrôle `must_change_required(token)`
+dans `handle_post_change_password`, qui bloquait le changement volontaire.
+
+**Décision(s)** :
+
+1. La suppression de ce contrôle dans le handler est conservée; celui-ci
+   vérifie toujours l'ancien mot de passe.
+2. Le middleware `check_must_change_gate` reste actif : les sessions
+   `must_change_password=1` restent forcées vers `/change-password`.
+3. Le template indique « Changer votre mot de passe » pour les deux modes.
+4. Le contrat retenu pour un ancien mot de passe erroné ou manquant est
+   `401 Unauthorized`, cohérent avec `test_change_password_old_wrong`.
+5. Les tests couvrent le changement volontaire, l'ancien mot de passe
+   erroné/manquant, l'accès depuis `/settings` et le mode obligatoire. Le
+   test existant `test_change_password_old_wrong` reste inchangé; le test
+   `test_change_password_not_required` est adapté au nouveau comportement.
+
+**Conséquences** : un utilisateur normal peut changer son mot de passe après
+validation de l'ancien. Le mode obligatoire reste actif et les erreurs
+d'ancien mot de passe restent en `401`. Aucun autre changement de
+`login_server.py` n'est fait en Phase 10B-1b.

@@ -99,6 +99,20 @@ def post_change(opener, base_url: str, token: str, **fields):
     return open_no_redirect(opener, request)
 
 
+def login_with_password(opener, base_url: str, username: str, password: str):
+    request = urllib.request.Request(
+        f"{base_url}/login",
+        data=urlencode({"username": username, "password": password}).encode(
+            "utf-8"
+        ),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+    with open_no_redirect(opener, request) as response:
+        assert response.code == 302
+        assert response.headers.get("Location") == "/"
+
+
 def test_change_password_ok():
     with change_context() as (base_url, db_path):
         user_id, token = create_user_with_token(db_path)
@@ -198,6 +212,100 @@ def test_change_password_ok():
         assert token not in login_server.MUST_CHANGE
 
 
+def test_change_password_voluntary_ok():
+    with change_context() as (base_url, db_path):
+        user_id, token = create_user_with_token(db_path, must_change=0)
+        opener = urllib.request.build_opener(NoRedirect())
+        response = post_change(
+            opener,
+            base_url,
+            token,
+            old_password="old12345",
+            new_password="new12345",
+            new_password_confirm="new12345",
+        )
+        with response:
+            assert response.code == 302
+            assert response.headers.get("Location") == "/"
+        assert login_server.MUST_CHANGE[token] is False
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            password_hash = conn.execute(
+                "SELECT password_hash FROM users WHERE id = ?",
+                (user_id,),
+            ).fetchone()[0]
+        finally:
+            conn.close()
+        assert citadelle_memory.verify_password("new12345", password_hash)
+        login_with_password(opener, base_url, "alice", "new12345")
+
+
+def test_change_password_voluntary_wrong_current():
+    with change_context() as (base_url, db_path):
+        _, token = create_user_with_token(db_path, must_change=0)
+        opener = urllib.request.build_opener(NoRedirect())
+        response = post_change(
+            opener,
+            base_url,
+            token,
+            old_password="wrong123",
+            new_password="new12345",
+            new_password_confirm="new12345",
+        )
+        with response:
+            assert response.code == 401
+            assert json.loads(response.read())["error"] == (
+                "Ancien mot de passe incorrect"
+            )
+
+
+def test_change_password_voluntary_missing_current():
+    with change_context() as (base_url, db_path):
+        _, token = create_user_with_token(db_path, must_change=0)
+        opener = urllib.request.build_opener(NoRedirect())
+        response = post_change(
+            opener,
+            base_url,
+            token,
+            new_password="new12345",
+            new_password_confirm="new12345",
+        )
+        with response:
+            assert response.code == 401
+            assert json.loads(response.read())["error"] == (
+                "Ancien mot de passe incorrect"
+            )
+
+
+def test_change_password_voluntary_from_settings():
+    with change_context() as (base_url, db_path):
+        _, token = create_user_with_token(db_path, must_change=0)
+        opener = urllib.request.build_opener(NoRedirect())
+        request = urllib.request.Request(
+            f"{base_url}/settings",
+            headers={
+                "Cookie": f"{login_server.SESSION_COOKIE_NAME}={token}"
+            },
+        )
+        with open_no_redirect(opener, request) as response:
+            assert response.code == 200
+            assert b"R\xc3\xa9glages" in response.read()
+
+        response = post_change(
+            opener,
+            base_url,
+            token,
+            old_password="old12345",
+            new_password="new12345",
+            new_password_confirm="new12345",
+        )
+        with response:
+            assert response.code == 302
+            assert response.headers.get("Location") == "/"
+        login_with_password(opener, base_url, "alice", "new12345")
+
+
 def test_post_body_consumed_before_auth_rejection():
     with change_context() as (base_url, db_path):
         _, token = create_user_with_token(db_path)
@@ -258,28 +366,33 @@ def test_change_password_short():
         assert response.code == 400
 
 
-def test_change_password_not_required():
+def test_change_password_voluntary_when_not_required():
     with change_context() as (base_url, db_path):
         _, token = create_user_with_token(db_path, must_change=0)
         opener = urllib.request.build_opener(NoRedirect())
-        response = post_change(
+        with post_change(
             opener,
             base_url,
             token,
             old_password="old12345",
             new_password="new12345",
             new_password_confirm="new12345",
-        )
-        assert response.code == 403
+        ) as response:
+            assert response.code == 302
+            assert response.headers.get("Location") == "/"
 
 
 def run_all():
     tests = [
         test_change_password_ok,
         test_post_body_consumed_before_auth_rejection,
+        test_change_password_voluntary_ok,
+        test_change_password_voluntary_wrong_current,
+        test_change_password_voluntary_missing_current,
+        test_change_password_voluntary_from_settings,
         test_change_password_old_wrong,
         test_change_password_short,
-        test_change_password_not_required,
+        test_change_password_voluntary_when_not_required,
     ]
     for test in tests:
         test()

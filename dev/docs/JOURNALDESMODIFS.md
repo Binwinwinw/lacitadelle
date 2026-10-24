@@ -320,3 +320,20 @@ réglages, préférence de thème et taille du texte en SQLite.
 
 **Impact** : migration idempotente, routes protégées et validées, lien
 sidebar, neuf tests dédiés; admin/CRUD, logs et indicateurs restent reportés.
+
+## [2026-10-24] Phase 10B-1b — Changement volontaire du mot de passe
+
+**Commit** : Phase 10B-1b (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py` (suppression manuelle
+du blocage volontaire par le décideur), `dev/tools/web/change-password.html`,
+`dev/tests/test_change_password.py`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : permettre le changement volontaire depuis `/settings` tout en
+conservant l'ancien mot de passe comme vérification et le gate obligatoire.
+
+**Impact** : template neutre, tests volontaires ajoutés, assertion obsolète
+du mode non-obligatoire actualisée; `401` retenu pour ancien mot de passe
+erroné/manquant; 89 tests validés. Aucun autre code serveur modifié.
