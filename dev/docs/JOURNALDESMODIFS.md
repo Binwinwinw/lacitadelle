@@ -550,3 +550,18 @@ au changement au prochain login.
 **Impact** : route protégée, mot de passe fort de 16 caractères affiché une
 seule fois dans l'interface, sessions d'authentification invalidées, aucun
 email ni log du secret. Quatre tests ajoutés; 131 tests passent.
+
+## [2026-10-25] Phase 10B-3f — Validation E2E partielle du CRUD admin
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : consigner le résultat de la validation manuelle du CRUD
+administrateur dans le navigateur intégré de l'IDE.
+
+**Impact** : 4/6 scénarios E2E réussis. 10B-3d non validé car le navigateur
+ne supporte pas `prompt()`; la suppression par route a réussi avec une saisie
+simulée uniquement pour nettoyer le compte de test. 10B-3e n'a pas été
+exécuté après l'échec. Aucun code ni test automatisé modifié.
