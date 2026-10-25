@@ -620,3 +620,22 @@ une route et une interface locales, sans exposer le contenu des échanges.
 onglet admin et section logs utilisateur, polling visible uniquement.
 Cinq tests dédiés; 140 tests passent. E2E navigateur admin et arrêt du
 polling hors onglet vérifiés; base restaurée et migration V5 réappliquée.
+
+## [2026-10-25] Phase 10B-5 — Indicateurs agrégés et clôture Mode B-1
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tools/web/settings.html`,
+`dev/tools/web/style.css`, `dev/tests/test_indicators.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : fournir des indicateurs d'inférence agrégés par fenêtre et
+clôturer le Mode B-1 sans exposer le contenu des conversations.
+
+**Impact** : route authentifiée avec filtrage rôle/user et fenêtres 24 h,
+7 j et 30 j; 7 indicateurs, cartes KPI admin, tableau user et polling lorsque
+la page est visible. Cinq tests dédiés; 145 tests passent. Aucun changement
+de schéma ni endpoint/traitement de contenu de conversation.

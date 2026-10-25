@@ -26,8 +26,51 @@
                     <span id="active-admin-count">—</span></p>
                 <p>Utilisateurs désactivés : <span id="disabled-user-count">—</span></p>
             </section>
+            <section class="settings-section" aria-labelledby="admin-indicators-heading">
+                <div class="indicator-heading">
+                <h2 id="admin-indicators-heading">Indicateurs</h2>
+                <label for="admin-indicator-window">Période</label>
+                <select id="admin-indicator-window" class="indicator-window">
+                    <option value="24h">24 heures</option>
+                    <option value="7d">7 jours</option>
+                    <option value="30d">30 jours</option>
+                </select>
+                </div>
+                <p id="admin-indicators-status" class="settings-status"
+                   role="status" aria-live="polite"></p>
+                <div class="indicator-cards">
+                <article class="indicator-card">
+                    <h3>Total inférences</h3>
+                    <p id="admin-total-inferences">—</p>
+                </article>
+                <article class="indicator-card">
+                    <h3>Tokens/s moyen</h3>
+                    <p id="admin-tokens-per-second">—</p>
+                </article>
+                <article class="indicator-card">
+                    <h3>Latence moyenne</h3>
+                    <p id="admin-latency-average">—</p>
+                </article>
+                <article class="indicator-card">
+                    <h3>Latence p95</h3>
+                    <p id="admin-latency-p95">—</p>
+                </article>
+                <article class="indicator-card">
+                    <h3>Taux d'erreur</h3>
+                    <p id="admin-error-rate">—</p>
+                </article>
+                <article class="indicator-card">
+                    <h3>Sessions actives</h3>
+                    <p id="admin-active-sessions">—</p>
+                </article>
+                <article class="indicator-card">
+                    <h3>Temps moyen/requête</h3>
+                    <p id="admin-average-request-time">—</p>
+                </article>
+                </div>
+            </section>
             <section class="settings-section"
-                     aria-labelledby="create-user-heading">
+                 aria-labelledby="create-user-heading">
                 <h2 id="create-user-heading">Créer un utilisateur</h2>
                 <form id="create-user-form" class="settings-form">
                     <label for="new-username">Nom d'utilisateur</label>
@@ -122,8 +165,11 @@
         const logsPanel = document.getElementById("logs-panel");
         const logsTbody = document.getElementById("logs-tbody");
         const logsStatus = document.getElementById("logs-status");
+        const indicatorWindow = document.getElementById("admin-indicator-window");
+        const indicatorsStatus = document.getElementById("admin-indicators-status");
         let currentUsername = null;
         let logsInterval = null;
+        let indicatorsInterval = null;
 
         function showConfirmModal(title, message, expectedInput = null) {
             const modal = document.getElementById("confirm-modal");
@@ -555,6 +601,67 @@
             }
         }
 
+        function renderIndicators(data) {
+            document.getElementById("admin-total-inferences").textContent =
+                String(data.total_inferences);
+            document.getElementById("admin-tokens-per-second").textContent =
+                data.tokens_per_second_avg === null
+                    ? "Indisponible"
+                    : `${data.tokens_per_second_avg.toFixed(2)} tokens/s`;
+            document.getElementById("admin-latency-average").textContent =
+                `${data.latency_avg_ms.toFixed(1)} ms`;
+            document.getElementById("admin-latency-p95").textContent =
+                `${data.latency_p95_ms} ms`;
+            document.getElementById("admin-error-rate").textContent =
+                `${(data.error_rate * 100).toFixed(1)} %`;
+            document.getElementById("admin-active-sessions").textContent =
+                String(data.active_sessions);
+            document.getElementById("admin-average-request-time").textContent =
+                `${data.avg_time_per_request_ms.toFixed(1)} ms`;
+        }
+
+        async function loadIndicators() {
+            if (document.hidden) {
+                return;
+            }
+            try {
+                const response = await fetch(
+                    `/api/indicators?window=${indicatorWindow.value}`,
+                    { credentials: "same-origin" },
+                );
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    indicatorsStatus.textContent =
+                        "Erreur de chargement des indicateurs.";
+                    return;
+                }
+                const data = await response.json();
+                renderIndicators(data);
+                indicatorsStatus.textContent = "";
+            } catch (error) {
+                indicatorsStatus.textContent =
+                    `Erreur de chargement des indicateurs : ${error.message}`;
+            }
+        }
+
+        function startIndicatorsPolling() {
+            if (indicatorsInterval || document.hidden) {
+                return;
+            }
+            loadIndicators();
+            indicatorsInterval = window.setInterval(loadIndicators, 5000);
+        }
+
+        function stopIndicatorsPolling() {
+            if (indicatorsInterval) {
+                window.clearInterval(indicatorsInterval);
+                indicatorsInterval = null;
+            }
+        }
+
         function selectAdminTab(tab) {
             const showLogs = tab === "logs";
             const usersTab = document.getElementById("users-tab");
@@ -605,7 +712,13 @@
             "click",
             () => selectAdminTab("logs"),
         );
+        indicatorWindow.addEventListener("change", loadIndicators);
         document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                stopIndicatorsPolling();
+            } else {
+                startIndicatorsPolling();
+            }
             if (document.hidden || logsPanel.hidden) {
                 stopLogsPolling();
             } else {
@@ -697,6 +810,7 @@
         });
 
         loadUsers();
+        startIndicatorsPolling();
     </script>
 </body>
 </html>

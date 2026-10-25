@@ -1021,3 +1021,35 @@ interfaces de consultation admin/user.
 **Conséquences** : les admins disposent d'une vue globale et les users d'une
 vue limitée à leurs métriques. Le polling ne s'exécute pas en arrière-plan.
 La Phase 10B-4b est terminée; la suite prévue est 10B-5 (indicateurs agrégés).
+
+## [2026-10-25] Implémentation Phase 10B-5 : indicateurs agrégés et clôture Mode B-1
+
+**Contexte** : la décision #30 prévoit des indicateurs agrégés fondés sur
+les métadonnées d'inférence, sans estimer les compteurs absents ni lire les
+conversations. Les Phases 10B-1 à 10B-4b sont terminées; 10B-5 clôt le Mode
+B-1.
+
+**Décision(s)** :
+
+1. Ajouter `GET /api/indicators?window=24h|7d|30d`, authentifié, avec
+   filtrage serveur : les admins voient tous les comptes, les users leurs
+   propres métriques.
+2. Utiliser 24 h par défaut; une fenêtre invalide revient à 24 h.
+3. Calculer le débit comme `SUM(completion_tokens) / (SUM(duration_ms) / 1000)`
+   sur les inférences réussies avec tokens disponibles et durée positive.
+   Renvoyer `null` si aucune durée/tokens exploitables; ne pas estimer.
+4. Calculer la latence moyenne et le temps moyen/requête sur toutes les
+   inférences de la fenêtre; calculer le p95 selon nearest-rank et le taux
+   d'erreur comme ratio `status != 'ok' / total`.
+5. Compter les tokens de session d'authentification présents en mémoire et
+   non expirés; limiter le compte user à son propre `user_id`.
+6. Afficher les sept indicateurs en cartes sur `/admin` et en tableau sur
+   `/settings`, avec choix de fenêtre et polling à cinq secondes seulement
+   lorsque le document est visible.
+7. Couvrir l'authentification, l'agrégation globale, le filtrage user, les
+   fenêtres, les sessions actives, l'absence de données et l'absence de
+   champs sensibles par cinq tests dédiés.
+
+**Conséquences** : les admins voient les indicateurs globaux et les users
+uniquement ceux de leur compte. Le Mode B-1 est entièrement implémenté;
+10B-5 clôt cette tranche et le Mode B-2 reste distinct.

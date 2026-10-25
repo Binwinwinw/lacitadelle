@@ -18,6 +18,7 @@ Aucune dépendance externe. Python 3.10+ requis.
 from __future__ import annotations
 
 import json
+import math
 import re
 import secrets
 import sqlite3
@@ -25,7 +26,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -459,6 +460,104 @@ def handle_get_api_logs_tail(handler: BaseHTTPRequestHandler) -> None:
     finally:
         conn.close()
     json_response(handler, {"logs": logs})
+
+
+def handle_get_api_indicators(handler: BaseHTTPRequestHandler) -> None:
+    """Retourne les indicateurs d'inférence de la fenêtre sélectionnée."""
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+
+    role = get_user_role(user_id)
+    if role is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+
+    requested_window = parse_qs(urlparse(handler.path).query).get(
+        "window",
+        ["24h"],
+    )[0]
+    window_seconds = {
+        "24h": 24 * 60 * 60,
+        "7d": 7 * 24 * 60 * 60,
+        "30d": 30 * 24 * 60 * 60,
+    }
+    if requested_window not in window_seconds:
+        requested_window = "24h"
+    cutoff = (
+        datetime.now(timezone.utc)
+        - timedelta(seconds=window_seconds[requested_window])
+    ).isoformat()
+
+    query = (
+        "SELECT duration_ms, status, completion_tokens "
+        "FROM inference_metrics WHERE timestamp >= ?"
+    )
+    params: tuple[Any, ...] = (cutoff,)
+    if role != "admin":
+        query += " AND user_id = ?"
+        params = (cutoff, user_id)
+
+    conn = _get_db_connection()
+    try:
+        rows = conn.execute(query, params).fetchall()
+    finally:
+        conn.close()
+
+    durations = [row["duration_ms"] for row in rows]
+    ordered_durations = sorted(durations)
+    total = len(rows)
+    errors = sum(row["status"] != "ok" for row in rows)
+    token_rows = [
+        row for row in rows
+        if (
+            row["status"] == "ok"
+            and row["completion_tokens"] is not None
+            and row["duration_ms"] > 0
+        )
+    ]
+    token_duration_ms = sum(row["duration_ms"] for row in token_rows)
+    tokens_per_second = (
+        round(
+            sum(row["completion_tokens"] for row in token_rows)
+            / (token_duration_ms / 1000),
+            2,
+        )
+        if token_duration_ms
+        else None
+    )
+    now = time.time()
+    active_sessions = sum(
+        token in SESSIONS
+        and expiry > now
+        and (role == "admin" or SESSIONS[token] == user_id)
+        for token, expiry in SESSION_EXPIRY.items()
+    )
+    average_duration = (
+        round(sum(durations) / total, 1)
+        if total
+        else 0
+    )
+    p95_duration = (
+        ordered_durations[math.ceil(0.95 * total) - 1]
+        if total
+        else 0
+    )
+
+    json_response(
+        handler,
+        {
+            "window": requested_window,
+            "total_inferences": total,
+            "tokens_per_second_avg": tokens_per_second,
+            "latency_avg_ms": average_duration,
+            "latency_p95_ms": p95_duration,
+            "error_rate": round(errors / total, 3) if total else 0,
+            "active_sessions": active_sessions,
+            "avg_time_per_request_ms": average_duration,
+        },
+    )
 
 
 def count_active_admins(conn: sqlite3.Connection) -> int:
@@ -1459,6 +1558,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_api_admin_users(self)
             elif path == "/api/logs/tail":
                 handle_get_api_logs_tail(self)
+            elif path == "/api/indicators":
+                handle_get_api_indicators(self)
             else:
                 match = SESSION_MSG_RE.match(path)
                 if match:

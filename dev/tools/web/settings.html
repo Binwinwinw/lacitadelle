@@ -44,6 +44,31 @@
                 <p id="settings-status" class="settings-status" role="status"
                    aria-live="polite"></p>
             </section>
+            <section id="user-indicators-section" class="settings-section"
+                     aria-labelledby="user-indicators-heading" hidden>
+                <div class="indicator-heading">
+                    <h2 id="user-indicators-heading">Mes indicateurs</h2>
+                    <label for="user-indicator-window">Période</label>
+                    <select id="user-indicator-window" class="indicator-window">
+                        <option value="24h">24 heures</option>
+                        <option value="7d">7 jours</option>
+                        <option value="30d">30 jours</option>
+                    </select>
+                </div>
+                <p id="user-indicators-status" class="settings-status"
+                   role="status" aria-live="polite"></p>
+                <div class="admin-table-wrap">
+                    <table class="admin-users-table indicators-table">
+                        <thead>
+                            <tr>
+                                <th>Indicateur</th>
+                                <th>Valeur</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-indicators-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
             <section id="user-logs-section" class="settings-section"
                      aria-labelledby="user-logs-heading" hidden>
                 <h2 id="user-logs-heading">Mes logs</h2>
@@ -73,10 +98,23 @@
         const themeSelect = document.getElementById("theme");
         const fontSizeSelect = document.getElementById("font-size");
         const adminLink = document.getElementById("admin-link");
+        const userIndicatorsSection = document.getElementById(
+            "user-indicators-section",
+        );
+        const userIndicatorWindow = document.getElementById(
+            "user-indicator-window",
+        );
+        const userIndicatorsTbody = document.getElementById(
+            "user-indicators-tbody",
+        );
+        const userIndicatorsStatus = document.getElementById(
+            "user-indicators-status",
+        );
         const userLogsSection = document.getElementById("user-logs-section");
         const userLogsTbody = document.getElementById("user-logs-tbody");
         const userLogsStatus = document.getElementById("user-logs-status");
         let logsInterval = null;
+        let indicatorsInterval = null;
 
         function applyPreferences(preferences) {
             document.documentElement.dataset.theme = preferences.theme;
@@ -123,12 +161,90 @@
                 const user = await response.json();
                 const isAdmin = user.role === "admin";
                 adminLink.hidden = !isAdmin;
+                userIndicatorsSection.hidden = isAdmin;
                 userLogsSection.hidden = isAdmin;
                 if (!isAdmin) {
+                    startIndicatorsPolling();
                     startLogsPolling();
                 }
             } catch (error) {
                 statusMessage.textContent = `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        function renderIndicators(data) {
+            const values = [
+                ["Total inférences", String(data.total_inferences)],
+                [
+                    "Tokens/s moyen",
+                    data.tokens_per_second_avg === null
+                        ? "Indisponible"
+                        : `${data.tokens_per_second_avg.toFixed(2)} tokens/s`,
+                ],
+                ["Latence moyenne", `${data.latency_avg_ms.toFixed(1)} ms`],
+                ["Latence p95", `${data.latency_p95_ms} ms`],
+                ["Taux d'erreur", `${(data.error_rate * 100).toFixed(1)} %`],
+                ["Sessions actives", String(data.active_sessions)],
+                [
+                    "Temps moyen/requête",
+                    `${data.avg_time_per_request_ms.toFixed(1)} ms`,
+                ],
+            ];
+            userIndicatorsTbody.replaceChildren();
+            for (const [label, value] of values) {
+                const row = document.createElement("tr");
+                for (const text of [label, value]) {
+                    const cell = document.createElement("td");
+                    cell.textContent = text;
+                    row.appendChild(cell);
+                }
+                userIndicatorsTbody.appendChild(row);
+            }
+        }
+
+        async function loadIndicators() {
+            if (document.hidden || userIndicatorsSection.hidden) {
+                return;
+            }
+            try {
+                const response = await fetch(
+                    `/api/indicators?window=${userIndicatorWindow.value}`,
+                    { credentials: "same-origin" },
+                );
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    userIndicatorsStatus.textContent =
+                        "Erreur de chargement de vos indicateurs.";
+                    return;
+                }
+                const data = await response.json();
+                renderIndicators(data);
+                userIndicatorsStatus.textContent = "";
+            } catch (error) {
+                userIndicatorsStatus.textContent =
+                    `Erreur de chargement de vos indicateurs : ${error.message}`;
+            }
+        }
+
+        function startIndicatorsPolling() {
+            if (
+                indicatorsInterval
+                || document.hidden
+                || userIndicatorsSection.hidden
+            ) {
+                return;
+            }
+            loadIndicators();
+            indicatorsInterval = window.setInterval(loadIndicators, 5000);
+        }
+
+        function stopIndicatorsPolling() {
+            if (indicatorsInterval) {
+                window.clearInterval(indicatorsInterval);
+                indicatorsInterval = null;
             }
         }
 
@@ -198,12 +314,21 @@
         }
 
         document.addEventListener("visibilitychange", () => {
+            if (
+                document.hidden
+                || userIndicatorsSection.hidden
+            ) {
+                stopIndicatorsPolling();
+            } else {
+                startIndicatorsPolling();
+            }
             if (document.hidden || userLogsSection.hidden) {
                 stopLogsPolling();
             } else {
                 startLogsPolling();
             }
         });
+        userIndicatorWindow.addEventListener("change", loadIndicators);
 
         preferencesForm.addEventListener("submit", async (event) => {
             event.preventDefault();

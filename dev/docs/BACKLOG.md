@@ -14,21 +14,18 @@ le journal des phases.
 
 ## Mode B-1 — Page de réglages (user + admin)
 
-**Statut** : partiellement implémenté (spec validée).
+**Statut** : terminé (décision de clôture #49).
 **Décision actée** : 2026-10-23.  
 **Dépendances** : aucune.
 **Spec validée** : voir la décision #30 dans
 [`.memory/decisions.md`](../../.memory/decisions.md).
 
-**Avancement** : la tranche 10B-1 (préférences utilisateur) est terminée
-(décision #31). La tranche 10B-2 (admin read-only) est terminée
-(décision #33). Le CRUD admin (10B-3a à 10B-3e) est terminé (décisions
-#35, #41, #42, #43, #44 et #45). Le backend de logs (10B-4a, décision #47)
-et sa route/interface (10B-4b, décision #48) sont terminés; reste 10B-5
-(indicateurs agrégés).
+**Avancement** : 10B-1 (préférences), 10B-1b (changement de mot de passe),
+10B-2 (admin read-only), 10B-3a à 10B-3e (CRUD admin), 10B-4a/4b
+(métriques et logs) et 10B-5 (indicateurs agrégés) sont terminés.
 
-La tranche 10B-1b (changement volontaire du mot de passe) est terminée
-(décision #32). Les logs et les indicateurs restent hors de cette tranche.
+La conception globale et la clôture du Mode B-1 sont consignées dans les
+décisions #30 et #49.
 
 **Périmètre** :
 
@@ -186,16 +183,21 @@ limites de lignes, absence de contenu sensible et présence des tableaux.
 
 ### 10B-5 — Indicateurs agrégés
 
-**Statut** : à implémenter.
+**Statut** : terminé (décision #49, 2026-10-25).
 **Décision actée** : 2026-10-23 (conception Mode B-1, décision #30).
 **Dépendances** : 10B-4b.
-**Périmètre** : indicateurs agrégés à partir des métadonnées d'inférence
-disponibles, sans estimation des tokens absents et sans lecture du contenu
-des conversations. Les choix de mesure existants sont consignés dans la
-décision #30.
-**Questions ouvertes** : préciser en Phase Review les agrégations et fenêtres
-temporelles nécessaires à l'interface.
-**Moment de traitement** : à décider.
+**Périmètre livré** : `GET /api/indicators` avec fenêtre 24 h, 7 jours ou
+30 jours, filtrage admin/user, sept indicateurs agrégés et compte des sessions
+d'authentification en mémoire non expirées. Débit tokens calculé uniquement
+depuis les compteurs réellement reçus et durées positives; sinon indisponible.
+Cartes KPI admin, tableau user, sélecteur de fenêtre et polling lorsque le
+document est visible.
+**Tests** : cinq tests couvrent authentification, agrégation, filtrage,
+fenêtres, sessions actives, données vides et absence de champs sensibles.
+145 tests passent.
+
+**Conséquence** : Mode B-1 est terminé; Mode B-2 (changement de modèle) reste
+une tranche indépendante.
 
 ---
 
