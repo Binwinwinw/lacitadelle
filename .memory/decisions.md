@@ -993,3 +993,31 @@ l'instrumentation backend; l'API et l'interface restent dans 10B-4b.
 **Conséquences** : les métadonnées d'inférence sont conservées localement et
 liées au compte, sans contenu de conversation. La route et l'onglet Logs
 restent à implémenter en 10B-4b.
+
+## [2026-10-25] Implémentation Phase 10B-4b : route et onglet Logs
+
+**Contexte** : la décision #30 prévoit la consultation des événements
+d'inférence sans exposer le contenu des conversations. La Phase 10B-4a a
+fourni la table `inference_metrics`; la Phase 10B-4b ajoute l'API et les
+interfaces de consultation admin/user.
+
+**Décision(s)** :
+
+1. Ajouter `GET /api/logs/tail?lines=50`, accessible uniquement avec une
+   session authentifiée et un compte actif.
+2. Relire le rôle courant en base à chaque requête. Un admin voit tous les
+   logs; un user ne voit que les métriques rattachées à son `user_id`.
+3. Borner `lines` entre 1 et 500; valeur absente ou invalide = 50. Trier par
+   horodatage puis identifiant décroissant.
+4. Retourner uniquement id, timestamp, username, session_title, duration_ms,
+   status et compteurs de tokens. Ne retourner aucun prompt, réponse ou secret.
+5. Ajouter un onglet Logs sur `/admin` et une section « Mes logs » sur
+   `/settings` pour les users; rendre les lignes avec `textContent`.
+6. Rafraîchir toutes les cinq secondes seulement lorsque le document est
+   visible; arrêter le polling si l'onglet Logs admin n'est plus sélectionné.
+7. Tester l'authentification, le filtrage par rôle, les limites, l'absence de
+   contenu sensible et les tableaux dans les deux pages.
+
+**Conséquences** : les admins disposent d'une vue globale et les users d'une
+vue limitée à leurs métriques. Le polling ne s'exécute pas en arrière-plan.
+La Phase 10B-4b est terminée; la suite prévue est 10B-5 (indicateurs agrégés).

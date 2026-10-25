@@ -39,7 +39,19 @@
                 <div id="create-user-result" class="settings-status"
                      role="status" aria-live="polite"></div>
             </section>
-            <section class="settings-section" aria-labelledby="users-heading">
+            <nav id="logs-tabs" class="logs-tabs" role="tablist"
+                 aria-label="Administration">
+                <button id="users-tab" type="button" role="tab"
+                        aria-selected="true" aria-controls="users-panel">
+                    Utilisateurs
+                </button>
+                <button id="logs-tab" type="button" role="tab"
+                        aria-selected="false" aria-controls="logs-panel">
+                    Logs
+                </button>
+            </nav>
+            <section id="users-panel" class="settings-section logs-tabpanel"
+                     role="tabpanel" aria-labelledby="users-tab">
                 <h2 id="users-heading">Utilisateurs</h2>
                 <p id="admin-status" class="settings-status" role="status"
                    aria-live="polite">Chargement...</p>
@@ -57,6 +69,27 @@
                             </tr>
                         </thead>
                         <tbody id="admin-users"></tbody>
+                    </table>
+                </div>
+            </section>
+            <section id="logs-panel" class="settings-section logs-tabpanel"
+                     role="tabpanel" aria-labelledby="logs-tab" hidden>
+                <h2>Logs</h2>
+                <p id="logs-status" class="settings-status" role="status"
+                   aria-live="polite"></p>
+                <div class="admin-table-wrap">
+                    <table class="admin-users-table logs-table">
+                        <thead>
+                            <tr>
+                                <th>Horodatage</th>
+                                <th>Utilisateur</th>
+                                <th>Session</th>
+                                <th>Durée (ms)</th>
+                                <th>Statut</th>
+                                <th>Tokens (entrée / sortie)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-tbody"></tbody>
                     </table>
                 </div>
             </section>
@@ -85,7 +118,12 @@
         const usersBody = document.getElementById("admin-users");
         const createUserForm = document.getElementById("create-user-form");
         const createUserResult = document.getElementById("create-user-result");
+        const usersPanel = document.getElementById("users-panel");
+        const logsPanel = document.getElementById("logs-panel");
+        const logsTbody = document.getElementById("logs-tbody");
+        const logsStatus = document.getElementById("logs-status");
         let currentUsername = null;
+        let logsInterval = null;
 
         function showConfirmModal(title, message, expectedInput = null) {
             const modal = document.getElementById("confirm-modal");
@@ -452,6 +490,128 @@
                     `Erreur réseau ou réponse invalide : ${error.message}`;
             }
         }
+
+        function renderLogsTable(logs) {
+            logsTbody.replaceChildren();
+            for (const log of logs) {
+                const row = document.createElement("tr");
+                const cells = [
+                    log.timestamp,
+                    log.username,
+                    log.session_title || "—",
+                    `${log.duration_ms}`,
+                    log.status,
+                    `${log.prompt_tokens ?? "—"} / ${log.completion_tokens ?? "—"}`,
+                ];
+                for (const value of cells) {
+                    const cell = document.createElement("td");
+                    cell.textContent = String(value);
+                    row.appendChild(cell);
+                }
+                logsTbody.appendChild(row);
+            }
+        }
+
+        async function loadLogs() {
+            if (document.hidden || logsPanel.hidden) {
+                return;
+            }
+            try {
+                const response = await fetch("/api/logs/tail?lines=50", {
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    logsStatus.textContent = "Erreur de chargement des logs.";
+                    return;
+                }
+                const data = await response.json();
+                if (!Array.isArray(data.logs)) {
+                    throw new Error("Réponse des logs invalide.");
+                }
+                renderLogsTable(data.logs);
+                logsStatus.textContent = "";
+            } catch (error) {
+                logsStatus.textContent =
+                    `Erreur de chargement des logs : ${error.message}`;
+            }
+        }
+
+        function startLogsPolling() {
+            if (logsInterval || document.hidden || logsPanel.hidden) {
+                return;
+            }
+            loadLogs();
+            logsInterval = window.setInterval(loadLogs, 5000);
+        }
+
+        function stopLogsPolling() {
+            if (logsInterval) {
+                window.clearInterval(logsInterval);
+                logsInterval = null;
+            }
+        }
+
+        function selectAdminTab(tab) {
+            const showLogs = tab === "logs";
+            const usersTab = document.getElementById("users-tab");
+            const logsTab = document.getElementById("logs-tab");
+            usersTab.setAttribute("aria-selected", String(!showLogs));
+            logsTab.setAttribute("aria-selected", String(showLogs));
+            usersTab.tabIndex = showLogs ? -1 : 0;
+            logsTab.tabIndex = showLogs ? 0 : -1;
+            usersPanel.hidden = showLogs;
+            logsPanel.hidden = !showLogs;
+            if (showLogs) {
+                startLogsPolling();
+            } else {
+                stopLogsPolling();
+            }
+        }
+
+        document.getElementById("logs-tabs").addEventListener(
+            "keydown",
+            (event) => {
+                const tabs = [
+                    document.getElementById("users-tab"),
+                    document.getElementById("logs-tab"),
+                ];
+                let nextTab = null;
+                if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+                    const direction = event.key === "ArrowRight" ? 1 : -1;
+                    const currentIndex = tabs.indexOf(document.activeElement);
+                    nextTab = tabs[(currentIndex + direction + tabs.length) % tabs.length];
+                } else if (event.key === "Home") {
+                    nextTab = tabs[0];
+                } else if (event.key === "End") {
+                    nextTab = tabs[tabs.length - 1];
+                }
+                if (nextTab) {
+                    event.preventDefault();
+                    selectAdminTab(nextTab.id === "logs-tab" ? "logs" : "users");
+                    nextTab.focus();
+                }
+            },
+        );
+
+        document.getElementById("users-tab").addEventListener(
+            "click",
+            () => selectAdminTab("users"),
+        );
+        document.getElementById("logs-tab").addEventListener(
+            "click",
+            () => selectAdminTab("logs"),
+        );
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden || logsPanel.hidden) {
+                stopLogsPolling();
+            } else {
+                startLogsPolling();
+            }
+        });
 
         async function loadCurrentAdmin() {
             try {

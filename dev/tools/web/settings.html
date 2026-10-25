@@ -44,6 +44,27 @@
                 <p id="settings-status" class="settings-status" role="status"
                    aria-live="polite"></p>
             </section>
+            <section id="user-logs-section" class="settings-section"
+                     aria-labelledby="user-logs-heading" hidden>
+                <h2 id="user-logs-heading">Mes logs</h2>
+                <p id="user-logs-status" class="settings-status" role="status"
+                   aria-live="polite"></p>
+                <div class="admin-table-wrap">
+                    <table class="admin-users-table logs-table">
+                        <thead>
+                            <tr>
+                                <th>Horodatage</th>
+                                <th>Utilisateur</th>
+                                <th>Session</th>
+                                <th>Durée (ms)</th>
+                                <th>Statut</th>
+                                <th>Tokens (entrée / sortie)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-logs-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
     <script>
@@ -52,6 +73,10 @@
         const themeSelect = document.getElementById("theme");
         const fontSizeSelect = document.getElementById("font-size");
         const adminLink = document.getElementById("admin-link");
+        const userLogsSection = document.getElementById("user-logs-section");
+        const userLogsTbody = document.getElementById("user-logs-tbody");
+        const userLogsStatus = document.getElementById("user-logs-status");
+        let logsInterval = null;
 
         function applyPreferences(preferences) {
             document.documentElement.dataset.theme = preferences.theme;
@@ -96,11 +121,89 @@
                     return;
                 }
                 const user = await response.json();
-                adminLink.hidden = user.role !== "admin";
+                const isAdmin = user.role === "admin";
+                adminLink.hidden = !isAdmin;
+                userLogsSection.hidden = isAdmin;
+                if (!isAdmin) {
+                    startLogsPolling();
+                }
             } catch (error) {
                 statusMessage.textContent = `Erreur réseau : ${error.message}`;
             }
         }
+
+        function renderLogsTable(logs) {
+            userLogsTbody.replaceChildren();
+            for (const log of logs) {
+                const row = document.createElement("tr");
+                const values = [
+                    log.timestamp,
+                    log.username,
+                    log.session_title || "—",
+                    `${log.duration_ms}`,
+                    log.status,
+                    `${log.prompt_tokens ?? "—"} / ${log.completion_tokens ?? "—"}`,
+                ];
+                for (const value of values) {
+                    const cell = document.createElement("td");
+                    cell.textContent = String(value);
+                    row.appendChild(cell);
+                }
+                userLogsTbody.appendChild(row);
+            }
+        }
+
+        async function loadLogs() {
+            if (document.hidden || userLogsSection.hidden) {
+                return;
+            }
+            try {
+                const response = await fetch("/api/logs/tail?lines=50", {
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    userLogsStatus.textContent =
+                        "Erreur de chargement de vos logs.";
+                    return;
+                }
+                const data = await response.json();
+                if (!Array.isArray(data.logs)) {
+                    throw new Error("Réponse des logs invalide.");
+                }
+                renderLogsTable(data.logs);
+                userLogsStatus.textContent = "";
+            } catch (error) {
+                userLogsStatus.textContent =
+                    `Erreur de chargement de vos logs : ${error.message}`;
+            }
+        }
+
+        function startLogsPolling() {
+            if (logsInterval || document.hidden || userLogsSection.hidden) {
+                return;
+            }
+            loadLogs();
+            logsInterval = window.setInterval(loadLogs, 5000);
+        }
+
+        function stopLogsPolling() {
+            if (logsInterval) {
+                window.clearInterval(logsInterval);
+                logsInterval = null;
+            }
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden || userLogsSection.hidden) {
+                stopLogsPolling();
+            } else {
+                startLogsPolling();
+            }
+        });
 
         preferencesForm.addEventListener("submit", async (event) => {
             event.preventDefault();

@@ -403,6 +403,64 @@ def handle_get_api_admin_users(handler: BaseHTTPRequestHandler) -> None:
     )
 
 
+def get_user_role(user_id: int) -> str | None:
+    """Retourne le rôle actuel d'un compte actif."""
+    conn = _get_db_connection()
+    try:
+        user = conn.execute(
+            "SELECT role FROM users WHERE id = ? AND is_active = 1",
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    return user["role"] if user is not None else None
+
+
+def handle_get_api_logs_tail(handler: BaseHTTPRequestHandler) -> None:
+    """Retourne les dernières métriques accessibles au compte authentifié."""
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+
+    role = get_user_role(user_id)
+    if role is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+
+    requested_lines = parse_qs(urlparse(handler.path).query).get("lines", ["50"])[0]
+    try:
+        lines = int(requested_lines)
+    except ValueError:
+        lines = 50
+    lines = max(1, min(lines, 500))
+
+    query = (
+        "SELECT im.id, im.timestamp, u.username, s.title AS session_title, "
+        "im.duration_ms, im.status, im.prompt_tokens, im.completion_tokens "
+        "FROM inference_metrics AS im "
+        "JOIN users AS u ON u.id = im.user_id "
+        "LEFT JOIN sessions AS s ON s.id = im.session_id "
+    )
+    params: tuple[int, ...]
+    if role == "admin":
+        params = (lines,)
+    else:
+        query += "WHERE im.user_id = ? "
+        params = (user_id, lines)
+    query += "ORDER BY im.timestamp DESC, im.id DESC LIMIT ?"
+
+    conn = _get_db_connection()
+    try:
+        logs = [
+            dict(row)
+            for row in conn.execute(query, params).fetchall()
+        ]
+    finally:
+        conn.close()
+    json_response(handler, {"logs": logs})
+
+
 def count_active_admins(conn: sqlite3.Connection) -> int:
     """Retourne le nombre d'administrateurs actifs."""
     return conn.execute(
@@ -1399,6 +1457,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_api_me(self)
             elif path == "/api/admin/users":
                 handle_get_api_admin_users(self)
+            elif path == "/api/logs/tail":
+                handle_get_api_logs_tail(self)
             else:
                 match = SESSION_MSG_RE.match(path)
                 if match:

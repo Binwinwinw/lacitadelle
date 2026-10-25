@@ -601,3 +601,22 @@ aux logs sans enregistrer de contenu sensible.
 timestamp, durée, statut et tokens disponibles dans `inference_metrics`.
 Aucun prompt, réponse générée ou secret n'est enregistré. Quatre tests
 dédiés; 135 tests passent. Aucun endpoint ni changement frontend.
+
+## [2026-10-25] Phase 10B-4b — Route et onglet Logs
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tools/web/settings.html`,
+`dev/tools/web/style.css`, `dev/tests/test_logs.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : exposer les métadonnées d'inférence aux comptes autorisés dans
+une route et une interface locales, sans exposer le contenu des échanges.
+
+**Impact** : route authentifiée filtrée selon le rôle, limite de 500 lignes,
+onglet admin et section logs utilisateur, polling visible uniquement.
+Cinq tests dédiés; 140 tests passent. E2E navigateur admin et arrêt du
+polling hors onglet vérifiés; base restaurée et migration V5 réappliquée.

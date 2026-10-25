@@ -297,9 +297,36 @@ body {
   background: #222;
 }
 
+.settings-section[hidden] {
+  display: none;
+}
+
 .settings-section h2 {
   color: #fff;
   font-size: 1.1rem;
+}
+
+.logs-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #444;
+}
+
+.logs-tabs button {
+  padding: 0.65rem 1rem;
+  border: 1px solid #444;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background: #222;
+  color: #bbb;
+  cursor: pointer;
+  font: inherit;
+}
+
+.logs-tabs button[aria-selected="true"] {
+  background: #4a9eff;
+  border-color: #4a9eff;
+  color: #fff;
 }
 
 .settings-section p {
@@ -439,6 +466,10 @@ body {
   text-align: left;
 }
 
+.logs-table {
+  min-width: 48rem;
+}
+
 .admin-users-table th,
 .admin-users-table td {
   padding: 0.6rem;
@@ -502,6 +533,22 @@ html[data-theme="light"] .sidebar h2,
 html[data-theme="light"] .settings-main h1,
 html[data-theme="light"] .settings-section h2 {
   color: #222;
+}
+
+html[data-theme="light"] .logs-tabs {
+  border-color: #ddd;
+}
+
+html[data-theme="light"] .logs-tabs button {
+  border-color: #ccc;
+  background: #fff;
+  color: #555;
+}
+
+html[data-theme="light"] .logs-tabs button[aria-selected="true"] {
+  border-color: #4a9eff;
+  background: #4a9eff;
+  color: #fff;
 }
 
 html[data-theme="light"] .settings-section,
