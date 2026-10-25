@@ -23,7 +23,8 @@ le journal des phases.
 **Avancement** : la tranche 10B-1 (préférences utilisateur) est terminée
 (décision #31). La tranche 10B-2 (admin read-only) est terminée
 (décision #33). Le CRUD admin (10B-3a à 10B-3e) est terminé (décisions
-#35, #41, #42, #43, #44 et #45). Restent les logs (10B-4) et les
+#35, #41, #42, #43, #44 et #45). 10B-4a (métadonnées d'inférence backend)
+est terminé (décision #47); restent 10B-4b (route et onglet Logs) et les
 indicateurs (10B-5).
 
 La tranche 10B-1b (changement volontaire du mot de passe) est terminée
@@ -149,6 +150,36 @@ utilisateur absent, ainsi que le changement obligatoire à la connexion.
 
 **Moment de traitement** : terminé; test manuel à effectuer par le décideur
 après redémarrage de `lancer.bat`.
+
+---
+
+### 10B-4 — Logs (découpé en deux sous-lots)
+
+**Statut** : 10B-4a terminé; 10B-4b à implémenter.
+**Dépendances** : spécification Mode B-1 (décision #30); 10B-4b dépend de
+10B-4a.
+
+#### 10B-4a — Métadonnées d'inférence (backend)
+
+**Statut** : terminé (décision #47, 2026-10-25).
+**Périmètre livré** : table `inference_metrics`, migration idempotente V5 et
+capture par le proxy de l'utilisateur/session, horodatage, durée, statut et
+compteurs de tokens disponibles. Aucun prompt, réponse générée ou secret
+n'est stocké. Aucun endpoint ni interface n'est ajouté dans ce sous-lot.
+
+**Tests** : capture, association/filtrage par user, cascade utilisateur,
+`session_id` mis à NULL et schéma sans colonnes de contenu; 135 tests passent.
+
+#### 10B-4b — Route et onglet Logs
+
+**Statut** : à implémenter.
+**Périmètre** : route admin de lecture des métriques et onglet Logs, avec
+filtrage conforme à la décision #30 et rafraîchissement périodique lorsque
+l'onglet est visible.
+**Dépendances** : 10B-4a.
+**Questions ouvertes** : préciser les limites de volume et la forme de la
+réponse de la route lors de la Phase Review 10B-4b.
+**Moment de traitement** : à décider.
 
 ---
 

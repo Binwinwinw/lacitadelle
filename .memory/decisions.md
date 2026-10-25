@@ -967,3 +967,29 @@ ne pouvait donc pas être testée dans cet environnement.
 **Conséquences** : la double confirmation de suppression fonctionne dans le
 navigateur intégré. Les scénarios 10B-3d et 10B-3e sont validés; le bloc
 CRUD admin est testé de bout en bout (6/6).
+
+## [2026-10-25] Implémentation Phase 10B-4a : métriques d'inférence backend
+
+**Contexte** : la décision #30 prévoit la capture côté proxy de métadonnées
+d'inférence sans prompt ni réponse. La Phase 10B-4a livre la persistance et
+l'instrumentation backend; l'API et l'interface restent dans 10B-4b.
+
+**Décision(s)** :
+
+1. Ajouter `inference_metrics` avec `user_id`, `session_id`, `timestamp`,
+   `duration_ms`, `status`, `prompt_tokens` et `completion_tokens`.
+2. Ajouter la migration idempotente `migrate_to_v5()`, appelée depuis
+   `init_db()` et au démarrage du proxy.
+3. Ajouter `record_inference(...)` qui ne persiste que ces métadonnées.
+4. Instrumenter `call_llamafile()` avec la durée monotone, les statuts
+   `ok`/`error`/`timeout` et les compteurs d'usage disponibles.
+5. Garder l'enregistrement best-effort : une erreur de métrique ne casse pas
+   l'appel d'inférence et son diagnostic ne contient aucun contenu.
+6. Appliquer `ON DELETE CASCADE` à l'utilisateur et `ON DELETE SET NULL` à
+   la session. Aucun prompt, réponse générée ou secret n'est enregistré.
+7. Couvrir capture, isolation par user, cascade utilisateur, session NULL et
+   absence de colonnes de contenu par quatre tests dédiés.
+
+**Conséquences** : les métadonnées d'inférence sont conservées localement et
+liées au compte, sans contenu de conversation. La route et l'onglet Logs
+restent à implémenter en 10B-4b.

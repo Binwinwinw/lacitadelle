@@ -2,10 +2,11 @@
 """citadelle_memory : couche SQLite pour la mémoire des conversations.
 
 Une seule base : citadelle_data/memory.db (à la racine du projet).
-Trois tables : users, sessions, messages.
+Tables principales : users, sessions, messages, preferences et
+inference_metrics.
 
 Voir dev/docs/MEMORY_CONTRACT.md pour le schéma détaillé.
-La 4e table (lacitadelle) est documentée pour la V2, non implémentée.
+La table historique `lacitadelle` est documentée pour la V2, non implémentée.
 
 Aucune dépendance externe. Python 3.10+ requis.
 """
@@ -108,6 +109,21 @@ CREATE TABLE IF NOT EXISTS preferences (
         CHECK (font_size IN ('small', 'normal', 'large')),
     updated_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+"""
+
+SCHEMA_INFERENCE_METRICS_SQL = """
+CREATE TABLE IF NOT EXISTS inference_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    session_id INTEGER,
+    timestamp TEXT NOT NULL,
+    duration_ms INTEGER NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('ok','error','timeout')),
+    prompt_tokens INTEGER,
+    completion_tokens INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE SET NULL
 );
 """
 
@@ -247,11 +263,46 @@ def migrate_to_v4(db_path: Path | None = None) -> None:
         conn.executescript(SCHEMA_PREFERENCES_SQL)
 
 
+def migrate_to_v5(db_path: Path | None = None) -> None:
+    """Ajoute la table des métadonnées d'inférence de façon idempotente."""
+    with _connect(db_path) as conn:
+        conn.executescript(SCHEMA_INFERENCE_METRICS_SQL)
+
+
+def record_inference(
+    user_id: int,
+    session_id: int | None,
+    duration_ms: int,
+    status: str,
+    prompt_tokens: int | None = None,
+    completion_tokens: int | None = None,
+    db_path: Path | None = None,
+) -> None:
+    """Enregistre uniquement les métadonnées non sensibles d'une inférence."""
+    with _connect(db_path) as conn:
+        conn.execute(
+            "INSERT INTO inference_metrics "
+            "(user_id, session_id, timestamp, duration_ms, status, "
+            "prompt_tokens, completion_tokens) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                user_id,
+                session_id,
+                _utcnow(),
+                duration_ms,
+                status,
+                prompt_tokens,
+                completion_tokens,
+            ),
+        )
+
+
 def init_db(db_path: Path | None = None) -> None:
     """Initialise la base et crée les tables si absentes."""
     with _connect(db_path) as conn:
         conn.executescript(SCHEMA_SQL)
     migrate_to_v4(db_path)
+    migrate_to_v5(db_path)
 
 
 def get_preferences(

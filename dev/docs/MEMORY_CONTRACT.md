@@ -1,4 +1,4 @@
-# Contrat de la mémoire SQLite — schéma V3
+# Contrat de la mémoire SQLite — schéma V5
 
 ## Rôle et emplacement
 
@@ -7,9 +7,9 @@
 pour isoler les sessions et messages par utilisateur. La base et son contenu
 ne sont pas envoyés à un service cloud.
 
-## Schéma V3 actuel
+## Schéma V3 de base
 
-Le proxy V3 utilise trois tables :
+La migration V3 définit les tables de comptes, sessions et messages :
 
 ```sql
 CREATE TABLE users (
@@ -46,6 +46,43 @@ CREATE TABLE messages (
 Les dates sont enregistrées en UTC au format ISO 8601. `metadata` est un champ
 texte nullable utilisé pour les métadonnées JSON des messages.
 
+## Tables ajoutées par les migrations V4 et V5
+
+`migrate_to_v4()` ajoute les préférences :
+
+```sql
+CREATE TABLE preferences (
+    user_id INTEGER PRIMARY KEY,
+    theme TEXT NOT NULL DEFAULT 'light'
+        CHECK (theme IN ('light', 'dark')),
+    font_size TEXT NOT NULL DEFAULT 'normal'
+        CHECK (font_size IN ('small', 'normal', 'large')),
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+`migrate_to_v5()` ajoute les métadonnées d'inférence :
+
+```sql
+CREATE TABLE inference_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    session_id INTEGER,
+    timestamp TEXT NOT NULL,
+    duration_ms INTEGER NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('ok','error','timeout')),
+    prompt_tokens INTEGER,
+    completion_tokens INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE SET NULL
+);
+```
+
+Les migrations V4 et V5 sont idempotentes et sont appelées par `init_db()`
+et au démarrage du proxy. `inference_metrics` ne stocke que les métadonnées :
+aucun prompt, aucune réponse générée ni secret.
+
 ## Migration V2 vers V3
 
 `migrate_to_v3(db_path=None)` vérifie si `users` contient déjà
@@ -67,8 +104,13 @@ Le proxy appelle cette migration au démarrage. `create_admin.py` l'appelle
 Le module expose les opérations suivantes :
 
 - `migrate_to_v3(db_path=None)` : migration destructive décrite ci-dessus.
+- `migrate_to_v4(db_path=None)` et `migrate_to_v5(db_path=None)` : ajoutent
+  respectivement les préférences et les métadonnées d'inférence.
 - `init_db(db_path=None)` : crée les tables du schéma V1 si elles sont
-  absentes; ne migre pas une base existante vers V3.
+  absentes et applique les migrations additives V4/V5; ne migre pas une base
+  existante vers V3.
+- `record_inference(...)` : persiste uniquement user/session, horodatage,
+  durée, statut et compteurs de tokens disponibles.
 - `ensure_default_user(db_path=None)` : crée le compte historique
   `lacitadelle` si absent et retourne son identifiant.
 - `hash_password(password)` et `verify_password(password, stored_hash)` :

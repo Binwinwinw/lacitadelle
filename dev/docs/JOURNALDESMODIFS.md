@@ -583,3 +583,21 @@ erreur inline et annulation clavier; helper réutilisé pour le reset. Une
 assertion UI obsolète mise à jour; 131 tests passent. E2E 6/6 OK, dont la
 suppression en cascade d'un utilisateur avec une session et deux messages.
 Les comptes de test sont supprimés et la base retrouve son état attendu.
+
+## [2026-10-25] Phase 10B-4a — Métriques d'inférence backend
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tests/test_inference_metrics.py`,
+`dev/docs/MEMORY_CONTRACT.md`, `dev/docs/BACKLOG.md`,
+`.memory/decisions.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : persister côté backend les métadonnées d'inférence nécessaires
+aux logs sans enregistrer de contenu sensible.
+
+**Impact** : migration SQLite V5 idempotente; capture du user/session,
+timestamp, durée, statut et tokens disponibles dans `inference_metrics`.
+Aucun prompt, réponse générée ou secret n'est enregistré. Quatre tests
+dédiés; 135 tests passent. Aucun endpoint ni changement frontend.

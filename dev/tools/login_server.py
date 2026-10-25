@@ -52,6 +52,8 @@ from citadelle_memory import (
     list_sessions_for_user,
     migrate_to_v3,
     migrate_to_v4,
+    migrate_to_v5,
+    record_inference,
     set_preferences,
     verify_password,
 )
@@ -1188,7 +1190,11 @@ def handle_get_messages(
     json_response(handler, {"messages": messages})
 
 
-def call_llamafile(messages: list[dict]) -> str:
+def call_llamafile(
+    messages: list[dict],
+    user_id: int,
+    session_id: int | None,
+) -> str:
     """POST vers llamafile et retourne le contenu assistant.
 
     Isolé pour être mockable dans les tests d'intégration HTTP.
@@ -1196,37 +1202,92 @@ def call_llamafile(messages: list[dict]) -> str:
     Raises:
         LoginError: sur erreur réseau, HTTP ou réponse invalide.
     """
-    # duplicate of client.py for isolation — ponytail:
-    payload = {
-        "model": "qwen3-1.7b",
-        "messages": messages,
-        "stream": False,
-    }
-    data = json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        LLAMAFILE_URL,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+    started = time.monotonic()
+    status = "error"
+    prompt_tokens = None
+    completion_tokens = None
     try:
-        with urllib.request.urlopen(request, timeout=HTTP_TIMEOUT) as response:
-            response_data = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        raise LoginError(f"Erreur HTTP llamafile : {exc.code}") from exc
-    except urllib.error.URLError as exc:
-        raise LoginError(f"Erreur réseau llamafile : {exc.reason}") from exc
-    except (TimeoutError, OSError) as exc:
-        raise LoginError(f"Erreur réseau llamafile : {exc}") from exc
-    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-        raise LoginError(f"Réponse llamafile invalide : {exc}") from exc
-    try:
-        content = response_data["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as exc:
-        raise LoginError(f"Réponse llamafile inattendue : {exc}") from exc
-    if not isinstance(content, str) or not content.strip():
-        raise LoginError("Réponse llamafile vide ou invalide")
-    return content
+        payload = {
+            "model": "qwen3-1.7b",
+            "messages": messages,
+            "stream": False,
+        }
+        data = json.dumps(payload).encode("utf-8")
+        request = urllib.request.Request(
+            LLAMAFILE_URL,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(
+                request,
+                timeout=HTTP_TIMEOUT,
+            ) as response:
+                response_data = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            raise LoginError(f"Erreur HTTP llamafile : {exc.code}") from exc
+        except urllib.error.URLError as exc:
+            if isinstance(exc.reason, TimeoutError):
+                status = "timeout"
+            raise LoginError(f"Erreur réseau llamafile : {exc.reason}") from exc
+        except TimeoutError as exc:
+            status = "timeout"
+            raise LoginError(f"Erreur réseau llamafile : {exc}") from exc
+        except OSError as exc:
+            raise LoginError(f"Erreur réseau llamafile : {exc}") from exc
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise LoginError(f"Réponse llamafile invalide : {exc}") from exc
+
+        usage = (
+            response_data.get("usage")
+            if isinstance(response_data, dict)
+            else None
+        )
+        if isinstance(usage, dict):
+            value = usage.get("prompt_tokens")
+            if (
+                isinstance(value, int)
+                and not isinstance(value, bool)
+                and value >= 0
+            ):
+                prompt_tokens = value
+            value = usage.get("completion_tokens")
+            if (
+                isinstance(value, int)
+                and not isinstance(value, bool)
+                and value >= 0
+            ):
+                completion_tokens = value
+
+        try:
+            content = response_data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LoginError(f"Réponse llamafile inattendue : {exc}") from exc
+        if not isinstance(content, str) or not content.strip():
+            raise LoginError("Réponse llamafile vide ou invalide")
+        status = "ok"
+        return content
+    finally:
+        duration_ms = max(0, int((time.monotonic() - started) * 1000))
+        try:
+            record_inference(
+                user_id=user_id,
+                session_id=session_id,
+                duration_ms=duration_ms,
+                status=status,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                db_path=MEMORY_DB_PATH,
+            )
+        except Exception as exc:
+            try:
+                sys.stderr.write(
+                    "[metrics] Inference metric not recorded "
+                    f"({type(exc).__name__})\n"
+                )
+            except OSError:
+                pass
 
 
 def handle_post_message(
@@ -1282,7 +1343,7 @@ def handle_post_message(
     messages.append({"role": "user", "content": content})
 
     try:
-        response_text = call_llamafile(messages)
+        response_text = call_llamafile(messages, user_id, session_id)
     except LoginError as exc:
         error_response(
             handler,
@@ -1433,6 +1494,7 @@ def main() -> int:
     try:
         migrate_to_v3()
         migrate_to_v4()
+        migrate_to_v5()
         created, _, password, message = ensure_admin_exists()
     except (OSError, sqlite3.Error, ValueError, MemoryError) as exc:
         print(
