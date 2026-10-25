@@ -62,12 +62,105 @@
             </section>
         </main>
     </div>
+    <dialog id="confirm-modal" class="confirm-modal"
+            aria-labelledby="confirm-modal-title"
+            aria-describedby="confirm-modal-message">
+        <h2 id="confirm-modal-title"></h2>
+        <p id="confirm-modal-message"></p>
+        <div id="confirm-input-container" class="confirm-modal-input">
+            <label for="confirm-modal-input">Nom d'utilisateur</label>
+            <input type="text" id="confirm-modal-input"
+                   autocomplete="off" aria-describedby="confirm-modal-error">
+            <p id="confirm-modal-error" class="confirm-modal-error"
+               role="alert" hidden></p>
+        </div>
+        <div class="confirm-modal-actions">
+            <button type="button" id="confirm-modal-cancel"
+                    class="confirm-modal-cancel">Annuler</button>
+            <button type="button" id="confirm-modal-submit">Confirmer</button>
+        </div>
+    </dialog>
     <script>
         const adminStatus = document.getElementById("admin-status");
         const usersBody = document.getElementById("admin-users");
         const createUserForm = document.getElementById("create-user-form");
         const createUserResult = document.getElementById("create-user-result");
         let currentUsername = null;
+
+        function showConfirmModal(title, message, expectedInput = null) {
+            const modal = document.getElementById("confirm-modal");
+            const inputContainer = document.getElementById(
+                "confirm-input-container",
+            );
+            const input = document.getElementById("confirm-modal-input");
+            const error = document.getElementById("confirm-modal-error");
+            const confirmButton = document.getElementById(
+                "confirm-modal-submit",
+            );
+            const cancelButton = document.getElementById(
+                "confirm-modal-cancel",
+            );
+            const requiresInput = expectedInput !== null;
+
+            document.getElementById("confirm-modal-title").textContent = title;
+            document.getElementById("confirm-modal-message").textContent =
+                message;
+            inputContainer.hidden = !requiresInput;
+            input.value = "";
+            input.removeAttribute("aria-invalid");
+            error.hidden = true;
+            error.textContent = "";
+
+            return new Promise((resolve) => {
+                function finish(confirmed) {
+                    confirmButton.removeEventListener("click", onConfirm);
+                    cancelButton.removeEventListener("click", onCancel);
+                    modal.removeEventListener("cancel", onDialogCancel);
+                    input.removeEventListener("keydown", onInputKeydown);
+                    input.value = "";
+                    modal.close();
+                    resolve(confirmed);
+                }
+
+                function onConfirm() {
+                    if (
+                        requiresInput
+                        && input.value.trim() !== expectedInput
+                    ) {
+                        error.textContent =
+                            "Le nom d'utilisateur ne correspond pas.";
+                        error.hidden = false;
+                        input.setAttribute("aria-invalid", "true");
+                        input.focus();
+                        return;
+                    }
+                    finish(true);
+                }
+
+                function onCancel() {
+                    finish(false);
+                }
+
+                function onDialogCancel(event) {
+                    event.preventDefault();
+                    onCancel();
+                }
+
+                function onInputKeydown(event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        onConfirm();
+                    }
+                }
+
+                confirmButton.addEventListener("click", onConfirm);
+                cancelButton.addEventListener("click", onCancel);
+                modal.addEventListener("cancel", onDialogCancel);
+                input.addEventListener("keydown", onInputKeydown);
+                modal.showModal();
+                (requiresInput ? input : cancelButton).focus();
+            });
+        }
 
         function addCell(row, value) {
             const cell = document.createElement("td");
@@ -257,10 +350,11 @@
             )) {
                 return;
             }
-            if (window.prompt(
-                `Tapez "${user.username}" pour confirmer :`
-            ) !== user.username) {
-                window.alert("Suppression annulée.");
+            if (!await showConfirmModal(
+                "Confirmer la suppression",
+                `Tapez exactement "${user.username}" pour confirmer.`,
+                user.username,
+            )) {
                 return;
             }
 
@@ -293,10 +387,10 @@
         }
 
         async function resetUserPassword(user, resultArea) {
-            if (!window.confirm(
-                `Réinitialiser le mot de passe de ${user.username} ? ` +
-                "Un mot de passe temporaire sera généré et affiché une seule fois. " +
-                "L'utilisateur devra le changer à sa prochaine connexion."
+            if (!await showConfirmModal(
+                `Réinitialiser le mot de passe de ${user.username} ?`,
+                "Un mot de passe temporaire sera généré et affiché une seule fois. "
+                    + "L'utilisateur devra le changer à sa prochaine connexion.",
             )) {
                 return;
             }

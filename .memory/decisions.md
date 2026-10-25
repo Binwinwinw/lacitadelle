@@ -942,3 +942,28 @@ sous-lot du bloc admin.
 cible doit le changer à sa prochaine connexion. Le mot de passe temporaire
 n'est pas conservé côté serveur ni dans un fichier. Le bloc admin est complet
 après validation du redémarrage de `lancer.bat` et du test manuel.
+
+## [2026-10-25] Modal de confirmation admin (Phase 10B-3g)
+
+**Contexte** : la validation E2E 10B-3f a révélé que `prompt()` n'est pas
+supporté par le navigateur intégré. La confirmation par saisie du username
+ne pouvait donc pas être testée dans cet environnement.
+
+**Décision(s)** :
+
+1. Remplacer `prompt()` par un élément HTML `<dialog>` stylé, avec saisie du
+   username, boutons Confirmer/Annuler et message d'erreur accessible si la
+   saisie ne correspond pas.
+2. Conserver la première confirmation de suppression et ne lancer la requête
+   de suppression qu'après correspondance exacte du username.
+3. Réutiliser le même helper modal pour la confirmation simple du reset de
+   mot de passe; masquer le champ de saisie lorsqu'il n'est pas requis.
+4. S'appuyer sur le comportement modal natif de `<dialog>` pour le focus,
+   l'isolation du contenu arrière et l'annulation par Échap.
+5. Mettre à jour l'assertion de test devenue obsolète; les 131 tests
+   automatisés restent verts. Revalider les scénarios 10B-3d et 10B-3e en
+   E2E.
+
+**Conséquences** : la double confirmation de suppression fonctionne dans le
+navigateur intégré. Les scénarios 10B-3d et 10B-3e sont validés; le bloc
+CRUD admin est testé de bout en bout (6/6).

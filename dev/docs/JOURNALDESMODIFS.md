@@ -565,3 +565,21 @@ administrateur dans le navigateur intégré de l'IDE.
 ne supporte pas `prompt()`; la suppression par route a réussi avec une saisie
 simulée uniquement pour nettoyer le compte de test. 10B-3e n'a pas été
 exécuté après l'échec. Aucun code ni test automatisé modifié.
+
+## [2026-10-25] Phase 10B-3g — Modal custom et validation E2E CRUD admin
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `dev/tools/web/admin.html`,
+`dev/tools/web/style.css`, `dev/tests/test_admin.py`,
+`.memory/decisions.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : remplacer `prompt()` non supporté par le navigateur intégré et
+terminer les validations E2E 10B-3d/10B-3e.
+
+**Impact** : modal `<dialog>` accessible avec vérification exacte du username,
+erreur inline et annulation clavier; helper réutilisé pour le reset. Une
+assertion UI obsolète mise à jour; 131 tests passent. E2E 6/6 OK, dont la
+suppression en cascade d'un utilisateur avec une session et deux messages.
+Les comptes de test sont supprimés et la base retrouve son état attendu.

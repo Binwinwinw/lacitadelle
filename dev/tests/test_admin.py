@@ -857,7 +857,9 @@ def test_delete_user_ok_cascades_and_revokes_sessions():
             admin_page = response.read().decode("utf-8")
         assert "Supprimer" in admin_page
         assert "window.confirm" in admin_page
-        assert "window.prompt" in admin_page
+        assert '<dialog id="confirm-modal"' in admin_page
+        assert "showConfirmModal" in admin_page
+        assert "window.prompt" not in admin_page
         assert "user.username !== currentUsername" in admin_page
         assert "summary.active_admins <= 1" in admin_page
 
