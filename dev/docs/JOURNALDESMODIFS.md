@@ -533,3 +533,20 @@ confirmation et protection des comptes privilégiés.
 protections serveur du dernier admin et de l'auto-suppression. La table
 `metrics` n'existe pas dans le schéma actuel. Cinq tests ajoutés;
 127 tests passent. Aucun reset de mot de passe ajouté.
+
+## [2026-10-24] Phase 10B-3e — Reset du mot de passe admin
+
+**Commit** : Phase 10B-3e (identifiant consultable dans l'historique Git)
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tests/test_admin.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : fournir aux admins un reset à mot de passe temporaire, forcé
+au changement au prochain login.
+
+**Impact** : route protégée, mot de passe fort de 16 caractères affiché une
+seule fois dans l'interface, sessions d'authentification invalidées, aucun
+email ni log du secret. Quatre tests ajoutés; 131 tests passent.

@@ -976,6 +976,146 @@ def test_delete_user_not_found():
             assert response.code == 404
 
 
+def test_reset_password_ok():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        user_id = create_test_user(db_path, "alice", "secret123")
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+        user_token = login_as(opener, base_url, "alice", "secret123")
+
+        with api_get(opener, base_url, "/admin", admin_token) as response:
+            admin_page = response.read().decode("utf-8")
+        assert "Réinitialiser le mot de passe" in admin_page
+        assert "/reset-password" in admin_page
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{user_id}/reset-password",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+            result = json.loads(response.read())
+        assert result["id"] == user_id
+        assert result["username"] == "alice"
+        assert len(result["temp_password"]) >= 16
+        assert "temp_password" in result
+        assert user_token not in login_server.SESSIONS
+        with api_get(opener, base_url, "/api/me", user_token) as response:
+            assert response.code == 401
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            user = conn.execute(
+                "SELECT must_change_password, password_hash FROM users "
+                "WHERE id = ?",
+                (user_id,),
+            ).fetchone()
+        finally:
+            conn.close()
+        assert user[0] == 1
+        assert citadelle_memory.verify_password(
+            result["temp_password"],
+            user[1],
+        )
+
+        with api_get(
+            opener,
+            base_url,
+            "/api/admin/users",
+            admin_token,
+        ) as response:
+            listed = json.loads(response.read())["users"]
+        user_entry = next(item for item in listed if item["id"] == user_id)
+        assert "temp_password" not in user_entry
+        assert "password_hash" not in user_entry
+
+        reset_token = login_as(
+            opener,
+            base_url,
+            "alice",
+            result["temp_password"],
+        )
+        with api_get(opener, base_url, "/", reset_token) as response:
+            assert response.code == 302
+            assert response.headers.get("Location") == "/change-password"
+
+
+def test_reset_password_self_allowed():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        admin_token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{admin_id}/reset-password",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
+            result = json.loads(response.read())
+        assert result["username"] == "admin"
+        assert len(result["temp_password"]) >= 16
+        assert admin_token not in login_server.SESSIONS
+
+        conn = sqlite3.connect(str(db_path))
+        try:
+            user = conn.execute(
+                "SELECT must_change_password, password_hash FROM users "
+                "WHERE id = ?",
+                (admin_id,),
+            ).fetchone()
+        finally:
+            conn.close()
+        assert user[0] == 1
+        assert citadelle_memory.verify_password(
+            result["temp_password"],
+            user[1],
+        )
+        reset_token = login_as(
+            opener,
+            base_url,
+            "admin",
+            result["temp_password"],
+        )
+        with api_get(opener, base_url, "/", reset_token) as response:
+            assert response.code == 302
+            assert response.headers.get("Location") == "/change-password"
+
+
+def test_reset_password_requires_admin():
+    with admin_test_context() as (base_url, opener, db_path):
+        admin_id = create_test_user(db_path, "admin", "secret123", role="admin")
+        create_test_user(db_path, "alice", "secret123")
+        token = login_as(opener, base_url, "alice", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{admin_id}/reset-password",
+            token,
+            {},
+        ) as response:
+            assert response.code == 403
+
+
+def test_reset_password_not_found():
+    with admin_test_context() as (base_url, opener, db_path):
+        create_test_user(db_path, "admin", "secret123", role="admin")
+        token = login_as(opener, base_url, "admin", "secret123")
+
+        with api_post(
+            opener,
+            base_url,
+            "/api/admin/users/999/reset-password",
+            token,
+            {},
+        ) as response:
+            assert response.code == 404
+
+
 def run_all():
     tests = [
         test_get_admin_requires_auth,
@@ -1012,6 +1152,10 @@ def run_all():
         test_delete_self_forbidden,
         test_delete_user_requires_admin,
         test_delete_user_not_found,
+        test_reset_password_ok,
+        test_reset_password_self_allowed,
+        test_reset_password_requires_admin,
+        test_reset_password_not_found,
     ]
     for test in tests:
         test()

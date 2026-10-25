@@ -69,7 +69,7 @@ SQLITE_TIMEOUT = 5.0
 MAX_POST_BODY_SIZE = 1_048_576
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
 ADMIN_USER_ACTION_RE = re.compile(
-    r"^/api/admin/users/(\d+)/(deactivate|activate|promote|demote|delete)$"
+    r"^/api/admin/users/(\d+)/(deactivate|activate|promote|demote|delete|reset-password)$"
 )
 USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_-]{3,50}$")
 ADMIN_USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_]{3,30}$")
@@ -608,6 +608,53 @@ def handle_post_api_admin_user_delete(
     json_response(
         handler,
         {"id": user_id, "username": username, "deleted": True},
+    )
+
+
+def handle_post_api_admin_user_reset_password(
+    handler: BaseHTTPRequestHandler,
+    user_id: int,
+) -> None:
+    """POST /api/admin/users/{id}/reset-password."""
+    if require_admin(handler) is None:
+        return
+
+    conn = _get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        user = conn.execute(
+            "SELECT username FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if user is None:
+            error_response(handler, "Utilisateur introuvable", HTTPStatus.NOT_FOUND)
+            return
+
+        temp_password = generate_strong_password()
+        conn.execute(
+            "UPDATE users SET password_hash = ?, must_change_password = 1 "
+            "WHERE id = ?",
+            (hash_password(temp_password), user_id),
+        )
+        conn.commit()
+        username = user["username"]
+    finally:
+        conn.close()
+
+    for token, session_user_id in list(SESSIONS.items()):
+        if session_user_id == user_id:
+            revoke_session(token)
+    json_response(
+        handler,
+        {
+            "id": user_id,
+            "username": username,
+            "temp_password": temp_password,
+            "message": (
+                "Mot de passe réinitialisé. L'utilisateur devra le changer "
+                "à sa prochaine connexion."
+            ),
+        },
     )
 
 
@@ -1355,6 +1402,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                         handle_post_api_admin_user_promote(self, user_id)
                     elif action == "demote":
                         handle_post_api_admin_user_demote(self, user_id)
+                    elif action == "reset-password":
+                        handle_post_api_admin_user_reset_password(self, user_id)
                     else:
                         handle_post_api_admin_user_delete(self, user_id)
                 else:

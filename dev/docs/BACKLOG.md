@@ -22,8 +22,8 @@ le journal des phases.
 
 **Avancement** : la tranche 10B-1 (préférences utilisateur) est terminée
 (décision #31). La tranche 10B-2 (admin read-only) est terminée
-(décision #33). Le CRUD admin (10B-3) est découpé ci-dessous en cinq
-sous-lots (décision #34). Restent également les logs (10B-4) et les
+(décision #33). Le CRUD admin (10B-3a à 10B-3e) est terminé (décisions
+#35, #41, #42, #43, #44 et #45). Restent les logs (10B-4) et les
 indicateurs (10B-5).
 
 La tranche 10B-1b (changement volontaire du mot de passe) est terminée
@@ -65,7 +65,7 @@ décision #30 de `.memory/decisions.md`.
 
 ### 10B-3 — CRUD admin (découpé en 5 sous-lots)
 
-**Statut** : en cours (10B-3a terminé; 10B-3b à implémenter).
+**Statut** : terminé (décision #34; sous-lots 10B-3a à 10B-3e terminés).
 **Décision actée** : 2026-10-24.
 **Dépendances** : 10B-2 (admin read-only terminé).
 
@@ -135,23 +135,20 @@ auto-suppression, non-admin et utilisateur absent.
 
 #### 10B-3e — Reset du mot de passe par l'admin
 
-**Statut** : à implémenter.
-**Périmètre** : bouton dans `admin.html`, route
-`POST /api/admin/users/{id}/reset-password` (avec `require_admin`). L'admin
-génère un mot de passe temporaire (ou en choisit un) et force
-`must_change_password=1`. Tests (reset OK, `must_change_password` forcé,
-non-admin → 403).
+**Statut** : terminé (décision #45, 2026-10-24).
+**Périmètre livré** : route `POST /api/admin/users/{id}/reset-password`
+protégée par `require_admin`, avec mot de passe aléatoire de 16 caractères,
+hash scrypt et `must_change_password=1`. Les sessions d'authentification
+existantes de la cible sont révoquées. L'interface affiche le mot de passe
+temporaire une seule fois avec un bouton Copier; le reset est autorisé sur
+son propre compte.
 
 **Dépendances** : 10B-3d.
-**Questions ouvertes** :
+**Tests** : quatre tests couvrent reset/hash, self-reset, non-admin et
+utilisateur absent, ainsi que le changement obligatoire à la connexion.
 
-- Le mot de passe est-il généré (aléatoire) ou choisi par l'admin ?
-- L'affichage est-il unique (une seule fois) ou réaffichable ?
-- Comment l'utilisateur est-il notifié (email, log) ?
-  - Pas de mail dans le projet actuel → log ?
-
-**Moment de traitement** : un sous-lot par GO, dans l'ordre 10B-3a à
-10B-3e. Le sous-lot suivant ne commence qu'après validation du précédent.
+**Moment de traitement** : terminé; test manuel à effectuer par le décideur
+après redémarrage de `lancer.bat`.
 
 ---
 

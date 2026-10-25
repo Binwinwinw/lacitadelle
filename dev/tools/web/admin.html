@@ -192,6 +192,14 @@
                         });
                         actionsCell.appendChild(deleteButton);
                     }
+                    const resetButton = document.createElement("button");
+                    resetButton.type = "button";
+                    resetButton.textContent = "Réinitialiser le mot de passe";
+                    const resetResult = document.createElement("div");
+                    resetButton.addEventListener("click", () => {
+                        resetUserPassword(user, resetResult);
+                    });
+                    actionsCell.append(resetButton, resetResult);
                     row.appendChild(actionsCell);
                     usersBody.appendChild(row);
                 }
@@ -281,6 +289,73 @@
             } catch (error) {
                 adminStatus.textContent =
                     `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        async function resetUserPassword(user, resultArea) {
+            if (!window.confirm(
+                `Réinitialiser le mot de passe de ${user.username} ? ` +
+                "Un mot de passe temporaire sera généré et affiché une seule fois. " +
+                "L'utilisateur devra le changer à sa prochaine connexion."
+            )) {
+                return;
+            }
+
+            resultArea.replaceChildren();
+            try {
+                const response = await fetch(
+                    `/api/admin/users/${user.id}/reset-password`,
+                    {
+                        method: "POST",
+                        credentials: "same-origin",
+                    },
+                );
+                const result = await response.json();
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    resultArea.textContent =
+                        result.error || "Erreur lors de la réinitialisation.";
+                    return;
+                }
+
+                const message = document.createElement("p");
+                message.textContent =
+                    `Mot de passe réinitialisé pour ${result.username}.`;
+                const instruction = document.createElement("p");
+                instruction.textContent =
+                    "Mot de passe temporaire (à communiquer par un canal sûr, il ne sera plus affiché) :";
+                const password = document.createElement("code");
+                password.className = "temp-password";
+                password.textContent = result.temp_password;
+                const copyButton = document.createElement("button");
+                copyButton.type = "button";
+                copyButton.textContent = "Copier";
+                copyButton.addEventListener("click", async () => {
+                    try {
+                        await navigator.clipboard.writeText(result.temp_password);
+                        copyButton.textContent = "Copié !";
+                    } catch (error) {
+                        copyButton.textContent = "Copie impossible";
+                    }
+                });
+                const warning = document.createElement("p");
+                warning.className = "warning";
+                warning.textContent =
+                    "La session existante est révoquée; le mot de passe devra être changé au prochain login.";
+                resultArea.append(
+                    message,
+                    instruction,
+                    password,
+                    document.createTextNode(" "),
+                    copyButton,
+                    warning,
+                );
+            } catch (error) {
+                resultArea.textContent =
+                    `Erreur réseau ou réponse invalide : ${error.message}`;
             }
         }
 

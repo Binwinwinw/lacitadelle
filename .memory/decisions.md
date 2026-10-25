@@ -913,3 +913,32 @@ persistées et sessions d'authentification sont supprimées sans possibilité
 de restauration par l'application. La suppression du dernier admin actif et
 l'auto-suppression restent interdites. Le reset de mot de passe (10B-3e)
 reste à implémenter.
+
+## [2026-10-24] Implémentation Phase 10B-3e : reset de mot de passe admin
+
+**Contexte** : la décision #34 découpe le CRUD admin en cinq sous-lots.
+10B-3e implémente le reset de mot de passe d'un user par un admin, dernier
+sous-lot du bloc admin.
+
+**Décision(s)** :
+
+1. Ajouter `POST /api/admin/users/{id}/reset-password`, protégé par
+   `require_admin`.
+2. Générer un mot de passe temporaire aléatoire de 16 caractères, le hasher
+   avec scrypt, définir `must_change_password=1` et le retourner une seule
+   fois à l'admin dans la réponse.
+3. Ne pas logger ni stocker le mot de passe temporaire et ne pas notifier
+   l'utilisateur (pas d'email ni de log).
+4. Afficher le mot de passe une seule fois dans l'interface avec un bouton
+   Copier et une confirmation simple avant le reset. Autoriser le reset de
+   son propre mot de passe.
+5. Révoquer les sessions d'authentification existantes de la cible pour que
+   le prochain login utilise le mot de passe temporaire et impose le
+   changement. Conserver ses conversations.
+6. Tester reset, hash, `must_change_password`, login restreint, non-admin et
+   utilisateur absent.
+
+**Conséquences** : l'admin peut réinitialiser le mot de passe d'un user; la
+cible doit le changer à sa prochaine connexion. Le mot de passe temporaire
+n'est pas conservé côté serveur ni dans un fichier. Le bloc admin est complet
+après validation du redémarrage de `lancer.bat` et du test manuel.
