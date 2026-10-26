@@ -1140,3 +1140,30 @@ charger le modèle ni redémarrer llamafile.
 **Conséquences** : un admin actif peut enregistrer un chemin GGUF existant.
 Le runtime actif n'est pas modifié par cette route; le test de chargement et
 le redémarrage restent en 11d.
+
+## [2026-10-25] Correctif lancer.bat : attente active et log stderr du proxy
+
+**Contexte** : une exécution de `lancer.bat` avait laissé le runtime sur 8080
+sans proxy visible sur 8081; le proxy lancé manuellement répondait. Une
+mesure contrôlée a ensuite observé llamafile prêt en 3,192 s et le proxy
+manuel prêt en 0,539 s : le délai fixe de 20 s n'a pas été démontré
+insuffisant. La cause intermittente initiale n'a pas été reproduite.
+
+**Décision(s)** :
+
+1. Remplacer le délai fixe par un sondage actif de
+   `http://127.0.0.1:8080/v1/models`, avec une limite de 120 secondes et une
+   erreur explicite si llamafile n'est pas prêt.
+2. Lancer le proxy dans une commande dédiée, consigner stderr seulement dans
+   `dist/proxy.log` et sonder `/login` jusqu'à 60 secondes; afficher le log
+   et retourner une erreur en cas d'échec.
+3. Laisser stdout dans la console du proxy, car l'auto-création initiale d'un
+   admin peut afficher un mot de passe à usage unique.
+4. Vérifier par trois lancements réels consécutifs que `/v1/models` et
+   `/login` répondent HTTP 200.
+
+**Conséquences** : le launcher attend la disponibilité effective des deux
+services au lieu de dépendre uniquement d'un délai fixe. Les erreurs du
+proxy sont conservées sans consigner son stdout ni le mot de passe
+one-time. Le diagnostic n'a pas établi une cause unique, mais le correctif
+rend l'échec visible et le démarrage contrôlable.

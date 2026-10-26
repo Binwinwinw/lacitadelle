@@ -701,3 +701,19 @@ local validé avant les lots de test de chargement et d'interface.
 **Impact** : route protégée, validation du fichier et écriture
 `current_model_path`; cinq tests dédiés, 154 tests passent. Aucun test de
 chargement, redémarrage llamafile ou changement UI.
+
+## [2026-10-25] Phase 11b-bis — Fiabilisation du lancement
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `lancer.bat`, `.memory/decisions.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : remplacer le délai fixe de lancement par des contrôles de
+disponibilité et conserver les erreurs du proxy pour diagnostic.
+
+**Impact** : sondage actif de llamafile (max 120 s) et du proxy (max 60 s);
+stderr seul vers `dist/proxy.log`, stdout préservé pour le mot de passe
+one-time. Trois lancements vérifiés, HTTP 200 sur les deux ports. Aucun code
+Python, test ni interface modifié.
