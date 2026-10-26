@@ -1089,3 +1089,27 @@ n'existait.
 **Conséquences** : le Mode B-2 est spécifié pour un GO d'implémentation
 dédié. Le modèle Qwen3 actuel reste le modèle par défaut jusqu'à
 l'implémentation et la validation du nouveau flux.
+
+## [2026-10-25] Implémentation Phase 11a : table settings + helpers
+
+**Contexte** : la décision #50 (conception Mode B-2) retient une table
+SQLite `settings` pour conserver `current_model_path` et
+`previous_model_path`. La Phase 11a fournit la migration et les helpers de
+persistance sans route ni interface.
+
+**Décision(s)** :
+
+1. Créer `settings` avec `key TEXT PRIMARY KEY`, `value TEXT NOT NULL` et
+   `updated_at TEXT NOT NULL`.
+2. Ajouter `migrate_to_v6()` idempotente avec `CREATE TABLE IF NOT EXISTS`.
+3. Ajouter `get_setting(key, default=None, db_path=None)` et
+   `set_setting(key, value, db_path=None)`; `set_setting` met à jour la
+   valeur et l'horodatage par upsert.
+4. Appeler `migrate_to_v6()` depuis `init_db()` et au démarrage du proxy,
+   après `migrate_to_v5()`.
+5. Tester l'idempotence, l'application depuis `init_db`, la valeur par
+   défaut, get/set et l'upsert. Ne modifier aucune route ou interface.
+
+**Conséquences** : le schéma local peut stocker les paramètres runtime après
+migration V6. Les helpers sont disponibles pour la route du sous-lot 11b;
+la base réelle recevra la table au prochain redémarrage de `lancer.bat`.

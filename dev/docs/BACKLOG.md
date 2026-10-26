@@ -232,7 +232,7 @@ sur la base locale.
 ## Mode B-2 — Changement de modèle (admin)
 
 **Statut** : conception terminée (décision #50, 2026-10-25); implémentation
-à découper et à réaliser en Phase 11.
+Phase 11 en cours (11a terminé; 11b–11f à réaliser).
 **Décision actée** : 2026-10-23.  
 **Dépendances** : Mode B-1 terminé (décision #49).
 
@@ -268,13 +268,18 @@ sur la base locale.
 
 #### 11a — Migration settings + helpers
 
+**Statut** : terminé (décision #51, 2026-10-25).
 **Périmètre** :
 
-- Ajouter `migrate_to_v6()` idempotente, avec la table
-  `settings(key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)`.
-- Ajouter `get_setting(key, default=None)` et `set_setting(key, value)` dans
-  `citadelle_memory.py`.
-- Tester migration idempotente, lecture/écriture et valeur par défaut.
+- Table `settings(key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT
+  NOT NULL)` et migration `migrate_to_v6()` idempotente.
+- Helpers `get_setting(key, default=None, db_path=None)` et
+  `set_setting(key, value, db_path=None)` dans `citadelle_memory.py`;
+  upsert de la valeur et de `updated_at`.
+- `migrate_to_v6()` appelée depuis `init_db()` et au démarrage du proxy après
+  V5.
+- Quatre tests couvrent migration/init_db, idempotence, get/set, valeur par
+  défaut et upsert; 149 tests passent.
 
 **Dépendances** : aucune.
 
@@ -290,6 +295,7 @@ sur la base locale.
 - Retourner les informations du modèle en cas de succès, ou une erreur 400
   ou 409 en cas d'entrée invalide/conflit.
 
+**Statut** : à implémenter.
 **Dépendances** : 11a.
 
 #### 11c — UI de changement (admin)
@@ -303,6 +309,7 @@ sur la base locale.
 - Ajouter « Appliquer », confirmation claire et avertissement si le modèle
   est hors whitelist.
 
+**Statut** : à implémenter.
 **Dépendances** : 11b.
 
 #### 11d — Test de chargement + rollback immédiat
@@ -318,6 +325,7 @@ sur la base locale.
 - En cas de succès, mettre à jour `current_model_path` et redémarrer
   llamafile.
 
+**Statut** : à implémenter.
 **Dépendances** : 11b et 11c.
 
 #### 11e — Whitelist + `MODELES_COMPATIBLES.md`
@@ -330,6 +338,7 @@ sur la base locale.
 - Afficher un avertissement pour un modèle hors liste; le test de chargement
   reste obligatoire dans tous les cas.
 
+**Statut** : à implémenter.
 **Dépendances** : 11d.
 
 #### 11f — E2E + filet au démarrage
@@ -343,6 +352,7 @@ sur la base locale.
   modèle invalide avec rollback immédiat; modèle sélectionné qui échoue au
   démarrage suivant avec rollback de sécurité.
 
+**Statut** : à implémenter.
 **Dépendances** : 11d et 11e.
 
 **Questions ouvertes à traiter pendant la Phase 11** :

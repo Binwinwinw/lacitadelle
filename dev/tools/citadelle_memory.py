@@ -127,6 +127,14 @@ CREATE TABLE IF NOT EXISTS inference_metrics (
 );
 """
 
+SCHEMA_SETTINGS_SQL = """
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+"""
+
 
 def _users_has_password_hash(conn: sqlite3.Connection) -> bool:
     """Détecte si le schéma V3 est déjà appliqué."""
@@ -269,6 +277,43 @@ def migrate_to_v5(db_path: Path | None = None) -> None:
         conn.executescript(SCHEMA_INFERENCE_METRICS_SQL)
 
 
+def migrate_to_v6(db_path: Path | None = None) -> None:
+    """Ajoute la table des paramètres runtime de façon idempotente."""
+    with _connect(db_path) as conn:
+        conn.executescript(SCHEMA_SETTINGS_SQL)
+
+
+def get_setting(
+    key: str,
+    default: str | None = None,
+    db_path: Path | None = None,
+) -> str | None:
+    """Retourne un paramètre, ou sa valeur par défaut s'il est absent."""
+    with _connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT value FROM settings WHERE key = ?",
+            (key,),
+        ).fetchone()
+    return row["value"] if row is not None else default
+
+
+def set_setting(
+    key: str,
+    value: str,
+    db_path: Path | None = None,
+) -> None:
+    """Crée ou met à jour un paramètre runtime."""
+    with _connect(db_path) as conn:
+        conn.execute(
+            "INSERT INTO settings (key, value, updated_at) "
+            "VALUES (?, ?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET "
+            "value = excluded.value, "
+            "updated_at = excluded.updated_at",
+            (key, value, _utcnow()),
+        )
+
+
 def record_inference(
     user_id: int,
     session_id: int | None,
@@ -303,6 +348,7 @@ def init_db(db_path: Path | None = None) -> None:
         conn.executescript(SCHEMA_SQL)
     migrate_to_v4(db_path)
     migrate_to_v5(db_path)
+    migrate_to_v6(db_path)
 
 
 def get_preferences(

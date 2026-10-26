@@ -54,6 +54,7 @@ from citadelle_memory import (
     migrate_to_v3,
     migrate_to_v4,
     migrate_to_v5,
+    migrate_to_v6,
     record_inference,
     set_preferences,
     verify_password,
@@ -1656,6 +1657,7 @@ def main() -> int:
         migrate_to_v3()
         migrate_to_v4()
         migrate_to_v5()
+        migrate_to_v6()
         created, _, password, message = ensure_admin_exists()
     except (OSError, sqlite3.Error, ValueError, MemoryError) as exc:
         print(

@@ -668,3 +668,20 @@ explicitement visibles les travaux en attente, bloqués et dettes résiduelles.
 **Impact** : périmètres, dépendances et questions ouvertes 11a–11f ajoutés.
 Audit TODO : 12 divergences de libellés historiques, 8 travaux en attente,
 2 bloqués et 2 incohérences documentaires clarifiées. Aucun code modifié.
+
+## [2026-10-25] Phase 11a — Migration settings et helpers
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tests/test_settings_migration.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : fournir le stockage SQLite et les helpers nécessaires au futur
+changement de modèle, avant toute route ou interface.
+
+**Impact** : migration V6 idempotente appelée depuis `init_db()` et au
+démarrage du proxy; helpers get/set avec upsert. Quatre tests dédiés,
+149 tests au total. Aucun endpoint ou fichier UI modifié.
