@@ -301,6 +301,20 @@ chemin absent, extension invalide et fichier vide; 154 tests passent.
 
 **Dépendances** : 11a.
 
+#### 11b-bis — Correctif `lancer.bat` (attente active + log stderr proxy)
+
+**Statut** : terminé (décision #53, commit `b7903ca`).
+**Périmètre** : attente active des ports 8080 (maximum 120 s) et 8081
+(maximum 60 s) par sondes `curl`. Le stderr du proxy est redirigé vers
+`dist/proxy.log`; stdout reste dans la console pour protéger l'affichage du
+mot de passe auto-admin.
+**Tests réels** : trois lancements réussis; `/v1/models` et `/login` ont
+répondu HTTP 200.
+**Diagnostic** : la cause initiale n'a pas été reproduite (llamafile prêt en
+3,192 s, proxy manuel en 0,539 s). Le correctif est un garde-fou de
+disponibilité et de diagnostic, pas la correction d'une cause prouvée.
+**Dépendances** : 11b.
+
 #### 11c — UI de changement (admin)
 
 **Périmètre** :
