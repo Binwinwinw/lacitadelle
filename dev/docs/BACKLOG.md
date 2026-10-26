@@ -264,24 +264,98 @@ sur la base locale.
 - Toute action est limitée à un admin actif, avec erreur claire et
   diagnostic de rollback ne contenant pas de secret.
 
-**Sous-lots proposés pour la Phase 11** :
+**Sous-lots Phase 11** :
 
-- **11a** : table SQLite `settings` et migration de la configuration runtime.
-- **11b** : lecture/écriture admin du modèle actif et validation du chemin.
-- **11c** : UI admin de sélection, avertissements et confirmation.
-- **11d** : test de chargement préalable et rollback immédiat.
-- **11e** : filet de sécurité de démarrage, conservation de l'ancien modèle
-  et récupération automatique.
-- **11f** : whitelist `MODELES_COMPATIBLES.md` et tests du parcours complet.
+#### 11a — Migration settings + helpers
+
+**Périmètre** :
+
+- Ajouter `migrate_to_v6()` idempotente, avec la table
+  `settings(key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)`.
+- Ajouter `get_setting(key, default=None)` et `set_setting(key, value)` dans
+  `citadelle_memory.py`.
+- Tester migration idempotente, lecture/écriture et valeur par défaut.
+
+**Dépendances** : aucune.
+
+#### 11b — Route `POST /api/admin/model`
+
+**Périmètre** :
+
+- Ajouter la route protégée par `require_admin`; le body porte
+  `model_path`.
+- Valider l'existence du fichier et l'extension `.gguf`; vérifier le
+  SHA-256 lorsqu'un modèle whitelisté est choisi.
+- Ne pas effectuer ici le test de chargement (lot 11d).
+- Retourner les informations du modèle en cas de succès, ou une erreur 400
+  ou 409 en cas d'entrée invalide/conflit.
+
+**Dépendances** : 11a.
+
+#### 11c — UI de changement (admin)
+
+**Périmètre** :
+
+- Ajouter la section « Changer de modèle » à `/settings`, visible aux admins
+  uniquement.
+- Proposer une liste des modèles whitelistés et une saisie de chemin local
+  pour un GGUF.
+- Ajouter « Appliquer », confirmation claire et avertissement si le modèle
+  est hors whitelist.
+
+**Dépendances** : 11b.
+
+#### 11d — Test de chargement + rollback immédiat
+
+**Périmètre** :
+
+- Ajouter `test_model_load(model_path)` qui lance llamafile en
+  sous-processus avec un timeout de 30 secondes et vérifie
+  `/v1/models` sur le port 8080.
+- Exiger ce test avant toute application.
+- En cas d'échec, garder l'ancien modèle actif et retourner une erreur
+  claire à l'admin.
+- En cas de succès, mettre à jour `current_model_path` et redémarrer
+  llamafile.
+
+**Dépendances** : 11b et 11c.
+
+#### 11e — Whitelist + `MODELES_COMPATIBLES.md`
+
+**Périmètre** :
+
+- Documenter 5 à 10 modèles testés : nom, taille, prérequis, template et URL.
+- Ajouter `is_whitelisted(model_path)`, comparant le nom de fichier ou le
+  SHA-256 selon la source de la liste.
+- Afficher un avertissement pour un modèle hors liste; le test de chargement
+  reste obligatoire dans tous les cas.
+
+**Dépendances** : 11d.
+
+#### 11f — E2E + filet au démarrage
+
+**Périmètre** :
+
+- Au démarrage de `login_server.py`, si le modèle courant échoue à charger,
+  revenir automatiquement à `previous_model_path` conservé dans `settings`
+  et journaliser l'incident.
+- Tester de bout en bout : changement vers un modèle valide et redémarrage;
+  modèle invalide avec rollback immédiat; modèle sélectionné qui échoue au
+  démarrage suivant avec rollback de sécurité.
+
+**Dépendances** : 11d et 11e.
 
 **Questions ouvertes à traiter pendant la Phase 11** :
 
 - Colonnes exactes de `settings` et protocole de migration.
-- Méthode et timeout du test de chargement sans interrompre le modèle actif.
+- Méthode d'isolation du sous-processus et du port de test pour vérifier
+  `/v1/models` sans interrompre ni confondre le modèle actif.
 - Mécanisme de surveillance du premier démarrage et déclenchement du rollback.
 - Validation sûre des chemins et calcul/vérification des empreintes GGUF.
 - Modèles retenus dans la whitelist et validation des templates/contexte.
 - Présentation de l'avertissement hors whitelist dans l'interface.
+- Modalités pour rendre disponibles localement les GGUF alternatifs sans
+  introduire un gestionnaire de téléchargement non décidé.
 
 **Moment de traitement** : Phase 11, après validation de la présente
 conception.

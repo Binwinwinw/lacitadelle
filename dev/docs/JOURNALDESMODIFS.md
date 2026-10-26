@@ -653,3 +653,18 @@ administrateur avant toute implémentation.
 
 **Impact** : décision #50 et sous-lots 11a–11f proposés; aucun code, test,
 template ou configuration modifié.
+
+## [2026-10-25] Phase 11-PLAN-BIS — Sous-lots Mode B-2 et audit TODO
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : détailler les six sous-lots d'implémentation et rendre
+explicitement visibles les travaux en attente, bloqués et dettes résiduelles.
+
+**Impact** : périmètres, dépendances et questions ouvertes 11a–11f ajoutés.
+Audit TODO : 12 divergences de libellés historiques, 8 travaux en attente,
+2 bloqués et 2 incohérences documentaires clarifiées. Aucun code modifié.
