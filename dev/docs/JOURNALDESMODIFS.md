@@ -639,3 +639,17 @@ clôturer le Mode B-1 sans exposer le contenu des conversations.
 7 j et 30 j; 7 indicateurs, cartes KPI admin, tableau user et polling lorsque
 la page est visible. Cinq tests dédiés; 145 tests passent. Aucun changement
 de schéma ni endpoint/traitement de contenu de conversation.
+
+## [2026-10-25] Phase 11-PLAN — Conception du Mode B-2
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : acter les cinq choix de conception du changement de modèle
+administrateur avant toute implémentation.
+
+**Impact** : décision #50 et sous-lots 11a–11f proposés; aucun code, test,
+template ou configuration modifié.

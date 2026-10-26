@@ -1053,3 +1053,39 @@ B-1.
 **Conséquences** : les admins voient les indicateurs globaux et les users
 uniquement ceux de leur compte. Le Mode B-1 est entièrement implémenté;
 10B-5 clôt cette tranche et le Mode B-2 reste distinct.
+
+## [2026-10-25] Conception Mode B-2 : changement de modèle
+
+**Contexte** : le Mode B-1 est clôturé. Le Mode B-2 permettra à un admin
+actif de changer le GGUF chargé par llamafile. Un seul admin actif existe
+jusqu'à V3.2; une configuration invalide peut donc rendre le service
+indisponible pour tous. `lancer.bat` passe actuellement le chemin du modèle
+directement à llamafile, tandis que `dev/tools/llamafile_config.json` décrit
+les assets d'installation. Aucune décision dédiée au changement de modèle
+n'existait.
+
+**Décision(s)** :
+
+1. Intégrer le bouton « Changer de modèle » à la section admin de
+   `/settings`, dans le périmètre du Mode B-1; réserver la route
+   `POST /api/admin/model` aux admins actifs selon le contrat V3.1.
+2. Stocker la configuration runtime dans une table SQLite `settings`
+   (Q1-b), cohérente avec la base locale existante.
+3. Exiger un rollback automatique double (Q2-d) : tester le chargement avant
+   application et revenir immédiatement à la configuration précédente en
+   cas d'échec; garder aussi un mécanisme de retour automatique à l'ancien
+   modèle au prochain démarrage si le nouveau ne démarre pas.
+4. Maintenir une whitelist curée et documentée de 5 à 10 modèles, avec test
+   de chargement à la soumission; un GGUF hors liste peut être essayé après
+   avertissement, avec le même test préalable (Q3-c).
+5. Stocker le modèle actif dans `settings`, clé `current_model_path` (Q4-a).
+6. Conserver l'ancien modèle pour permettre le rollback; ne pas le supprimer
+   automatiquement après un changement réussi (Q5-b).
+7. Afficher clairement tout échec et
+   conserver un diagnostic de rollback non sensible.
+8. Découper l'implémentation en sous-lots séparés durant la Phase 11. Aucun
+   code n'est modifié dans cette conception.
+
+**Conséquences** : le Mode B-2 est spécifié pour un GO d'implémentation
+dédié. Le modèle Qwen3 actuel reste le modèle par défaut jusqu'à
+l'implémentation et la validation du nouveau flux.

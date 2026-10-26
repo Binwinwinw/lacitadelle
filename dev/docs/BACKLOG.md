@@ -231,45 +231,60 @@ sur la base locale.
 
 ## Mode B-2 — Changement de modèle (admin)
 
-**Statut** : à concevoir.  
+**Statut** : conception terminée (décision #50, 2026-10-25); implémentation
+à découper et à réaliser en Phase 11.
 **Décision actée** : 2026-10-23.  
-**Dépendances** : B-1 (page de réglages).
+**Dépendances** : Mode B-1 terminé (décision #49).
 
-**Périmètre** :
+**Périmètre décidé** :
 
 - Rendre le bouton « Changer de modèle » accessible uniquement aux admins,
-  depuis la page B-1.
-- Rendre dynamique le chemin du modèle via une configuration éditable, avec
-  un fallback vers Qwen3. Le chemin pourra être relatif (par exemple
-  `models/mon-modele.gguf`) ou absolu.
+  depuis la section admin de `/settings`. L'action utilise
+  `POST /api/admin/model`, protégée selon le contrat V3.1.
+- Stocker la configuration runtime dans SQLite, table `settings`; la clé
+  `current_model_path` désigne le GGUF actif. Le launcher ne doit plus
+  dépendre d'un chemin de modèle codé en dur.
 - Conserver le comportement actuel : Qwen3-1.7B Q4_K_M reste le modèle par
-  défaut et est téléchargé par `install.bat`.
+  défaut jusqu'à validation du flux de changement. `llamafile_config.json`
+  reste le manifeste des assets d'installation, distinct de l'état runtime.
 - Établir une whitelist curée de 5 à 10 modèles testés dans
   `dev/docs/MODELES_COMPATIBLES.md`, à créer pendant B-2, et la référencer
-  depuis la page de réglages.
+  depuis la page de réglages. Un modèle hors liste peut être essayé après
+  avertissement, mais doit subir le même test de chargement préalable.
 - Autoriser l'essai d'un modèle hors whitelist avec un avertissement clair :
   « non testé, peut casser l'application ». Prévoir une dérogation avec cet
   avertissement.
 - Avertir que l'incompatibilité peut concerner le template de chat, la taille
   du contexte ou la mémoire disponible.
-- Permettre de tester le modèle avant de l'appliquer.
-- **Rollback automatique obligatoire** : si le nouveau modèle ne charge pas,
-  revenir au modèle précédent, le conserver (fichier local ou référence dans
-  la configuration), notifier l'admin avec une erreur claire et conserver le
-  log de l'échec.
+- Tester le chargement avant application et faire un rollback immédiat si le
+  test échoue. Ajouter un filet de sécurité au prochain démarrage si le
+  modèle nouvellement sélectionné ne démarre pas.
+- Conserver l'ancien modèle pour rollback; aucune suppression automatique
+  après changement.
+- Toute action est limitée à un admin actif, avec erreur claire et
+  diagnostic de rollback ne contenant pas de secret.
 
-**Questions ouvertes** (à trancher en conception) :
+**Sous-lots proposés pour la Phase 11** :
 
-- Quel emplacement retenir pour la configuration éditable ?
-- Comment valider un GGUF avant application, par exemple par chargement et
-  test de génération ?
-- Le rollback conserve-t-il l'ancien modèle en mémoire ou relance-t-il le
-  serveur, et quel en est le coût ?
-- Comment calculer et vérifier l'empreinte des modèles fournis par l'admin ?
-- Comment détecter un template de chat incompatible par un test de génération
-  réelle ?
+- **11a** : table SQLite `settings` et migration de la configuration runtime.
+- **11b** : lecture/écriture admin du modèle actif et validation du chemin.
+- **11c** : UI admin de sélection, avertissements et confirmation.
+- **11d** : test de chargement préalable et rollback immédiat.
+- **11e** : filet de sécurité de démarrage, conservation de l'ancien modèle
+  et récupération automatique.
+- **11f** : whitelist `MODELES_COMPATIBLES.md` et tests du parcours complet.
 
-**Moment de traitement** : à décider par le décideur, après B-1.
+**Questions ouvertes à traiter pendant la Phase 11** :
+
+- Colonnes exactes de `settings` et protocole de migration.
+- Méthode et timeout du test de chargement sans interrompre le modèle actif.
+- Mécanisme de surveillance du premier démarrage et déclenchement du rollback.
+- Validation sûre des chemins et calcul/vérification des empreintes GGUF.
+- Modèles retenus dans la whitelist et validation des templates/contexte.
+- Présentation de l'avertissement hors whitelist dans l'interface.
+
+**Moment de traitement** : Phase 11, après validation de la présente
+conception.
 
 ---
 
