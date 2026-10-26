@@ -232,7 +232,7 @@ sur la base locale.
 ## Mode B-2 — Changement de modèle (admin)
 
 **Statut** : conception terminée (décision #50, 2026-10-25); implémentation
-Phase 11 en cours (11a terminé; 11b–11f à réaliser).
+Phase 11 en cours (11a/11b terminés; 11c–11f à réaliser).
 **Décision actée** : 2026-10-23.  
 **Dépendances** : Mode B-1 terminé (décision #49).
 
@@ -285,17 +285,20 @@ Phase 11 en cours (11a terminé; 11b–11f à réaliser).
 
 #### 11b — Route `POST /api/admin/model`
 
-**Périmètre** :
+**Statut** : terminé (décision #52, 2026-10-25).
+**Périmètre livré** :
 
-- Ajouter la route protégée par `require_admin`; le body porte
-  `model_path`.
-- Valider l'existence du fichier et l'extension `.gguf`; vérifier le
-  SHA-256 lorsqu'un modèle whitelisté est choisi.
-- Ne pas effectuer ici le test de chargement (lot 11d).
-- Retourner les informations du modèle en cas de succès, ou une erreur 400
-  ou 409 en cas d'entrée invalide/conflit.
+- Route POST avec `require_admin` et body JSON `model_path`.
+- Résoudre le chemin absolu et valider fichier existant, extension `.gguf`,
+  type fichier régulier et taille supérieure à zéro.
+- Enregistrer `current_model_path` via `set_setting`; retourner le chemin
+  et sa taille, avec un message indiquant que le chargement est différé.
+- Aucun hash/whitelist (lot 11e), test de chargement ou redémarrage (11d),
+  ni interface (11c) dans ce lot.
 
-**Statut** : à implémenter.
+**Tests** : cinq tests couvrent authentification/autorisation, chemin valide,
+chemin absent, extension invalide et fichier vide; 154 tests passent.
+
 **Dépendances** : 11a.
 
 #### 11c — UI de changement (admin)

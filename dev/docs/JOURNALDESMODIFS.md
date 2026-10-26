@@ -685,3 +685,19 @@ changement de modèle, avant toute route ou interface.
 **Impact** : migration V6 idempotente appelée depuis `init_db()` et au
 démarrage du proxy; helpers get/set avec upsert. Quatre tests dédiés,
 149 tests au total. Aucun endpoint ou fichier UI modifié.
+
+## [2026-10-25] Phase 11b — Route de configuration du modèle
+
+**Commit** : identifiant consultable dans l'historique Git
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tests/test_admin_model.py`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : permettre à un admin actif d'enregistrer le chemin d'un GGUF
+local validé avant les lots de test de chargement et d'interface.
+
+**Impact** : route protégée, validation du fichier et écriture
+`current_model_path`; cinq tests dédiés, 154 tests passent. Aucun test de
+chargement, redémarrage llamafile ou changement UI.

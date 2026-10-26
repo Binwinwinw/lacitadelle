@@ -1113,3 +1113,30 @@ persistance sans route ni interface.
 **Conséquences** : le schéma local peut stocker les paramètres runtime après
 migration V6. Les helpers sont disponibles pour la route du sous-lot 11b;
 la base réelle recevra la table au prochain redémarrage de `lancer.bat`.
+
+## [2026-10-25] Implémentation Phase 11b : route POST /api/admin/model
+
+**Contexte** : la décision #50 prévoit un changement de modèle administrateur
+stocké dans `settings`; la Phase 11a a ajouté la migration et les helpers.
+La Phase 11b ajoute uniquement la route de validation/enregistrement, sans
+charger le modèle ni redémarrer llamafile.
+
+**Décision(s)** :
+
+1. Ajouter `POST /api/admin/model`, protégé par `require_admin`, avec un
+   body JSON contenant `model_path`.
+2. Rejeter les chemins manquants/invalides; résoudre le chemin absolu et
+   exiger un fichier régulier d'extension `.gguf` et de taille supérieure
+   à zéro.
+3. Écrire le chemin résolu dans `settings.current_model_path` via
+   `set_setting`.
+4. Retourner les informations du chemin et sa taille. Indiquer clairement
+   que le chargement attend le test et le redémarrage prévus en 11d.
+5. Ne pas tester le chargement, redémarrer llamafile, modifier l'UI ou
+   effectuer la validation whitelist/hash (prévue en 11e).
+6. Couvrir autorisation, chemin valide, chemin absent, extension invalide et
+   fichier vide par cinq tests.
+
+**Conséquences** : un admin actif peut enregistrer un chemin GGUF existant.
+Le runtime actif n'est pas modifié par cette route; le test de chargement et
+le redémarrage restent en 11d.

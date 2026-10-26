@@ -56,6 +56,7 @@ from citadelle_memory import (
     migrate_to_v5,
     migrate_to_v6,
     record_inference,
+    set_setting,
     set_preferences,
     verify_password,
 )
@@ -991,6 +992,96 @@ def handle_post_api_admin_users_create(handler: BaseHTTPRequestHandler) -> None:
     )
 
 
+def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
+    """POST /api/admin/model : enregistre le chemin d'un GGUF existant."""
+    if require_admin(handler) is None:
+        return
+
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+        payload = json.loads(
+            _read_post_body(handler, content_length).decode("utf-8")
+        )
+    except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+        error_response(handler, "Requête JSON invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if not isinstance(payload, dict):
+        error_response(handler, "Requête JSON invalide", HTTPStatus.BAD_REQUEST)
+        return
+
+    model_path = payload.get("model_path")
+    if not isinstance(model_path, str) or not model_path.strip():
+        error_response(handler, "model_path requis", HTTPStatus.BAD_REQUEST)
+        return
+
+    try:
+        path = Path(model_path.strip()).expanduser().resolve(strict=True)
+    except (OSError, RuntimeError, ValueError):
+        error_response(
+            handler,
+            "Fichier GGUF introuvable ou inaccessible",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if path.suffix.lower() != ".gguf":
+        error_response(
+            handler,
+            "Extension .gguf requise",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    try:
+        if not path.is_file():
+            error_response(
+                handler,
+                "Le chemin doit désigner un fichier GGUF",
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+        size_bytes = path.stat().st_size
+    except OSError:
+        error_response(
+            handler,
+            "Fichier GGUF introuvable ou inaccessible",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if size_bytes <= 0:
+        error_response(handler, "Fichier GGUF vide", HTTPStatus.BAD_REQUEST)
+        return
+
+    try:
+        set_setting(
+            "current_model_path",
+            str(path),
+            db_path=MEMORY_DB_PATH,
+        )
+    except (OSError, sqlite3.Error) as exc:
+        sys.stderr.write(
+            "[model] Model path setting was not saved "
+            f"({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Impossible d'enregistrer le chemin du modèle",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+
+    json_response(
+        handler,
+        {
+            "model_path": str(path),
+            "size_bytes": size_bytes,
+            "applied": True,
+            "message": (
+                "Chemin enregistré. Le modèle sera chargé après le test "
+                "de chargement et le redémarrage du lot 11d."
+            ),
+        },
+    )
+
+
 def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
     """POST /login : vérifie le mot de passe et ouvre une session."""
     try:
@@ -1608,6 +1699,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_settings_preferences(self)
             elif path == "/api/admin/users":
                 handle_post_api_admin_users_create(self)
+            elif path == "/api/admin/model":
+                handle_post_api_admin_model(self)
             elif path == "/logout":
                 handle_post_logout(self)
             elif path == "/api/sessions":
