@@ -379,7 +379,7 @@ validation par nom de fichier ou empreinte; ils nécessitent un GO distinct.
 
 **Tests** : six tests ajoutés; 171 tests au total.
 
-**Statut** : terminé (décision #60; commit à référencer après création).
+**Statut** : terminé (décision #60, commit `4762646`).
 **Dépendances** : 11d.
 
 #### 11f — E2E + filet au démarrage

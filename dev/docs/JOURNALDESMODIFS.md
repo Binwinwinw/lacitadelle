@@ -930,7 +930,7 @@ aucun code ni test modifié.
 
 ## [2026-10-28] Phase 11e — Whitelist configurable de modèles (V1)
 
-**Commit** : hash final à référencer après création.
+**Commit** : `4762646`.
 
 **Fichiers modifiés** : `dev/tools/login_server.py`,
 `dev/tools/web/settings.html`, `dev/tests/test_admin_model.py`,
@@ -942,3 +942,17 @@ refuser les chemins valides mais absents de la whitelist.
 
 **Impact** : validation GGUF existante conservée avant le contrôle
 d'autorisation; 6 tests ajoutés, 171 tests passent.
+
+## [2026-10-28] Phase 11e — Référence du commit
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit d'implémentation
+Phase 11e.
+
+**Impact** : BACKLOG et journal pointent vers `4762646`; aucun code ni test
+modifié.
