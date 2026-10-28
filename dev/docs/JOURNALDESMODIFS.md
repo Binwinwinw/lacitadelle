@@ -671,7 +671,7 @@ Audit TODO : 12 divergences de libellés historiques, 8 travaux en attente,
 
 ## [2026-10-25] Phase 11a — Migration settings et helpers
 
-**Commit** : identifiant consultable dans l'historique Git
+**Commit** : `d2fdc3b`
 
 **Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
 `dev/tools/login_server.py`, `dev/tests/test_settings_migration.py`,
@@ -688,7 +688,7 @@ démarrage du proxy; helpers get/set avec upsert. Quatre tests dédiés,
 
 ## [2026-10-25] Phase 11b — Route de configuration du modèle
 
-**Commit** : identifiant consultable dans l'historique Git
+**Commit** : `7c9786c`
 
 **Fichiers modifiés** : `dev/tools/login_server.py`,
 `dev/tests/test_admin_model.py`, `.memory/decisions.md`,
@@ -704,7 +704,7 @@ chargement, redémarrage llamafile ou changement UI.
 
 ## [2026-10-25] Phase 11b-bis — Fiabilisation du lancement
 
-**Commit** : identifiant consultable dans l'historique Git
+**Commit** : `b7903ca`
 
 **Fichiers modifiés** : `lancer.bat`, `.memory/decisions.md`,
 `dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
@@ -717,3 +717,31 @@ disponibilité et conserver les erreurs du proxy pour diagnostic.
 stderr seul vers `dist/proxy.log`, stdout préservé pour le mot de passe
 one-time. Trois lancements vérifiés, HTTP 200 sur les deux ports. Aucun code
 Python, test ni interface modifié.
+
+## [2026-10-26] Phase 11b-ter (documentaire) — Entrée BACKLOG 11b-bis
+
+**Commit** : `b233778`
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`.
+
+**Raison** : ajouter après coup l'entrée de suivi du correctif de lancement
+Phase 11b-bis.
+
+**Impact** : entrée documentaire 11b-bis ajoutée au BACKLOG; aucun sous-lot
+technique 11b-ter ni changement runtime.
+
+## [2026-10-27] Phase 11c-PRE-3 — Correctifs documentaires P2
+
+**Commit** : référence consultable dans l'historique Git (hash de ce commit
+non auto-référençable).
+
+**Fichiers modifiés** : `AGENTS.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` a été mis à jour localement et reste gitignoré.
+
+**Raison** : corriger les huit écarts documentaires P2 relevés par l'audit
+11c-PRE-2B avant la Phase 11c.
+
+**Impact** : compteurs et progression documentaire actualisés; questions
+résolues retirées du BACKLOG; origine des données de test reformulée; hashes
+et nomenclature des commits 11a à 11b-ter précisés. Aucun code ni test modifié.

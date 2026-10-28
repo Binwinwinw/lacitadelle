@@ -23,6 +23,8 @@ le journal des phases.
 **Avancement** : 10B-1 (préférences), 10B-1b (changement de mot de passe),
 10B-2 (admin read-only), 10B-3a à 10B-3e (CRUD admin), 10B-4a/4b
 (métriques et logs) et 10B-5 (indicateurs agrégés) sont terminés.
+Le décompte historique de 19 sous-lots n'a pas été revérifié lors de l'audit
+11c-PRE-2B; l'inventaire détaillé ci-dessous reste inchangé.
 
 La conception globale et la clôture du Mode B-1 sont consignées dans les
 décisions #30 et #49.
@@ -233,7 +235,7 @@ sur la base locale.
 
 **Statut** : conception terminée (décision #50, 2026-10-25); implémentation
 Phase 11 en cours (11a/11b terminés; 11c–11f à réaliser).
-**Décision actée** : 2026-10-23.  
+**Décision actée** : 2026-10-25.
 **Dépendances** : Mode B-1 terminé (décision #49).
 
 **Périmètre décidé** :
@@ -374,15 +376,13 @@ disponibilité et de diagnostic, pas la correction d'une cause prouvée.
 
 **Questions ouvertes à traiter pendant la Phase 11** :
 
-- Colonnes exactes de `settings` et protocole de migration.
-- Méthode d'isolation du sous-processus et du port de test pour vérifier
-  `/v1/models` sans interrompre ni confondre le modèle actif.
-- Mécanisme de surveillance du premier démarrage et déclenchement du rollback.
-- Validation sûre des chemins et calcul/vérification des empreintes GGUF.
-- Modèles retenus dans la whitelist et validation des templates/contexte.
-- Présentation de l'avertissement hors whitelist dans l'interface.
-- Modalités pour rendre disponibles localement les GGUF alternatifs sans
-  introduire un gestionnaire de téléchargement non décidé.
+- **11d — Chargement** : méthode d'isolation du sous-processus et du port de
+  test pour vérifier `/v1/models` sans interrompre ni confondre le modèle actif.
+- **11e — Whitelist** : modèles retenus, empreintes de référence, compatibilité
+  des templates/contexte et disponibilité locale des GGUF alternatifs sans
+  gestionnaire de téléchargement.
+- **11f — Rollback** : mécanisme de surveillance du démarrage suivant et
+  déclenchement du retour au modèle précédent.
 
 **Moment de traitement** : Phase 11, après validation de la présente
 conception.
