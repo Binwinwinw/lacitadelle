@@ -351,9 +351,14 @@ au chemin configuré et les contrôles d'accès du POST existant.
   reload assisté ni rollback automatique.
 
 **Tests** : sept nouveaux tests couvrent les quatre cas du health check et
-les trois cas de persistance/rollback manuel; 164 tests au total.
+les trois cas de persistance/rollback manuel; 165 tests au total après la
+consolidation 11d-ter/quater.
 
-**Statut** : terminé (décision #57, commit `7a13c19`).
+**Consolidation 11d-ter/quater** : validation d'existence du GGUF avant
+llamafile (décision #58); isolation et test de non-régression de
+`dist/.current_model` (décision #59).
+
+**Statut** : terminé (décisions #57–#59; commit initial `7a13c19`).
 **Dépendances** : 11b et 11c.
 
 #### 11e — Whitelist + `MODELES_COMPATIBLES.md`

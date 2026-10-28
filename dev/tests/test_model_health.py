@@ -6,9 +6,24 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 import model_health
+
+
+@pytest.fixture(autouse=True)
+def preserve_current_model_file():
+    real_file = Path(__file__).resolve().parents[2] / "dist" / ".current_model"
+    backup = real_file.read_bytes() if real_file.exists() else None
+    try:
+        yield
+    finally:
+        if backup is not None:
+            real_file.write_bytes(backup)
+        else:
+            real_file.unlink(missing_ok=True)
 
 
 def _response(model_id: str):
@@ -72,12 +87,26 @@ def test_health_check_http_error():
         ) == (False, "http_error")
 
 
+def test_pytest_does_not_pollute_current_model_file():
+    real_file = model_health.CURRENT_MODEL_FILE
+    if real_file.exists():
+        content = real_file.read_text(encoding="ascii").strip()
+        assert "Wondershare" not in content
+        assert "CreatorTemp" not in content
+        assert (
+            "tmp" not in content.lower()
+            or "dev/tools/vendor" in content.lower()
+            or "qwen" in content.lower()
+        )
+
+
 def run_all():
     tests = [
         test_health_check_ok,
         test_health_check_mismatch,
         test_health_check_timeout,
         test_health_check_http_error,
+        test_pytest_does_not_pollute_current_model_file,
     ]
     for test in tests:
         test()

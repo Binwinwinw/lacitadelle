@@ -883,3 +883,34 @@ Phase 11d dans ses références documentaires.
 
 **Impact** : BACKLOG et journal pointent vers `7a13c19`; aucun code ni test
 modifié.
+
+## [2026-10-28] Phase 11d-ter — Validation du chemin modèle
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `lancer.bat`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : valider l'existence du GGUF avant llamafile, restaurer le chemin
+précédent si possible et arrêter clairement si le chemin par défaut manque.
+
+**Impact** : un chemin invalide ne déclenche plus le démarrage de llamafile
+avant le rollback; tests isolés du batch valides et invalides.
+
+## [2026-10-28] Phase 11d-quater — Isolation des tests modèle
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/tests/test_admin_model.py`,
+`dev/tests/test_model_health.py`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : corriger l'isolation des constantes du miroir et restaurer le
+fichier réel après chaque test.
+
+**Impact** : ajout d'un test de non-régression; 165 tests passent sans laisser
+`dist/.current_model` pollué.

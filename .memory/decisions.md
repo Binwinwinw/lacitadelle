@@ -1273,3 +1273,42 @@ vérifie l'identifiant annoncé par `/v1/models`. En cas d'échec, la
 configuration revient à l'ancien chemin, mais l'utilisateur doit fermer le
 processus et relancer `lancer.bat`. Reload assisté et rollback automatique
 restent hors périmètre (11d-bis).
+
+## [2026-10-28] Validation du chemin modèle avant llamafile (11d-ter)
+
+**Contexte** : `lancer.bat` lisait `dist/.current_model` sans vérifier que le
+fichier GGUF existe. Avec un chemin invalide, llamafile démarrait avant tout
+rollback.
+
+**Décision(s)** :
+
+1. Avant `start llamafile.exe`, vérifier que le chemin configuré existe.
+2. S'il est invalide, appeler immédiatement `model_health.py --rollback` et
+   relire `dist/.current_model`.
+3. Si le rollback échoue, ne fournit pas de chemin ou restaure un chemin
+   absent, utiliser le GGUF Qwen3 par défaut.
+4. Si le modèle par défaut n'existe pas, afficher une erreur claire et quitter
+   avant de démarrer llamafile.
+
+**Conséquences** : un chemin modèle invalide ne lance plus llamafile; le
+rollback ou le fallback sont validés avant le démarrage.
+
+## [2026-10-28] Tests isolés du miroir de modèle (11d-quater)
+
+**Contexte** : `pytest` laissait `dist/.current_model` pointer vers un GGUF
+temporaire Wondershare. Les tests patchaient `login_server.CURRENT_MODEL_FILE`
+mais pas `model_health.CURRENT_MODEL_FILE`, et ne restauraient pas toujours
+le miroir réel.
+
+**Décision(s)** :
+
+1. Patcher `login_server.CURRENT_MODEL_FILE` et
+   `model_health.CURRENT_MODEL_FILE` dans les tests admin concernés.
+2. Sauvegarder puis restaurer systématiquement `dist/.current_model` par
+   fixture autouse dans les modules `test_admin_model.py` et
+   `test_model_health.py`.
+3. Ajouter un test de non-régression qui détecte un chemin temporaire dans le
+   miroir après l'exécution des tests précédents.
+
+**Conséquences** : les tests préservent le miroir présent avant leur exécution
+et détectent sa pollution par un chemin temporaire.

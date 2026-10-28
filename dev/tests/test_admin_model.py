@@ -7,6 +7,8 @@ from pathlib import Path
 from unittest.mock import patch
 from urllib.request import Request
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
@@ -22,14 +24,26 @@ from _helpers import (
 )
 
 
+@pytest.fixture(autouse=True)
+def preserve_current_model_file():
+    real_file = Path(__file__).resolve().parents[2] / "dist" / ".current_model"
+    backup = real_file.read_bytes() if real_file.exists() else None
+    try:
+        yield
+    finally:
+        if backup is not None:
+            real_file.write_bytes(backup)
+        else:
+            real_file.unlink(missing_ok=True)
+
+
 def _post_model(opener, base_url, token, payload):
     headers = {"Content-Type": "application/json"}
     if token is not None:
         headers["Cookie"] = f"{SESSION_COOKIE_NAME}={token}"
-    body = json.dumps(payload).encode("utf-8") if payload is not None else b""
     request = Request(
         f"{base_url}/api/admin/model",
-        data=body,
+        data=json.dumps(payload).encode("utf-8"),
         headers=headers,
         method="POST",
     )
@@ -297,6 +311,7 @@ def test_invalid_post_or_write_failure_preserves_model_state():
 
             with (
                 patch.object(login_server, "CURRENT_MODEL_FILE", model_file),
+                patch.object(model_health, "CURRENT_MODEL_FILE", model_file),
                 patch.object(Path, "write_text", new=fail_mirror_write),
             ):
                 with _post_model(
@@ -350,9 +365,9 @@ def run_all():
         test_set_model_invalid_path,
         test_set_model_invalid_extension,
         test_set_model_rejects_empty_file,
-        test_post_writes_current_model_file_and_previous_path,
+        test_post_mirrors_path_and_first_manual_rollback_uses_default,
         test_post_updates_previous_model_path_after_prior_post,
-        test_post_invalid_path_does_not_change_file_or_settings,
+        test_invalid_post_or_write_failure_preserves_model_state,
     ]
     for test in tests:
         test()

@@ -21,6 +21,32 @@ if not defined MODEL_PATH (
     set "MODEL_PATH=dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf"
 )
 
+if exist "%MODEL_PATH%" goto MODEL_PATH_VALID
+
+echo ERREUR : le modele "%MODEL_PATH%" est introuvable.
+echo Tentative de rollback...
+python dev\tools\model_health.py --rollback
+if errorlevel 1 goto MODEL_PATH_DEFAULT
+
+set "MODEL_PATH="
+if exist dist\.current_model set /p MODEL_PATH=<dist\.current_model
+if not defined MODEL_PATH goto MODEL_PATH_DEFAULT
+if not exist "%MODEL_PATH%" (
+    echo ERREUR : le modele restaure "%MODEL_PATH%" est introuvable.
+    goto MODEL_PATH_DEFAULT
+)
+echo Modele restaure : "%MODEL_PATH%"
+goto MODEL_PATH_VALID
+
+:MODEL_PATH_DEFAULT
+echo Utilisation du modele par defaut.
+set "MODEL_PATH=dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf"
+if not exist "%MODEL_PATH%" (
+    echo ERREUR : le modele par defaut "%MODEL_PATH%" est introuvable.
+    exit /b 1
+)
+
+:MODEL_PATH_VALID
 echo Demarrage du serveur llamafile (port 8080)...
 start "Lacitadelle Server" dist\llamafile.exe -m "%MODEL_PATH%" --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps
 
@@ -48,7 +74,7 @@ if not exist dist mkdir dist
 echo Demarrage du proxy de login (port 8081)...
 >>dist\proxy.log echo [launcher] Demarrage du proxy %DATE% %TIME%
 REM Keep stdout on the proxy console because first-admin setup can print a one-time password.
-start "Lacitadelle Proxy" cmd /c "python dev\tools\login_server.py 2>> dist\proxy.log"
+start "Lacitadelle Proxy" cmd /k "python dev\tools\login_server.py 2>> dist\proxy.log"
 
 echo Attente active du proxy (maximum 60 secondes)...
 set /a PROXY_TRIES=0
