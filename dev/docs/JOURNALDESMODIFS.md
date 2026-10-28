@@ -914,3 +914,16 @@ fichier réel après chaque test.
 
 **Impact** : ajout d'un test de non-régression; 165 tests passent sans laisser
 `dist/.current_model` pollué.
+
+## [2026-10-28] Phase 11d-ter/quater — Référence du commit
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit de correction,
+qui ne peut pas s'auto-référencer.
+
+**Impact** : les entrées 11d-ter et 11d-quater pointent vers `2067dbf`;
+aucun code ni test modifié.
