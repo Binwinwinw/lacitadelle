@@ -805,11 +805,25 @@ Fichiers supprimés : `dev/tests/test_admin_model_page.py`,
 `dev/tools/web/admin_model.html`. `TODO.md` reste local et gitignoré.
 
 **Raison** : supprimer la duplication de l'interface `/admin/model` v1 tout en
-conservant la section `/settings` v2 et son GET admin-only.
+conservant la section `/settings` v2 et son GET admin-only; les commits v1
+concernés sont `cedd1e5` et `2864b3c`.
 
 **Impact** : routes et template de page dédiée retirés; `GET /api/settings/model`
 et `POST /api/admin/model` conservés. Les 157 tests v2 passent. Aucun
 `git revert` ni changement des décisions #50–#55.
+
+## [2026-10-28] Phase 11c-consolidation-v3 — Références des commits v1
+
+**Commit** : identifiant consultable dans l'historique Git (correction
+documentaire post-commit).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : préciser les hashes des commits v1 annulés dans la consolidation.
+
+**Impact** : BACKLOG et journaux identifient `cedd1e5`, `2864b3c` et le commit
+correctif `4347c2f`; aucun code ni test modifié.
 
 ## [2026-10-28] Phase 11c-consolidation-v3 — Référence du commit de correction
 
