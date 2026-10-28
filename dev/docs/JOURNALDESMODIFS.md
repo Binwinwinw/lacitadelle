@@ -765,7 +765,7 @@ reste différé au test et redémarrage 11d.
 
 ## [2026-10-27] Phase 11c — Page admin dédiée de changement de modèle
 
-**Commit** : à référencer après création du commit.
+**Commit** : `cedd1e5`
 
 **Fichiers modifiés** : `dev/tools/login_server.py`,
 `dev/tools/web/admin.html`, `dev/tools/web/admin_model.html`,
@@ -779,6 +779,20 @@ section de réglages existante, tout en réutilisant la validation de 11b.
 **Impact** : GET/POST `/admin/model` protégés, template statique avec feedback
 par redirection; le contrat JSON `/api/admin/model` reste inchangé. Cinq tests
 HTTP ajoutés; le chargement runtime et le rollback restent en 11d.
+
+## [2026-10-27] Phase 11c — Référence du commit de la page dédiée
+
+**Commit** : référence consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final de l'implémentation dédiée
+dans les références Phase 11c.
+
+**Impact** : le BACKLOG et l'entrée Phase 11c référencent `cedd1e5`; aucun
+code ni test modifié.
 
 ## [2026-10-27] Phase 11c — Référence du hash d'implémentation
 

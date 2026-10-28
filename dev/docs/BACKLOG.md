@@ -335,7 +335,7 @@ disponibilité et de diagnostic, pas la correction d'une cause prouvée.
 **Tests** : huit tests HTTP couvrent les deux interfaces, les autorisations,
 la lecture du chemin, les soumissions valides et les chemins invalides.
 
-**Statut** : terminé (décisions #54 et #55; commit dédié à référencer).
+**Statut** : terminé (décisions #54 et #55; commit page dédiée `cedd1e5`).
 **Dépendances** : 11b.
 
 #### 11d — Test de chargement + rollback immédiat
