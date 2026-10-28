@@ -332,7 +332,8 @@ disponibilité et de diagnostic, pas la correction d'une cause prouvée.
 au chemin configuré et les contrôles d'accès du POST existant.
 
 **Consolidation 2026-10-28** : page `/admin/model` dédiée (11c v1) retirée
-par le commit de correction, décisions #56; 11c v2 dans `/settings` conservée.
+par le commit de correction `4347c2f`, décision #56; 11c v2 dans `/settings`
+conservée.
 **Statut** : terminé (décision #54, commit `a79d6f3`; consolidation #56).
 **Dépendances** : 11b.
 

@@ -796,7 +796,7 @@ code ni test modifié.
 
 ## [2026-10-28] Phase 11c-consolidation-v3 — Retrait manuel de la page dédiée
 
-**Commit** : à référencer après création du commit.
+**Commit** : `4347c2f`
 
 **Fichiers modifiés** : `.memory/decisions.md`, `dev/docs/BACKLOG.md`,
 `dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`,
@@ -810,6 +810,20 @@ conservant la section `/settings` v2 et son GET admin-only.
 **Impact** : routes et template de page dédiée retirés; `GET /api/settings/model`
 et `POST /api/admin/model` conservés. Les 157 tests v2 passent. Aucun
 `git revert` ni changement des décisions #50–#55.
+
+## [2026-10-28] Phase 11c-consolidation-v3 — Référence du commit de correction
+
+**Commit** : référence consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit de consolidation
+manuelle dans les références 11c.
+
+**Impact** : BACKLOG et journal pointent vers `4347c2f`; aucun code ni test
+modifié.
 
 ## [2026-10-27] Phase 11c — Référence du hash d'implémentation
 
