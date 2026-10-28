@@ -1192,3 +1192,27 @@ aucune API ne retourne le chemin configuré pour l'afficher dans l'interface.
 **Conséquences** : un admin peut enregistrer et consulter le chemin GGUF depuis
 `/settings`. Le runtime ne charge pas ce modèle avant le test et le
 redémarrage prévus en 11d; aucun nouveau POST n'est ajouté.
+
+## [2026-10-27] Page admin dédiée au changement de modèle (extension 11c)
+
+**Contexte** : après livraison de la section 11c dans `/settings` (#54), le
+décideur a demandé une page dédiée `/admin/model` en complément, sans retirer
+ni remplacer l'interface existante.
+
+**Décision(s)** :
+
+1. Ajouter une page statique servie par `GET /admin/model`, protégée par
+   `require_admin()`, et la rendre accessible depuis l'interface admin.
+2. Ajouter `POST /admin/model` pour le formulaire URL-encoded; après succès,
+   rediriger vers la page avec confirmation; après erreur, y rediriger avec un
+   message explicite.
+3. Réutiliser la validation GGUF et l'écriture settings via le helper partagé
+   avec `POST /api/admin/model`; garder inchangé le contrat JSON 11b.
+4. Afficher `current_model_path` via `GET /api/settings/model`; ne pas charger
+   le modèle et ne pas effectuer de rollback dans ce lot.
+5. Ajouter cinq tests HTTP pour la protection, la consultation du chemin, la
+   soumission valide et les erreurs de fichier/extension.
+
+**Conséquences** : l'admin peut accéder à la configuration du modèle depuis
+`/settings` ou la page dédiée `/admin/model`. Le chargement et le rollback
+restent réservés à 11d.

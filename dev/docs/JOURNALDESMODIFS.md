@@ -763,6 +763,23 @@ et nomenclature des commits 11a à 11b-ter précisés. Aucun code ni test modifi
 configuré, POST 11b inchangé; trois tests HTTP ajoutés. Le chargement runtime
 reste différé au test et redémarrage 11d.
 
+## [2026-10-27] Phase 11c — Page admin dédiée de changement de modèle
+
+**Commit** : à référencer après création du commit.
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/admin.html`, `dev/tools/web/admin_model.html`,
+`dev/tests/test_admin_model_page.py`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : ajouter une page d'administration dédiée en complément de la
+section de réglages existante, tout en réutilisant la validation de 11b.
+
+**Impact** : GET/POST `/admin/model` protégés, template statique avec feedback
+par redirection; le contrat JSON `/api/admin/model` reste inchangé. Cinq tests
+HTTP ajoutés; le chargement runtime et le rollback restent en 11d.
+
 ## [2026-10-27] Phase 11c — Référence du hash d'implémentation
 
 **Commit** : identifiant consultable dans l'historique Git (entrée de suivi
