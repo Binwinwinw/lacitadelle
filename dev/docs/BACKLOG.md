@@ -327,15 +327,13 @@ disponibilité et de diagnostic, pas la correction d'une cause prouvée.
   `/api/admin/model`; conserver la validation côté serveur.
 - Afficher le résultat et préciser que le runtime ne prend pas le nouveau
   chemin en compte avant le test de chargement et le redémarrage de 11d.
-- Ajouter en complément la page admin dédiée `/admin/model`, avec GET et POST
-  protégés par `require_admin()`, un formulaire URL-encoded et feedback après
-  redirection. Le POST partage la validation/écriture de 11b sans changer son
-  contrat JSON.
 
-**Tests** : huit tests HTTP couvrent les deux interfaces, les autorisations,
-la lecture du chemin, les soumissions valides et les chemins invalides.
+**Tests** : trois tests HTTP couvrent la présence du formulaire, l'accès admin
+au chemin configuré et les contrôles d'accès du POST existant.
 
-**Statut** : terminé (décisions #54 et #55; commit page dédiée `cedd1e5`).
+**Consolidation 2026-10-28** : page `/admin/model` dédiée (11c v1) retirée
+par le commit de correction, décisions #56; 11c v2 dans `/settings` conservée.
+**Statut** : terminé (décision #54, commit `a79d6f3`; consolidation #56).
 **Dépendances** : 11b.
 
 #### 11d — Test de chargement + rollback immédiat

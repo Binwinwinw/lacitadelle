@@ -1216,3 +1216,24 @@ ni remplacer l'interface existante.
 **Conséquences** : l'admin peut accéder à la configuration du modèle depuis
 `/settings` ou la page dédiée `/admin/model`. Le chargement et le rollback
 restent réservés à 11d.
+
+## [2026-10-28] Consolidation 11c : retrait de la page /admin/model dédiée
+
+**Contexte** : par confusion entre 11c v1 (page `/admin/model`, commits
+`cedd1e5` et `2864b3c`) et 11c v2 (section `/settings`, commits `a79d6f3` et
+`4cb2926`), les deux interfaces ont été livrées. Les changements v1
+chevauchaient des fichiers v2, rendant un revert Git direct risqué; une
+correction manuelle est retenue.
+
+**Décision(s)** :
+
+1. Retirer la page dédiée `/admin/model` de 11c v1 par un nouveau commit de
+   correction, sans réécrire l'historique et sans `git revert`.
+2. Conserver intacte 11c v2 : section de changement de modèle dans `/settings`
+   et `GET /api/settings/model`.
+3. Garder `/settings` comme source unique de l'interface de changement de
+   modèle; toute évolution 11d/11e/11f porte sur cette section.
+
+**Conséquences** : le code de la page dédiée est retiré; les commits v1 restent
+dans l'historique, mais leur fonctionnalité est annulée par le commit de
+correction. Une seule interface est maintenue.

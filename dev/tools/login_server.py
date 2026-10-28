@@ -32,7 +32,7 @@ from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from citadelle_memory import (
@@ -99,18 +99,6 @@ SESSION_EXPIRY: dict[str, float] = {}
 
 class LoginError(Exception):
     """Erreur attendue du serveur de login."""
-
-
-class ModelPathError(ValueError):
-    """Erreur attendue lors de la validation ou de l'enregistrement d'un GGUF."""
-
-    def __init__(
-        self,
-        message: str,
-        status: int = HTTPStatus.BAD_REQUEST,
-    ) -> None:
-        super().__init__(message)
-        self.status = status
 
 
 def generate_temp_password() -> str:
@@ -363,13 +351,6 @@ def handle_get_admin(handler: BaseHTTPRequestHandler) -> None:
     if require_admin(handler) is None:
         return
     serve_static(handler, "admin.html")
-
-
-def handle_get_admin_model_page(handler: BaseHTTPRequestHandler) -> None:
-    """GET /admin/model : sert la page dédiée de configuration du modèle."""
-    if require_admin(handler) is None:
-        return
-    serve_static(handler, "admin_model.html")
 
 
 def handle_get_api_me(handler: BaseHTTPRequestHandler) -> None:
@@ -1058,9 +1039,57 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
         return
 
     try:
-        path, size_bytes = save_model_path(model_path)
-    except ModelPathError as exc:
-        error_response(handler, str(exc), exc.status)
+        path = Path(model_path.strip()).expanduser().resolve(strict=True)
+    except (OSError, RuntimeError, ValueError):
+        error_response(
+            handler,
+            "Fichier GGUF introuvable ou inaccessible",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if path.suffix.lower() != ".gguf":
+        error_response(
+            handler,
+            "Extension .gguf requise",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    try:
+        if not path.is_file():
+            error_response(
+                handler,
+                "Le chemin doit désigner un fichier GGUF",
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+        size_bytes = path.stat().st_size
+    except OSError:
+        error_response(
+            handler,
+            "Fichier GGUF introuvable ou inaccessible",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if size_bytes <= 0:
+        error_response(handler, "Fichier GGUF vide", HTTPStatus.BAD_REQUEST)
+        return
+
+    try:
+        set_setting(
+            "current_model_path",
+            str(path),
+            db_path=MEMORY_DB_PATH,
+        )
+    except (OSError, sqlite3.Error) as exc:
+        sys.stderr.write(
+            "[model] Model path setting was not saved "
+            f"({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Impossible d'enregistrer le chemin du modèle",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
         return
 
     json_response(
@@ -1075,72 +1104,6 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
             ),
         },
     )
-
-
-def save_model_path(model_path: str) -> tuple[Path, int]:
-    """Valide et enregistre un GGUF; partagé par les routes UI et API."""
-    if not model_path.strip():
-        raise ModelPathError("model_path requis")
-    try:
-        path = Path(model_path.strip()).expanduser().resolve(strict=True)
-    except (OSError, RuntimeError, ValueError):
-        raise ModelPathError(
-            "Fichier GGUF introuvable ou inaccessible"
-        ) from None
-    if path.suffix.lower() != ".gguf":
-        raise ModelPathError("Extension .gguf requise")
-    try:
-        if not path.is_file():
-            raise ModelPathError("Le chemin doit désigner un fichier GGUF")
-        size_bytes = path.stat().st_size
-    except OSError:
-        raise ModelPathError(
-            "Fichier GGUF introuvable ou inaccessible"
-        ) from None
-    if size_bytes <= 0:
-        raise ModelPathError("Fichier GGUF vide")
-
-    try:
-        set_setting(
-            "current_model_path",
-            str(path),
-            db_path=MEMORY_DB_PATH,
-        )
-    except (OSError, sqlite3.Error) as exc:
-        sys.stderr.write(
-            "[model] Model path setting was not saved "
-            f"({type(exc).__name__})\n"
-        )
-        raise ModelPathError(
-            "Impossible d'enregistrer le chemin du modèle",
-            HTTPStatus.INTERNAL_SERVER_ERROR,
-        ) from exc
-    return path, size_bytes
-
-
-def handle_post_admin_model_page(handler: BaseHTTPRequestHandler) -> None:
-    """POST /admin/model : traite le formulaire de la page dédiée."""
-    if require_admin(handler) is None:
-        return
-    try:
-        content_length = int(handler.headers.get("Content-Length", "0"))
-        form = parse_qs(
-            _read_post_body(handler, content_length).decode("utf-8")
-        )
-    except (ValueError, UnicodeDecodeError):
-        location = "/admin/model?" + urlencode(
-            {"error": "Requête de formulaire invalide"}
-        )
-        redirect(handler, location)
-        return
-    model_path = form.get("model_path", [""])[0]
-    try:
-        save_model_path(model_path)
-    except ModelPathError as exc:
-        location = "/admin/model?" + urlencode({"error": str(exc)})
-        redirect(handler, location)
-        return
-    redirect(handler, "/admin/model?saved=1")
 
 
 def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
@@ -1687,8 +1650,6 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_change_password(self)
             elif path == "/settings":
                 handle_get_settings(self)
-            elif path == "/admin/model":
-                handle_get_admin_model_page(self)
             elif path == "/admin":
                 handle_get_admin(self)
             elif path == "/":
@@ -1762,8 +1723,6 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_change_password(self)
             elif path == "/settings/preferences":
                 handle_post_settings_preferences(self)
-            elif path == "/admin/model":
-                handle_post_admin_model_page(self)
             elif path == "/api/admin/users":
                 handle_post_api_admin_users_create(self)
             elif path == "/api/admin/model":
