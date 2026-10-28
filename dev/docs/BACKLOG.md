@@ -331,7 +331,7 @@ disponibilité et de diagnostic, pas la correction d'une cause prouvée.
 **Tests** : trois tests HTTP couvrent la présence du formulaire, l'accès admin
 au chemin configuré et les contrôles d'accès du POST existant.
 
-**Statut** : terminé (décision #54; commit à référencer après création).
+**Statut** : terminé (décision #54, commit `a79d6f3`).
 **Dépendances** : 11b.
 
 #### 11d — Test de chargement + rollback immédiat

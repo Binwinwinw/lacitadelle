@@ -748,7 +748,7 @@ et nomenclature des commits 11a à 11b-ter précisés. Aucun code ni test modifi
 
 ## [2026-10-27] Phase 11c — Section UI de changement de modèle
 
-**Commit** : à référencer après création du commit.
+**Commit** : `a79d6f3`
 
 **Fichiers modifiés** : `dev/tools/web/settings.html`,
 `dev/tools/login_server.py`, `dev/tests/test_settings_ui.py`,
@@ -762,3 +762,17 @@ et nomenclature des commits 11a à 11b-ter précisés. Aucun code ni test modifi
 **Impact** : section UI masquée hors admin, GET admin-only pour le chemin
 configuré, POST 11b inchangé; trois tests HTTP ajoutés. Le chargement runtime
 reste différé au test et redémarrage 11d.
+
+## [2026-10-27] Phase 11c — Référence du hash d'implémentation
+
+**Commit** : identifiant consultable dans l'historique Git (entrée de suivi
+du hash du commit `a79d6f3`).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit d'implémentation
+Phase 11c dans ses références documentaires.
+
+**Impact** : BACKLOG et journal pointent vers `a79d6f3`; aucun code ni test
+modifié.
