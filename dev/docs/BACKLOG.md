@@ -361,17 +361,25 @@ llamafile (décision #58); isolation et test de non-régression de
 **Statut** : terminé (décisions #57–#59; commit initial `7a13c19`).
 **Dépendances** : 11b et 11c.
 
-#### 11e — Whitelist + `MODELES_COMPATIBLES.md`
+#### 11e — Whitelist configurable (V1)
 
 **Périmètre** :
 
-- Documenter 5 à 10 modèles testés : nom, taille, prérequis, template et URL.
-- Ajouter `is_whitelisted(model_path)`, comparant le nom de fichier ou le
-  SHA-256 selon la source de la liste.
-- Afficher un avertissement pour un modèle hors liste; le test de chargement
-  reste obligatoire dans tous les cas.
+- Stocker `allowed_models` en JSON dans `settings`; l'absence de valeur
+  équivaut à une liste vide.
+- Restreindre `POST /api/admin/model` aux chemins GGUF autorisés, après la
+  validation GGUF existante.
+- Exposer la liste par GET et permettre aux admins de la gérer par POST et
+  depuis `/settings`.
+- Valider les fichiers ajoutés (existants, `.gguf`, non vides) et refuser
+  toute sélection hors whitelist.
 
-**Statut** : à implémenter.
+**Hors périmètre de cette V1** : catalogue `MODELES_COMPATIBLES.md` et
+validation par nom de fichier ou empreinte; ils nécessitent un GO distinct.
+
+**Tests** : six tests ajoutés; 171 tests au total.
+
+**Statut** : terminé (décision #60; commit à référencer après création).
 **Dépendances** : 11d.
 
 #### 11f — E2E + filet au démarrage
@@ -390,9 +398,6 @@ llamafile (décision #58); isolation et test de non-régression de
 
 **Questions ouvertes à traiter pendant la Phase 11** :
 
-- **11e — Whitelist** : modèles retenus, empreintes de référence, compatibilité
-  des templates/contexte et disponibilité locale des GGUF alternatifs sans
-  gestionnaire de téléchargement.
 - **11f — Rollback** : mécanisme de surveillance du démarrage suivant et
   déclenchement du retour au modèle précédent.
 

@@ -66,6 +66,20 @@
                     relancez lancer.bat.
                 </p>
             </section>
+            <section id="allowed-models-section" class="settings-section"
+                     aria-labelledby="allowed-models-heading" hidden>
+                <h2 id="allowed-models-heading">Modèles autorisés</h2>
+                <p>Seuls les GGUF de cette liste peuvent être sélectionnés.</p>
+                <form id="allowed-models-form" class="settings-form">
+                    <label for="allowed-model-path">Chemin du fichier GGUF</label>
+                    <input type="text" id="allowed-model-path"
+                           name="model_path" required>
+                    <button type="submit" class="settings-save">Ajouter</button>
+                </form>
+                <ul id="allowed-models-list"></ul>
+                <p id="allowed-models-status" class="settings-status"
+                   role="status" aria-live="polite"></p>
+            </section>
             <section id="user-indicators-section" class="settings-section"
                      aria-labelledby="user-indicators-heading" hidden>
                 <div class="indicator-heading">
@@ -126,6 +140,21 @@
         const modelCurrent = document.getElementById("model-current");
         const modelStatus = document.getElementById("model-status");
         const modelLoadStatus = document.getElementById("model-load-status");
+        const allowedModelsSection = document.getElementById(
+            "allowed-models-section",
+        );
+        const allowedModelsForm = document.getElementById(
+            "allowed-models-form",
+        );
+        const allowedModelPathInput = document.getElementById(
+            "allowed-model-path",
+        );
+        const allowedModelsList = document.getElementById(
+            "allowed-models-list",
+        );
+        const allowedModelsStatus = document.getElementById(
+            "allowed-models-status",
+        );
         const userIndicatorsSection = document.getElementById(
             "user-indicators-section",
         );
@@ -143,6 +172,7 @@
         const userLogsStatus = document.getElementById("user-logs-status");
         let logsInterval = null;
         let indicatorsInterval = null;
+        let allowedModels = [];
 
         function applyPreferences(preferences) {
             document.documentElement.dataset.theme = preferences.theme;
@@ -190,10 +220,12 @@
                 const isAdmin = user.role === "admin";
                 adminLink.hidden = !isAdmin;
                 modelSection.hidden = !isAdmin;
+                allowedModelsSection.hidden = !isAdmin;
                 userIndicatorsSection.hidden = isAdmin;
                 userLogsSection.hidden = isAdmin;
                 if (isAdmin) {
                     loadCurrentModel();
+                    loadAllowedModels();
                 } else {
                     startIndicatorsPolling();
                     startLogsPolling();
@@ -223,6 +255,97 @@
             } catch (error) {
                 modelStatus.textContent =
                     `Erreur de chargement du modèle : ${error.message}`;
+            }
+        }
+
+        function renderAllowedModels() {
+            allowedModelsList.replaceChildren();
+            if (allowedModels.length === 0) {
+                const item = document.createElement("li");
+                item.textContent = "Aucun modèle autorisé.";
+                allowedModelsList.appendChild(item);
+                return;
+            }
+            for (const modelPath of allowedModels) {
+                const item = document.createElement("li");
+                const path = document.createElement("code");
+                path.textContent = modelPath;
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "settings-save";
+                removeButton.textContent = "Retirer";
+                removeButton.addEventListener("click", () => {
+                    saveAllowedModels(
+                        allowedModels.filter((allowedPath) => (
+                            allowedPath !== modelPath
+                        )),
+                    );
+                });
+                item.append(path, " ", removeButton);
+                allowedModelsList.appendChild(item);
+            }
+        }
+
+        async function loadAllowedModels() {
+            try {
+                const response = await fetch(
+                    "/api/settings/allowed_models",
+                    { credentials: "same-origin" },
+                );
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                const result = await response.json();
+                if (!response.ok) {
+                    allowedModelsStatus.textContent =
+                        result.error || "Erreur de chargement des modèles.";
+                    return;
+                }
+                if (!Array.isArray(result.models)) {
+                    throw new Error("Liste des modèles invalide.");
+                }
+                allowedModels = result.models;
+                renderAllowedModels();
+            } catch (error) {
+                allowedModelsStatus.textContent =
+                    `Erreur de chargement des modèles : ${error.message}`;
+            }
+        }
+
+        async function saveAllowedModels(models) {
+            allowedModelsStatus.textContent = "";
+            try {
+                const response = await fetch(
+                    "/api/settings/allowed_models",
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ models }),
+                        credentials: "same-origin",
+                    },
+                );
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return false;
+                }
+                const result = await response.json();
+                if (!response.ok) {
+                    allowedModelsStatus.textContent =
+                        result.error || "Erreur d'enregistrement des modèles.";
+                    return false;
+                }
+                if (!Array.isArray(result.models)) {
+                    throw new Error("Liste des modèles invalide.");
+                }
+                allowedModels = result.models;
+                renderAllowedModels();
+                allowedModelsStatus.textContent = "Liste enregistrée.";
+                return true;
+            } catch (error) {
+                allowedModelsStatus.textContent =
+                    `Erreur réseau : ${error.message}`;
+                return false;
             }
         }
 
@@ -417,6 +540,19 @@
                 modelStatus.textContent = `Erreur réseau : ${error.message}`;
             } finally {
                 button.disabled = false;
+            }
+        });
+
+        allowedModelsForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const modelPath = allowedModelPathInput.value.trim();
+            if (allowedModels.includes(modelPath)) {
+                allowedModelsStatus.textContent =
+                    "Ce modèle est déjà autorisé.";
+                return;
+            }
+            if (await saveAllowedModels([...allowedModels, modelPath])) {
+                allowedModelPathInput.value = "";
             }
         });
 

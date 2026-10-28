@@ -927,3 +927,18 @@ qui ne peut pas s'auto-référencer.
 
 **Impact** : les entrées 11d-ter et 11d-quater pointent vers `2067dbf`;
 aucun code ni test modifié.
+
+## [2026-10-28] Phase 11e — Whitelist configurable de modèles (V1)
+
+**Commit** : hash final à référencer après création.
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/settings.html`, `dev/tests/test_admin_model.py`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : permettre à l'admin de gérer les chemins GGUF autorisés et
+refuser les chemins valides mais absents de la whitelist.
+
+**Impact** : validation GGUF existante conservée avant le contrôle
+d'autorisation; 6 tests ajoutés, 171 tests passent.

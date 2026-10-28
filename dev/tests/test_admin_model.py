@@ -50,6 +50,30 @@ def _post_model(opener, base_url, token, payload):
     return open_no_redirect(opener, request)
 
 
+def _get_allowed_models(opener, base_url, token):
+    headers = {}
+    if token is not None:
+        headers["Cookie"] = f"{SESSION_COOKIE_NAME}={token}"
+    request = Request(
+        f"{base_url}/api/settings/allowed_models",
+        headers=headers,
+    )
+    return open_no_redirect(opener, request)
+
+
+def _post_allowed_models(opener, base_url, token, payload):
+    headers = {"Content-Type": "application/json"}
+    if token is not None:
+        headers["Cookie"] = f"{SESSION_COOKIE_NAME}={token}"
+    request = Request(
+        f"{base_url}/api/settings/allowed_models",
+        data=json.dumps(payload).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    return open_no_redirect(opener, request)
+
+
 def _create_admin(db_path: Path) -> str:
     create_test_user(
         db_path,
@@ -90,6 +114,11 @@ def test_set_model_valid_path_saves_resolved_path():
         with tempfile.TemporaryDirectory() as temp_dir:
             model_path = Path(temp_dir) / "model.gguf"
             model_path.write_bytes(b"gguf")
+            citadelle_memory.set_setting(
+                "allowed_models",
+                json.dumps([str(model_path.resolve())]),
+                db_path=db_path,
+            )
 
             with _post_model(
                 opener,
@@ -190,6 +219,11 @@ def test_post_mirrors_path_and_first_manual_rollback_uses_default():
             model_path = Path(temp_dir) / "model.gguf"
             model_path.write_bytes(b"gguf")
             model_file = Path(temp_dir) / "dist" / ".current_model"
+            citadelle_memory.set_setting(
+                "allowed_models",
+                json.dumps([str(model_path.resolve())]),
+                db_path=db_path,
+            )
             with (
                 patch.object(login_server, "CURRENT_MODEL_FILE", model_file),
                 patch.object(model_health, "CURRENT_MODEL_FILE", model_file),
@@ -239,6 +273,13 @@ def test_post_updates_previous_model_path_after_prior_post():
             citadelle_memory.set_setting(
                 "current_model_path",
                 str(old_path.resolve()),
+                db_path=db_path,
+            )
+            citadelle_memory.set_setting(
+                "allowed_models",
+                json.dumps(
+                    [str(new_path.resolve()), str(latest_path.resolve())]
+                ),
                 db_path=db_path,
             )
             model_file = Path(temp_dir) / "dist" / ".current_model"
@@ -302,6 +343,11 @@ def test_invalid_post_or_write_failure_preserves_model_state():
             missing_path = Path(temp_dir) / "missing.gguf"
             valid_path = Path(temp_dir) / "valid.gguf"
             valid_path.write_bytes(b"gguf")
+            citadelle_memory.set_setting(
+                "allowed_models",
+                json.dumps([str(valid_path.resolve())]),
+                db_path=db_path,
+            )
             original_write_text = Path.write_text
 
             def fail_mirror_write(target, data, *args, **kwargs):
@@ -358,6 +404,224 @@ def test_invalid_post_or_write_failure_preserves_model_state():
         ) == previous_path
 
 
+def test_post_rejects_when_whitelist_empty():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        token = login_as(opener, base_url, admin, "secret123")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model_path = Path(temp_dir) / "model.gguf"
+            model_path.write_bytes(b"gguf")
+            with _post_model(
+                opener,
+                base_url,
+                token,
+                {"model_path": str(model_path)},
+            ) as response:
+                assert response.code == 400
+                assert "aucun modèle autorisé" in json.loads(
+                    response.read()
+                )["error"].lower()
+
+        assert citadelle_memory.get_setting(
+            "current_model_path",
+            db_path=db_path,
+        ) is None
+
+
+def test_post_accepts_path_in_whitelist():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        token = login_as(opener, base_url, admin, "secret123")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            allowed_path = Path(temp_dir) / "allowed.gguf"
+            other_path = Path(temp_dir) / "other.gguf"
+            allowed_path.write_bytes(b"gguf")
+            other_path.write_bytes(b"gguf")
+            allowed_path_variant = str(allowed_path.resolve()).replace(
+                "\\",
+                "/",
+            )
+            citadelle_memory.set_setting(
+                "allowed_models",
+                json.dumps(
+                    [allowed_path_variant, str(other_path.resolve())]
+                ),
+                db_path=db_path,
+            )
+
+            with _post_model(
+                opener,
+                base_url,
+                token,
+                {"model_path": str(allowed_path)},
+            ) as response:
+                assert response.code == 200
+
+            assert citadelle_memory.get_setting(
+                "current_model_path",
+                db_path=db_path,
+            ) == str(allowed_path.resolve())
+
+
+def test_post_rejects_path_not_in_whitelist():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        token = login_as(opener, base_url, admin, "secret123")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            allowed_path = Path(temp_dir) / "allowed.gguf"
+            rejected_path = Path(temp_dir) / "rejected.gguf"
+            allowed_path.write_bytes(b"gguf")
+            rejected_path.write_bytes(b"gguf")
+            citadelle_memory.set_setting(
+                "allowed_models",
+                json.dumps([str(allowed_path.resolve())]),
+                db_path=db_path,
+            )
+
+            with _post_model(
+                opener,
+                base_url,
+                token,
+                {"model_path": str(rejected_path)},
+            ) as response:
+                assert response.code == 400
+                assert "chemin non autorisé" in json.loads(
+                    response.read()
+                )["error"].lower()
+
+        assert citadelle_memory.get_setting(
+            "current_model_path",
+            db_path=db_path,
+        ) is None
+
+
+def test_post_rejects_invalid_path_regardless_of_whitelist():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        token = login_as(opener, base_url, admin, "secret123")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            invalid_path = Path(temp_dir) / "missing.gguf"
+            citadelle_memory.set_setting(
+                "allowed_models",
+                json.dumps([str(invalid_path)]),
+                db_path=db_path,
+            )
+
+            with _post_model(
+                opener,
+                base_url,
+                token,
+                {"model_path": str(invalid_path)},
+            ) as response:
+                assert response.code == 400
+                assert "gguf introuvable" in json.loads(
+                    response.read()
+                )["error"].lower()
+
+
+def test_get_allowed_models_returns_list():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        admin_token = login_as(opener, base_url, admin, "secret123")
+        create_test_user(db_path, "alice", "secret123")
+        user_token = login_as(opener, base_url, "alice", "secret123")
+
+        with _get_allowed_models(opener, base_url, None) as response:
+            assert response.code == 401
+        with _get_allowed_models(opener, base_url, user_token) as response:
+            assert response.code == 403
+        with _get_allowed_models(
+            opener,
+            base_url,
+            admin_token,
+        ) as response:
+            assert response.code == 200
+            assert json.loads(response.read()) == {"models": []}
+
+        models = [r"C:\models\one.gguf", r"C:\models\two.gguf"]
+        citadelle_memory.set_setting(
+            "allowed_models",
+            json.dumps(models),
+            db_path=db_path,
+        )
+        with _get_allowed_models(
+            opener,
+            base_url,
+            admin_token,
+        ) as response:
+            assert response.code == 200
+            assert json.loads(response.read()) == {"models": models}
+
+
+def test_post_allowed_models_validates_and_saves_paths():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        token = login_as(opener, base_url, admin, "secret123")
+        create_test_user(db_path, "alice", "secret123")
+        user_token = login_as(opener, base_url, "alice", "secret123")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model_path = Path(temp_dir) / "model.gguf"
+            text_path = Path(temp_dir) / "model.txt"
+            empty_path = Path(temp_dir) / "empty.gguf"
+            missing_path = Path(temp_dir) / "missing.gguf"
+            model_path.write_bytes(b"gguf")
+            text_path.write_text("not a GGUF", encoding="utf-8")
+            empty_path.touch()
+
+            with _post_allowed_models(
+                opener,
+                base_url,
+                None,
+                {"models": [str(model_path)]},
+            ) as response:
+                assert response.code == 401
+
+            with _post_allowed_models(
+                opener,
+                base_url,
+                user_token,
+                {"models": [str(model_path)]},
+            ) as response:
+                assert response.code == 403
+
+            with _post_allowed_models(
+                opener,
+                base_url,
+                token,
+                {"models": [str(model_path)]},
+            ) as response:
+                assert response.code == 200
+                expected_models = [str(model_path.resolve())]
+                assert json.loads(response.read()) == {
+                    "models": expected_models
+                }
+
+            assert citadelle_memory.get_setting(
+                "allowed_models",
+                db_path=db_path,
+            ) == json.dumps(expected_models)
+
+            for invalid_path in (missing_path, text_path, empty_path):
+                with _post_allowed_models(
+                    opener,
+                    base_url,
+                    token,
+                    {"models": [str(invalid_path)]},
+                ) as response:
+                    assert response.code == 400
+                    assert "gguf" in json.loads(response.read())["error"].lower()
+                assert citadelle_memory.get_setting(
+                    "allowed_models",
+                    db_path=db_path,
+                ) == json.dumps(expected_models)
+
+
 def run_all():
     tests = [
         test_set_model_requires_admin,
@@ -368,6 +632,12 @@ def run_all():
         test_post_mirrors_path_and_first_manual_rollback_uses_default,
         test_post_updates_previous_model_path_after_prior_post,
         test_invalid_post_or_write_failure_preserves_model_state,
+        test_post_rejects_when_whitelist_empty,
+        test_post_accepts_path_in_whitelist,
+        test_post_rejects_path_not_in_whitelist,
+        test_post_rejects_invalid_path_regardless_of_whitelist,
+        test_get_allowed_models_returns_list,
+        test_post_allowed_models_validates_and_saves_paths,
     ]
     for test in tests:
         test()

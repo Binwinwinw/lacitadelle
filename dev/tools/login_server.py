@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import secrets
 import sqlite3
@@ -58,6 +59,7 @@ from citadelle_memory import (
     migrate_to_v6,
     record_inference,
     set_preferences,
+    set_setting,
     verify_password,
 )
 from model_health import CURRENT_MODEL_FILE
@@ -397,6 +399,115 @@ def handle_get_api_settings_model(handler: BaseHTTPRequestHandler) -> None:
         )
         return
     json_response(handler, {"current_model_path": model_path})
+
+
+def _normalized_model_path(model_path: str) -> str:
+    return os.path.normcase(os.path.normpath(model_path))
+
+
+def _get_allowed_models() -> list[str]:
+    raw_models = get_setting("allowed_models", db_path=MEMORY_DB_PATH)
+    if raw_models is None:
+        return []
+    models = json.loads(raw_models)
+    if not isinstance(models, list) or any(
+        not isinstance(model_path, str) for model_path in models
+    ):
+        raise ValueError("allowed_models must be a JSON array of strings")
+    return models
+
+
+def handle_get_api_settings_allowed_models(
+    handler: BaseHTTPRequestHandler,
+) -> None:
+    """GET /api/settings/allowed_models : liste les modèles autorisés."""
+    if require_admin(handler) is None:
+        return
+    try:
+        models = _get_allowed_models()
+    except (sqlite3.Error, ValueError) as exc:
+        sys.stderr.write(
+            "[model] Allowed model list could not be read "
+            f"({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Impossible de lire la liste des modèles autorisés",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+    json_response(handler, {"models": models})
+
+
+def handle_post_api_settings_allowed_models(
+    handler: BaseHTTPRequestHandler,
+) -> None:
+    """POST /api/settings/allowed_models : remplace la liste autorisée."""
+    if require_admin(handler) is None:
+        return
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+        payload = json.loads(
+            _read_post_body(handler, content_length).decode("utf-8")
+        )
+    except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+        error_response(handler, "Requête JSON invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if not isinstance(payload, dict) or not isinstance(
+        payload.get("models"), list
+    ):
+        error_response(
+            handler,
+            "models doit être une liste de chemins GGUF",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+
+    models: list[str] = []
+    seen_paths: set[str] = set()
+    for model_path in payload["models"]:
+        if not isinstance(model_path, str) or not model_path.strip():
+            error_response(
+                handler,
+                "Chaque modèle doit être un fichier GGUF valide",
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+        try:
+            path = Path(model_path.strip()).expanduser().resolve(strict=True)
+            if (
+                path.suffix.lower() != ".gguf"
+                or not path.is_file()
+                or path.stat().st_size <= 0
+            ):
+                raise ValueError("not a non-empty GGUF file")
+        except (OSError, RuntimeError, ValueError):
+            error_response(
+                handler,
+                "Chaque modèle doit être un fichier GGUF existant et non vide",
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+        resolved_path = str(path)
+        normalized_path = _normalized_model_path(resolved_path)
+        if normalized_path not in seen_paths:
+            models.append(resolved_path)
+            seen_paths.add(normalized_path)
+
+    try:
+        set_setting("allowed_models", json.dumps(models), db_path=MEMORY_DB_PATH)
+    except sqlite3.Error as exc:
+        sys.stderr.write(
+            "[model] Allowed model list could not be saved "
+            f"({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Impossible d'enregistrer la liste des modèles autorisés",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+    json_response(handler, {"models": models})
 
 
 def handle_get_api_admin_users(handler: BaseHTTPRequestHandler) -> None:
@@ -1075,6 +1186,37 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
         return
 
     try:
+        allowed_models = _get_allowed_models()
+    except (sqlite3.Error, ValueError) as exc:
+        sys.stderr.write(
+            "[model] Allowed model list could not be read "
+            f"({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Impossible de lire la liste des modèles autorisés",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+    if not allowed_models:
+        error_response(
+            handler,
+            "Aucun modèle autorisé",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if _normalized_model_path(str(path)) not in {
+        _normalized_model_path(allowed_path)
+        for allowed_path in allowed_models
+    }:
+        error_response(
+            handler,
+            "Chemin non autorisé par la liste des modèles",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+
+    try:
         try:
             previous_mirror = CURRENT_MODEL_FILE.read_bytes()
         except FileNotFoundError:
@@ -1726,6 +1868,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_api_me(self)
             elif path == "/api/settings/model":
                 handle_get_api_settings_model(self)
+            elif path == "/api/settings/allowed_models":
+                handle_get_api_settings_allowed_models(self)
             elif path == "/api/admin/users":
                 handle_get_api_admin_users(self)
             elif path == "/api/logs/tail":
@@ -1781,6 +1925,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_api_admin_users_create(self)
             elif path == "/api/admin/model":
                 handle_post_api_admin_model(self)
+            elif path == "/api/settings/allowed_models":
+                handle_post_api_settings_allowed_models(self)
             elif path == "/logout":
                 handle_post_logout(self)
             elif path == "/api/sessions":

@@ -1312,3 +1312,30 @@ le miroir réel.
 
 **Conséquences** : les tests préservent le miroir présent avant leur exécution
 et détectent sa pollution par un chemin temporaire.
+
+## [2026-10-28] Whitelist modèles autorisés (Phase 11e)
+
+**Contexte** : `POST /api/admin/model` acceptait tout chemin GGUF valide.
+Une liste d'autorisation configurable est nécessaire pour limiter les
+modèles sélectionnables aux fichiers approuvés par l'admin.
+
+**Décision(s)** :
+
+1. Stocker `allowed_models` dans `settings` sous forme de tableau JSON de
+   chemins absolus; en l'absence de valeur, la liste est vide.
+2. Dans `POST /api/admin/model`, conserver la validation GGUF existante et
+   vérifier ensuite que le chemin normalisé figure dans la whitelist.
+3. Une whitelist vide refuse tout modèle; l'admin doit ajouter explicitement
+   au moins un chemin.
+4. Ajouter `GET /api/settings/allowed_models`, réservé aux admins, pour lire
+   la liste.
+5. Ajouter `POST /api/settings/allowed_models`, réservé aux admins, pour
+   valider, ajouter ou retirer des chemins GGUF.
+6. Dans `/settings`, afficher aux admins la liste avec commandes d'ajout et
+   de retrait et un statut accessible.
+7. Ajouter six tests couvrant whitelist vide, acceptation, refus, priorité de
+   la validation GGUF, accès GET et validation/persistance du POST.
+
+**Conséquences** : seuls les chemins explicitement autorisés peuvent être
+sélectionnés; une whitelist vide est fail-closed. Cette V1 ne fournit pas de
+catalogue de modèles ni de validation par empreinte.
