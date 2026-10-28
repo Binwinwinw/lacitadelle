@@ -9,7 +9,7 @@ mozilla-ai/llamafile.
 
 ## État actuel
 
-V3.0 fonctionnelle localement. 154 tests permanents. `install.bat` télécharge
+V3.0 fonctionnelle localement. 157 tests permanents. `install.bat` télécharge
 llamafile-thin et le GGUF; `lancer.bat` démarre le runtime et le proxy. La
 distribution V3 est `lacitadelle-distribution.zip`, sans Git ni binaires
 intégrés. V3.0/V3.1 désignent les versions du périmètre d'authentification.
@@ -45,7 +45,7 @@ Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
 3. **AGENTS.md** : comprendre les règles de collaboration (9 règles structurelles).
 4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 11b-bis).
 5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
-6. **.memory/decisions.md** : comprendre les décisions actées (53 décisions datées).
+6. **.memory/decisions.md** : comprendre les décisions actées (54 décisions datées).
 7. **dev/docs/JOURNALDEBORD.md / dev/docs/JOURNALDESMODIFS.md** : consulter la chronologie des sessions et la synthèse par commit.
 8. **TODO.md** (local, gitignoré, si présent) : consulter le pense-bête immédiat du décideur.
 9. **CHANGELOG.md** : suivre ses pointeurs vers les documents d'historique.

@@ -745,3 +745,20 @@ non auto-référençable).
 **Impact** : compteurs et progression documentaire actualisés; questions
 résolues retirées du BACKLOG; origine des données de test reformulée; hashes
 et nomenclature des commits 11a à 11b-ter précisés. Aucun code ni test modifié.
+
+## [2026-10-27] Phase 11c — Section UI de changement de modèle
+
+**Commit** : à référencer après création du commit.
+
+**Fichiers modifiés** : `dev/tools/web/settings.html`,
+`dev/tools/login_server.py`, `dev/tests/test_settings_ui.py`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` a été mis à jour localement et reste gitignoré.
+
+**Raison** : permettre à un admin de configurer le chemin du modèle depuis
+`/settings` et de consulter la valeur enregistrée, en réutilisant le POST 11b.
+
+**Impact** : section UI masquée hors admin, GET admin-only pour le chemin
+configuré, POST 11b inchangé; trois tests HTTP ajoutés. Le chargement runtime
+reste différé au test et redémarrage 11d.

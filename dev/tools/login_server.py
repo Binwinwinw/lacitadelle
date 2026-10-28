@@ -43,6 +43,7 @@ from citadelle_memory import (
     ensure_default_user,
     ensure_admin_exists,
     generate_strong_password,
+    get_setting,
     get_messages,
     get_messages_for_user,
     get_preferences,
@@ -373,6 +374,29 @@ def handle_get_api_me(handler: BaseHTTPRequestHandler) -> None:
         error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
         return
     json_response(handler, {"username": user["username"], "role": user["role"]})
+
+
+def handle_get_api_settings_model(handler: BaseHTTPRequestHandler) -> None:
+    """GET /api/settings/model : retourne le chemin du modèle aux admins."""
+    if require_admin(handler) is None:
+        return
+    try:
+        model_path = get_setting(
+            "current_model_path",
+            db_path=MEMORY_DB_PATH,
+        )
+    except sqlite3.Error as exc:
+        sys.stderr.write(
+            "[model] Model path setting could not be read "
+            f"({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Impossible de lire la configuration du modèle",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+    json_response(handler, {"current_model_path": model_path})
 
 
 def handle_get_api_admin_users(handler: BaseHTTPRequestHandler) -> None:
@@ -1646,6 +1670,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_preferences(self)
             elif path == "/api/me":
                 handle_get_api_me(self)
+            elif path == "/api/settings/model":
+                handle_get_api_settings_model(self)
             elif path == "/api/admin/users":
                 handle_get_api_admin_users(self)
             elif path == "/api/logs/tail":

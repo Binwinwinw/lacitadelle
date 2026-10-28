@@ -44,6 +44,26 @@
                 <p id="settings-status" class="settings-status" role="status"
                    aria-live="polite"></p>
             </section>
+            <section id="model-section" class="settings-section"
+                     aria-labelledby="model-heading" hidden>
+                <h2 id="model-heading">Changer de modèle</h2>
+                <p>Chemin GGUF configuré :
+                    <code id="model-current">(non chargé)</code>
+                </p>
+                <form id="model-form" class="settings-form">
+                    <label for="model-path">Chemin GGUF (absolu)</label>
+                    <input type="text" id="model-path" name="model_path"
+                           placeholder="C:\chemin\vers\modele.gguf" required>
+                    <button type="submit" class="settings-save">
+                        Enregistrer
+                    </button>
+                </form>
+                <p id="model-status" class="settings-status" role="status"
+                   aria-live="polite"></p>
+                <p>Le chemin sera enregistré, mais le nouveau modèle ne sera
+                    pas appliqué au runtime avant le test de chargement et le
+                    redémarrage prévus en 11d.</p>
+            </section>
             <section id="user-indicators-section" class="settings-section"
                      aria-labelledby="user-indicators-heading" hidden>
                 <div class="indicator-heading">
@@ -98,6 +118,11 @@
         const themeSelect = document.getElementById("theme");
         const fontSizeSelect = document.getElementById("font-size");
         const adminLink = document.getElementById("admin-link");
+        const modelSection = document.getElementById("model-section");
+        const modelForm = document.getElementById("model-form");
+        const modelPathInput = document.getElementById("model-path");
+        const modelCurrent = document.getElementById("model-current");
+        const modelStatus = document.getElementById("model-status");
         const userIndicatorsSection = document.getElementById(
             "user-indicators-section",
         );
@@ -161,14 +186,40 @@
                 const user = await response.json();
                 const isAdmin = user.role === "admin";
                 adminLink.hidden = !isAdmin;
+                modelSection.hidden = !isAdmin;
                 userIndicatorsSection.hidden = isAdmin;
                 userLogsSection.hidden = isAdmin;
-                if (!isAdmin) {
+                if (isAdmin) {
+                    loadCurrentModel();
+                } else {
                     startIndicatorsPolling();
                     startLogsPolling();
                 }
             } catch (error) {
                 statusMessage.textContent = `Erreur réseau : ${error.message}`;
+            }
+        }
+
+        async function loadCurrentModel() {
+            try {
+                const response = await fetch("/api/settings/model", {
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                if (!response.ok) {
+                    modelStatus.textContent =
+                        "Erreur de chargement du modèle configuré.";
+                    return;
+                }
+                const model = await response.json();
+                modelCurrent.textContent =
+                    model.current_model_path || "(non chargé)";
+            } catch (error) {
+                modelStatus.textContent =
+                    `Erreur de chargement du modèle : ${error.message}`;
             }
         }
 
@@ -329,6 +380,41 @@
             }
         });
         userIndicatorWindow.addEventListener("change", loadIndicators);
+
+        modelForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            modelStatus.textContent = "";
+            const button = modelForm.querySelector('button[type="submit"]');
+            button.disabled = true;
+            try {
+                const response = await fetch("/api/admin/model", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model_path: modelPathInput.value.trim(),
+                    }),
+                    credentials: "same-origin",
+                });
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+                const result = await response.json();
+                if (!response.ok) {
+                    modelStatus.textContent =
+                        result.error || "Erreur d'enregistrement du modèle.";
+                    return;
+                }
+                modelCurrent.textContent = result.model_path;
+                modelStatus.textContent =
+                    "Chemin enregistré. Le nouveau modèle ne sera pas appliqué " +
+                    "au runtime avant le test de chargement et le redémarrage (11d).";
+            } catch (error) {
+                modelStatus.textContent = `Erreur réseau : ${error.message}`;
+            } finally {
+                button.disabled = false;
+            }
+        });
 
         preferencesForm.addEventListener("submit", async (event) => {
             event.preventDefault();

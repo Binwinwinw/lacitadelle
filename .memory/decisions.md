@@ -1167,3 +1167,28 @@ services au lieu de dépendre uniquement d'un délai fixe. Les erreurs du
 proxy sont conservées sans consigner son stdout ni le mot de passe
 one-time. Le diagnostic n'a pas établi une cause unique, mais le correctif
 rend l'échec visible et le démarrage contrôlable.
+
+## [2026-10-27] UI section « Changer de modèle » (Phase 11c)
+
+**Contexte** : la décision #52 a livré `POST /api/admin/model` pour enregistrer
+un chemin GGUF. La page `/settings` détermine déjà le rôle via `/api/me`, mais
+aucune API ne retourne le chemin configuré pour l'afficher dans l'interface.
+
+**Décision(s)** :
+
+1. Ajouter une section « Changer de modèle » dans `settings.html`, masquée
+   initialement et affichée uniquement lorsque `/api/me` indique le rôle admin.
+2. Ajouter un formulaire de chemin GGUF qui appelle le `POST /api/admin/model`
+   existant avec un body JSON; ne pas dupliquer la validation côté navigateur.
+3. Ajouter `GET /api/settings/model`, protégé par `require_admin()`, pour lire
+   `current_model_path` et afficher le chemin configuré.
+4. Afficher un statut accessible indiquant que l'enregistrement ne change pas
+   le modèle chargé; le test de chargement et l'application restent en 11d.
+5. Garder `require_admin()` comme frontière d'autorisation; le masquage UI
+   n'est pas une protection serveur.
+6. Ajouter trois tests HTTP pour le contrat de la section, l'accès admin au
+   GET du chemin configuré et le maintien du contrôle d'accès du POST existant.
+
+**Conséquences** : un admin peut enregistrer et consulter le chemin GGUF depuis
+`/settings`. Le runtime ne charge pas ce modèle avant le test et le
+redémarrage prévus en 11d; aucun nouveau POST n'est ajouté.

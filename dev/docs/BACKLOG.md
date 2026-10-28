@@ -234,7 +234,7 @@ sur la base locale.
 ## Mode B-2 — Changement de modèle (admin)
 
 **Statut** : conception terminée (décision #50, 2026-10-25); implémentation
-Phase 11 en cours (11a/11b terminés; 11c–11f à réaliser).
+Phase 11 en cours (11a, 11b et 11c terminés; 11d–11f à réaliser).
 **Décision actée** : 2026-10-25.
 **Dépendances** : Mode B-1 terminé (décision #49).
 
@@ -321,14 +321,17 @@ disponibilité et de diagnostic, pas la correction d'une cause prouvée.
 
 **Périmètre** :
 
-- Ajouter la section « Changer de modèle » à `/settings`, visible aux admins
-  uniquement.
-- Proposer une liste des modèles whitelistés et une saisie de chemin local
-  pour un GGUF.
-- Ajouter « Appliquer », confirmation claire et avertissement si le modèle
-  est hors whitelist.
+- Ajouter à `/settings` une section admin-only via `/api/me`, avec consultation
+  du chemin configuré via `GET /api/settings/model`.
+- Enregistrer un chemin GGUF depuis un formulaire qui réutilise le POST JSON
+  `/api/admin/model`; conserver la validation côté serveur.
+- Afficher le résultat et préciser que le runtime ne prend pas le nouveau
+  chemin en compte avant le test de chargement et le redémarrage de 11d.
 
-**Statut** : à implémenter.
+**Tests** : trois tests HTTP couvrent la présence du formulaire, l'accès admin
+au chemin configuré et les contrôles d'accès du POST existant.
+
+**Statut** : terminé (décision #54; commit à référencer après création).
 **Dépendances** : 11b.
 
 #### 11d — Test de chargement + rollback immédiat
