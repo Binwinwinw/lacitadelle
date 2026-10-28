@@ -57,10 +57,10 @@ from citadelle_memory import (
     migrate_to_v5,
     migrate_to_v6,
     record_inference,
-    set_setting,
     set_preferences,
     verify_password,
 )
+from model_health import CURRENT_MODEL_FILE
 
 PROXY_HOST = "127.0.0.1"
 PROXY_PORT = 8081
@@ -1075,14 +1075,68 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
         return
 
     try:
-        set_setting(
-            "current_model_path",
-            str(path),
-            db_path=MEMORY_DB_PATH,
-        )
+        try:
+            previous_mirror = CURRENT_MODEL_FILE.read_bytes()
+        except FileNotFoundError:
+            previous_mirror = None
+
+        conn = _get_db_connection()
+        mirror_write_started = False
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute(
+                "SELECT value FROM settings WHERE key = ?",
+                ("current_model_path",),
+            ).fetchone()
+            previous_model_path = row["value"] if row is not None else None
+            timestamp = datetime.now(timezone.utc).isoformat()
+
+            if previous_model_path and previous_model_path != str(path):
+                conn.execute(
+                    "INSERT INTO settings (key, value, updated_at) "
+                    "VALUES (?, ?, ?) "
+                    "ON CONFLICT(key) DO UPDATE SET "
+                    "value = excluded.value, "
+                    "updated_at = excluded.updated_at",
+                    ("previous_model_path", previous_model_path, timestamp),
+                )
+            elif previous_model_path is None:
+                conn.execute(
+                    "DELETE FROM settings WHERE key = ?",
+                    ("previous_model_path",),
+                )
+            conn.execute(
+                "INSERT INTO settings (key, value, updated_at) "
+                "VALUES (?, ?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET "
+                "value = excluded.value, "
+                "updated_at = excluded.updated_at",
+                ("current_model_path", str(path), timestamp),
+            )
+
+            CURRENT_MODEL_FILE.parent.mkdir(parents=True, exist_ok=True)
+            mirror_write_started = True
+            CURRENT_MODEL_FILE.write_text(str(path) + "\n", encoding="utf-8")
+            conn.commit()
+        except (OSError, sqlite3.Error):
+            conn.rollback()
+            if mirror_write_started:
+                try:
+                    if previous_mirror is None:
+                        CURRENT_MODEL_FILE.unlink(missing_ok=True)
+                    else:
+                        CURRENT_MODEL_FILE.write_bytes(previous_mirror)
+                except OSError as restore_exc:
+                    sys.stderr.write(
+                        "[model] Model path mirror rollback failed "
+                        f"({type(restore_exc).__name__})\n"
+                    )
+            raise
+        finally:
+            conn.close()
     except (OSError, sqlite3.Error) as exc:
         sys.stderr.write(
-            "[model] Model path setting was not saved "
+            "[model] Model path configuration was not saved "
             f"({type(exc).__name__})\n"
         )
         error_response(

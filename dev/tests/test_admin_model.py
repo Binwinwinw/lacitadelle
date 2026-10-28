@@ -4,12 +4,15 @@ import json
 import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 from urllib.request import Request
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 import citadelle_memory
+import login_server
+import model_health
 from _helpers import (
     SESSION_COOKIE_NAME,
     api_test_context,
@@ -164,6 +167,182 @@ def test_set_model_rejects_empty_file():
         ) is None
 
 
+def test_post_mirrors_path_and_first_manual_rollback_uses_default():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        token = login_as(opener, base_url, admin, "secret123")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model_path = Path(temp_dir) / "model.gguf"
+            model_path.write_bytes(b"gguf")
+            model_file = Path(temp_dir) / "dist" / ".current_model"
+            with (
+                patch.object(login_server, "CURRENT_MODEL_FILE", model_file),
+                patch.object(model_health, "CURRENT_MODEL_FILE", model_file),
+            ):
+                with _post_model(
+                    opener,
+                    base_url,
+                    token,
+                    {"model_path": str(model_path)},
+                ) as response:
+                    assert response.code == 200
+
+            expected_path = str(model_path.resolve())
+            assert citadelle_memory.get_setting(
+                "current_model_path",
+                db_path=db_path,
+            ) == expected_path
+            assert citadelle_memory.get_setting(
+                "previous_model_path",
+                db_path=db_path,
+            ) is None
+            assert model_file.read_text(encoding="utf-8") == expected_path + "\n"
+
+            restored_path = model_health.restore_previous_model(
+                db_path=db_path,
+                model_file=model_file,
+            )
+            assert restored_path == model_health.DEFAULT_MODEL_PATH
+            assert citadelle_memory.get_setting(
+                "current_model_path",
+                db_path=db_path,
+            ) == restored_path
+            assert model_file.read_text(encoding="utf-8") == restored_path + "\n"
+
+
+def test_post_updates_previous_model_path_after_prior_post():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        token = login_as(opener, base_url, admin, "secret123")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            old_path = Path(temp_dir) / "old.gguf"
+            new_path = Path(temp_dir) / "new.gguf"
+            latest_path = Path(temp_dir) / "latest.gguf"
+            for path in (old_path, new_path, latest_path):
+                path.write_bytes(b"gguf")
+            citadelle_memory.set_setting(
+                "current_model_path",
+                str(old_path.resolve()),
+                db_path=db_path,
+            )
+            model_file = Path(temp_dir) / "dist" / ".current_model"
+            with (
+                patch.object(login_server, "CURRENT_MODEL_FILE", model_file),
+                patch.object(model_health, "CURRENT_MODEL_FILE", model_file),
+            ):
+                for path in (new_path, latest_path):
+                    with _post_model(
+                        opener,
+                        base_url,
+                        token,
+                        {"model_path": str(path)},
+                    ) as response:
+                        assert response.code == 200
+
+            assert citadelle_memory.get_setting(
+                "previous_model_path",
+                db_path=db_path,
+            ) == str(new_path.resolve())
+            assert citadelle_memory.get_setting(
+                "current_model_path",
+                db_path=db_path,
+            ) == str(latest_path.resolve())
+            assert model_file.read_text(encoding="utf-8") == (
+                str(latest_path.resolve()) + "\n"
+            )
+
+            restored_path = model_health.restore_previous_model(
+                db_path=db_path,
+                model_file=model_file,
+            )
+            assert restored_path == str(new_path.resolve())
+            assert citadelle_memory.get_setting(
+                "current_model_path",
+                db_path=db_path,
+            ) == restored_path
+            assert model_file.read_text(encoding="utf-8") == restored_path + "\n"
+
+
+def test_invalid_post_or_write_failure_preserves_model_state():
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v6(db_path)
+        admin = _create_admin(db_path)
+        token = login_as(opener, base_url, admin, "secret123")
+        current_path = r"C:\models\current.gguf"
+        previous_path = r"C:\models\previous.gguf"
+        citadelle_memory.set_setting(
+            "current_model_path",
+            current_path,
+            db_path=db_path,
+        )
+        citadelle_memory.set_setting(
+            "previous_model_path",
+            previous_path,
+            db_path=db_path,
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model_file = Path(temp_dir) / ".current_model"
+            model_file.write_text(current_path + "\n", encoding="utf-8")
+            missing_path = Path(temp_dir) / "missing.gguf"
+            valid_path = Path(temp_dir) / "valid.gguf"
+            valid_path.write_bytes(b"gguf")
+            original_write_text = Path.write_text
+
+            def fail_mirror_write(target, data, *args, **kwargs):
+                if target == model_file:
+                    raise OSError("simulated disk failure")
+                return original_write_text(target, data, *args, **kwargs)
+
+            with (
+                patch.object(login_server, "CURRENT_MODEL_FILE", model_file),
+                patch.object(Path, "write_text", new=fail_mirror_write),
+            ):
+                with _post_model(
+                    opener,
+                    base_url,
+                    token,
+                    {"model_path": str(missing_path)},
+                ) as response:
+                    assert response.code == 400
+                with _post_model(
+                    opener,
+                    base_url,
+                    token,
+                    {"model_path": str(valid_path)},
+                ) as response:
+                    assert response.code == 500
+
+            with patch.object(
+                model_health,
+                "set_setting",
+                side_effect=model_health.sqlite3.OperationalError(
+                    "simulated database failure"
+                ),
+            ):
+                try:
+                    model_health.restore_previous_model(
+                        db_path=db_path,
+                        model_file=model_file,
+                    )
+                except model_health.sqlite3.Error:
+                    pass
+                else:
+                    raise AssertionError("rollback should report database failure")
+
+            assert model_file.read_text(encoding="utf-8") == current_path + "\n"
+
+        assert citadelle_memory.get_setting(
+            "current_model_path",
+            db_path=db_path,
+        ) == current_path
+        assert citadelle_memory.get_setting(
+            "previous_model_path",
+            db_path=db_path,
+        ) == previous_path
+
+
 def run_all():
     tests = [
         test_set_model_requires_admin,
@@ -171,6 +350,9 @@ def run_all():
         test_set_model_invalid_path,
         test_set_model_invalid_extension,
         test_set_model_rejects_empty_file,
+        test_post_writes_current_model_file_and_previous_path,
+        test_post_updates_previous_model_path_after_prior_post,
+        test_post_invalid_path_does_not_change_file_or_settings,
     ]
     for test in tests:
         test()

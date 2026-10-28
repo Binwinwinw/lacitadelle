@@ -1237,3 +1237,39 @@ correction manuelle est retenue.
 **Conséquences** : le code de la page dédiée est retiré; les commits v1 restent
 dans l'historique, mais leur fonctionnalité est annulée par le commit de
 correction. Une seule interface est maintenue.
+
+## [2026-10-28] Chargement réel de modèle et rollback manuel (Phase 11d)
+
+**Contexte** : 11b enregistre `current_model_path` en base, mais le lanceur
+utilise encore un chemin GGUF codé en dur. La capture 11d-PRE a confirmé que
+`/v1/models` retourne dans `data[0].id` le chemin passé à `-m`, sans digest
+permettant d'identifier le contenu binaire.
+
+**Décision(s)** :
+
+1. Au démarrage, `lancer.bat` lit `dist/.current_model`; si le fichier est
+   absent ou vide, il utilise le GGUF Qwen3 par défaut.
+2. `POST /api/admin/model` conserve sa validation 11b, enregistre l'ancien
+   `current_model_path` dans `previous_model_path` lorsqu'il existe, puis
+   met à jour le miroir `dist/.current_model`.
+3. Après la sonde de disponibilité existante, `model_health.check_model_loaded()`
+   vérifie `/v1/models` et compare `data[0].id` au chemin attendu, après
+   normalisation avec comparaison du basename en dernier recours.
+4. Si le serveur ne répond pas ou si l'identité ne correspond pas,
+   `lancer.bat` restaure manuellement `previous_model_path` dans SQLite et
+   `dist/.current_model`, puis demande à l'utilisateur de relancer le batch.
+   Aucun redémarrage ni reload assisté n'est effectué.
+5. `/settings` indique qu'il faut fermer la fenêtre puis relancer
+   `lancer.bat` pour appliquer le chemin enregistré.
+6. Le matching par `id` confirme le chemin/nom rapporté, pas l'intégrité du
+   fichier : un GGUF remplacé à chemin identique n'est pas détecté, le digest
+   étant vide. Le fallback par basename ne distingue pas deux GGUF homonymes
+   situés dans des dossiers différents.
+7. Ajouter sept tests : quatre pour le health check et trois pour la
+   persistance du miroir et du chemin précédent.
+
+**Conséquences** : au démarrage, le runtime utilise le chemin configuré et
+vérifie l'identifiant annoncé par `/v1/models`. En cas d'échec, la
+configuration revient à l'ancien chemin, mais l'utilisateur doit fermer le
+processus et relancer `lancer.bat`. Reload assisté et rollback automatique
+restent hors périmètre (11d-bis).

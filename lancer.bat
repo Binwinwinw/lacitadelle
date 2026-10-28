@@ -13,8 +13,16 @@ if not exist dist\llamafile.exe (
     exit /b 1
 )
 
+set "MODEL_PATH="
+if exist dist\.current_model (
+    set /p MODEL_PATH=<dist\.current_model
+)
+if not defined MODEL_PATH (
+    set "MODEL_PATH=dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf"
+)
+
 echo Demarrage du serveur llamafile (port 8080)...
-start "Lacitadelle Server" dist\llamafile.exe -m dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps
+start "Lacitadelle Server" dist\llamafile.exe -m "%MODEL_PATH%" --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps
 
 echo Attente active du serveur llamafile (maximum 120 secondes)...
 set /a LLAMA_TRIES=0
@@ -28,10 +36,13 @@ goto WAIT_LLAMA
 
 :LLAMA_TIMEOUT
 echo ERREUR : llamafile ne repond pas apres 120 secondes.
-exit /b 1
+goto MODEL_LOAD_FAILED
 
 :LLAMA_READY
 echo llamafile pret.
+echo Verification du modele charge...
+python dev\tools\model_health.py --check "%MODEL_PATH%"
+if errorlevel 1 goto MODEL_LOAD_FAILED
 if not exist dist mkdir dist
 
 echo Demarrage du proxy de login (port 8081)...
@@ -72,3 +83,15 @@ echo Pour arreter, fermez les deux fenetres.
 echo.
 timeout /t 5 /nobreak >nul
 exit /b 0
+
+:MODEL_LOAD_FAILED
+echo ERREUR : llamafile ne confirme pas le modele configure.
+echo Restauration du chemin precedent...
+python dev\tools\model_health.py --rollback
+if errorlevel 1 (
+    echo ERREUR : rollback impossible. Voir dist\.current_model et la base locale.
+) else (
+    echo Chemin precedent restaure dans dist\.current_model.
+)
+echo Fermez la fenetre "Lacitadelle Server", puis relancez lancer.bat.
+exit /b 1

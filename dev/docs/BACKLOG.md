@@ -341,16 +341,19 @@ au chemin configuré et les contrôles d'accès du POST existant.
 
 **Périmètre** :
 
-- Ajouter `test_model_load(model_path)` qui lance llamafile en
-  sous-processus avec un timeout de 30 secondes et vérifie
-  `/v1/models` sur le port 8080.
-- Exiger ce test avant toute application.
-- En cas d'échec, garder l'ancien modèle actif et retourner une erreur
-  claire à l'admin.
-- En cas de succès, mettre à jour `current_model_path` et redémarrer
-  llamafile.
+- Lire `dist/.current_model` au démarrage, avec fallback sur le GGUF Qwen3
+  par défaut quand le miroir est absent ou vide.
+- Vérifier après la sonde de démarrage que `data[0].id` de `/v1/models`
+  correspond au chemin attendu (normalisé ou basename).
+- Conserver `previous_model_path` et le miroir fichier; en cas d'échec,
+  restaurer la configuration précédente et demander un redémarrage manuel.
+- Afficher dans `/settings` l'instruction de relancer `lancer.bat`; aucun
+  reload assisté ni rollback automatique.
 
-**Statut** : à implémenter.
+**Tests** : sept nouveaux tests couvrent les quatre cas du health check et
+les trois cas de persistance/rollback manuel; 164 tests au total.
+
+**Statut** : terminé (décision #57; commit à référencer).
 **Dépendances** : 11b et 11c.
 
 #### 11e — Whitelist + `MODELES_COMPATIBLES.md`
@@ -382,8 +385,6 @@ au chemin configuré et les contrôles d'accès du POST existant.
 
 **Questions ouvertes à traiter pendant la Phase 11** :
 
-- **11d — Chargement** : méthode d'isolation du sous-processus et du port de
-  test pour vérifier `/v1/models` sans interrompre ni confondre le modèle actif.
 - **11e — Whitelist** : modèles retenus, empreintes de référence, compatibilité
   des templates/contexte et disponibilité locale des GGUF alternatifs sans
   gestionnaire de téléchargement.

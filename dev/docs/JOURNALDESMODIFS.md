@@ -825,6 +825,23 @@ documentaire post-commit).
 **Impact** : BACKLOG et journaux identifient `cedd1e5`, `2864b3c` et le commit
 correctif `4347c2f`; aucun code ni test modifié.
 
+## [2026-10-28] Phase 11d — Chargement réel et rollback manuel
+
+**Commit** : à référencer après création du commit.
+
+**Fichiers modifiés** : `dev/tools/model_health.py`,
+`dev/tools/login_server.py`, `dev/tests/test_model_health.py`,
+`dev/tests/test_admin_model.py`, `lancer.bat`,
+`dev/tools/web/settings.html`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : charger le chemin configuré au redémarrage, vérifier le modèle
+servi par `/v1/models` et restaurer le chemin précédent sans reload assisté.
+
+**Impact** : miroir `dist/.current_model`, rollback manuel avec demande de
+redémarrage, sept tests ajoutés; 164 tests au total.
+
 ## [2026-10-28] Phase 11c-consolidation-v3 — Référence du commit de correction
 
 **Commit** : référence consultable dans l'historique Git (hash non

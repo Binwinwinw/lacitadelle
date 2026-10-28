@@ -60,9 +60,11 @@
                 </form>
                 <p id="model-status" class="settings-status" role="status"
                    aria-live="polite"></p>
-                <p>Le chemin sera enregistré, mais le nouveau modèle ne sera
-                    pas appliqué au runtime avant le test de chargement et le
-                    redémarrage prévus en 11d.</p>
+                <p id="model-load-status" class="settings-status"
+                   role="status" aria-live="polite">
+                    Pour appliquer le modèle configuré, fermez cette fenêtre et
+                    relancez lancer.bat.
+                </p>
             </section>
             <section id="user-indicators-section" class="settings-section"
                      aria-labelledby="user-indicators-heading" hidden>
@@ -123,6 +125,7 @@
         const modelPathInput = document.getElementById("model-path");
         const modelCurrent = document.getElementById("model-current");
         const modelStatus = document.getElementById("model-status");
+        const modelLoadStatus = document.getElementById("model-load-status");
         const userIndicatorsSection = document.getElementById(
             "user-indicators-section",
         );
@@ -406,9 +409,10 @@
                     return;
                 }
                 modelCurrent.textContent = result.model_path;
-                modelStatus.textContent =
-                    "Chemin enregistré. Le nouveau modèle ne sera pas appliqué " +
-                    "au runtime avant le test de chargement et le redémarrage (11d).";
+                modelStatus.textContent = "Chemin enregistré.";
+                modelLoadStatus.textContent =
+                    "Modèle enregistré. Pour l'appliquer, fermez cette fenêtre " +
+                    "et relancez lancer.bat.";
             } catch (error) {
                 modelStatus.textContent = `Erreur réseau : ${error.message}`;
             } finally {
