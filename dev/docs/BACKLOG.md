@@ -353,7 +353,7 @@ au chemin configuré et les contrôles d'accès du POST existant.
 **Tests** : sept nouveaux tests couvrent les quatre cas du health check et
 les trois cas de persistance/rollback manuel; 164 tests au total.
 
-**Statut** : terminé (décision #57; commit à référencer).
+**Statut** : terminé (décision #57, commit `7a13c19`).
 **Dépendances** : 11b et 11c.
 
 #### 11e — Whitelist + `MODELES_COMPATIBLES.md`

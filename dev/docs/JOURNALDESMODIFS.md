@@ -827,7 +827,7 @@ correctif `4347c2f`; aucun code ni test modifié.
 
 ## [2026-10-28] Phase 11d — Chargement réel et rollback manuel
 
-**Commit** : à référencer après création du commit.
+**Commit** : `7a13c19`.
 
 **Fichiers modifiés** : `dev/tools/model_health.py`,
 `dev/tools/login_server.py`, `dev/tests/test_model_health.py`,
@@ -868,4 +868,18 @@ du hash du commit `a79d6f3`).
 Phase 11c dans ses références documentaires.
 
 **Impact** : BACKLOG et journal pointent vers `a79d6f3`; aucun code ni test
+modifié.
+
+## [2026-10-28] Phase 11d — Référence du hash d'implémentation
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit d'implémentation
+Phase 11d dans ses références documentaires.
+
+**Impact** : BACKLOG et journal pointent vers `7a13c19`; aucun code ni test
 modifié.
