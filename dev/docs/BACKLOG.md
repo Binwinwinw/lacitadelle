@@ -389,7 +389,7 @@ modifier leur contenu ni leur comportement.
 
 **Tests** : 171 tests existants passent; ordre HTML, IDs et JavaScript vérifiés.
 
-**Statut** : terminé (décision #61; commit à référencer après création).
+**Statut** : terminé (décision #61, commit `80814a0`).
 **Dépendances** : 11e.
 
 #### 11f — E2E + filet au démarrage

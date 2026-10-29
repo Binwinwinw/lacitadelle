@@ -959,7 +959,7 @@ modifié.
 
 ## [2026-10-28] Phase 11e-bis — Ordre whitelist avant sélection
 
-**Commit** : hash final à référencer après création.
+**Commit** : `80814a0`.
 
 **Fichiers modifiés** : `dev/tools/web/settings.html`,
 `.memory/decisions.md`, `dev/docs/BACKLOG.md`,
@@ -970,3 +970,16 @@ modèle actif.
 
 **Impact** : déplacement HTML uniquement; IDs, JavaScript et endpoints
 inchangés; 171 tests passent.
+
+## [2026-10-28] Phase 11e-bis — Référence du commit
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit 11e-bis.
+
+**Impact** : BACKLOG et journal pointent vers `80814a0`; aucun code ni test
+modifié.
