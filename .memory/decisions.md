@@ -1402,3 +1402,24 @@ admin, et le runtime llamafile conservait CORS ouvert à toutes les origines.
 **Conséquences** : les documents reflètent l'état livré, les messages
 d'erreur identifient la cause, le reset admin est reproductible sans
 artefact dans le dépôt et CORS n'accepte plus l'origine générique `*`.
+
+## [2026-10-29] CORS llamafile : retour à `*` (11-POLISH-BIS)
+
+**Contexte** : le flag `--cors-origins` accepte plusieurs origines, mais le
+runtime renvoie leur liste combinée dans `Access-Control-Allow-Origin`.
+Les navigateurs rejettent cette valeur, qui doit être une origine unique.
+Le frontend appelle `login_server.py` par des URL relatives et ne contacte
+pas llamafile directement.
+
+**Décision(s)** :
+
+1. Retirer `--cors-origins` de `lancer.bat` et conserver le comportement CORS
+   par défaut du runtime (`*`).
+2. Consigner que le flag multi-origines fourni ne produit pas un en-tête
+   `Access-Control-Allow-Origin` valide pour les navigateurs.
+3. Pour restreindre CORS lors d'une mise en production réseau, utiliser un
+   reverse proxy ou un firewall; le CORS de llamafile reste permissif en
+   local car le navigateur passe par le proxy Python.
+
+**Conséquences** : CORS navigateur redevient fonctionnel en local. La
+restriction CORS en production reste une dette de déploiement.

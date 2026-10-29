@@ -1041,3 +1041,17 @@ auto-référençable).
 
 **Impact** : BACKLOG et journal pointent vers `09524b5`; aucun code ni test
 modifié.
+
+## [2026-10-29] Phase 11-POLISH-BIS-CORS — Retour au défaut llamafile
+
+**Commit** : hash final à référencer après création.
+
+**Fichiers modifiés** : `lancer.bat`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : le runtime renvoyait la liste `--cors-origins` comme une seule
+valeur `Access-Control-Allow-Origin`, refusée par les navigateurs.
+
+**Impact** : suppression du flag; le défaut CORS local du runtime est
+restauré. Le frontend reste proxyfié par `login_server.py`.

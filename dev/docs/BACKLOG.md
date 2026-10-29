@@ -233,7 +233,8 @@ sur la base locale.
 
 ## Mode B-2 — Changement de modèle (admin)
 
-**Statut** : Phase 11 complète (11a–11f et 11-POLISH; décisions #50–#63).
+**Statut** : Phase 11 complète (11a–11f, 11-POLISH et 11-POLISH-BIS-CORS;
+décisions #50–#64). L'upload GGUF reste un GO séparé.
 **Décision actée** : 2026-10-25.
 **Dépendances** : Mode B-1 terminé (décision #49).
 
@@ -411,13 +412,26 @@ modifier leur contenu ni leur comportement.
 
 **Périmètre** : aligner les compteurs agents, supprimer le doublon 11c,
 clarifier les erreurs GGUF/whitelist, documenter le reset admin temporaire
-et restreindre les origines CORS de llamafile.
+et vérifier la restriction CORS de llamafile. Le flag multi-origines a ensuite
+été retiré en 11-POLISH-BIS-CORS car son en-tête de réponse était rejeté par
+les navigateurs; le défaut `*` reste en place pour l'usage local via le proxy.
 
-**Validation** : 176 tests; l'option supportée `--cors-origins` du runtime
-fourni est vérifiée.
+**Validation** : 176 tests; `--cors-origins` était reconnu par le runtime,
+mais son résultat multi-origines n'était pas valide pour les navigateurs.
 
 **Statut** : terminé (décision #63, commit `09524b5`).
 **Dépendances** : Phase 11f.
+
+#### 11-POLISH-BIS-CORS — Retour au CORS par défaut
+
+**Périmètre** : supprimer `--cors-origins` de `lancer.bat`; documenter le
+frontend indirect via `login_server.py` et la restriction CORS requise pour
+une future mise en production.
+
+**Validation** : 176 tests; démarrage réel vérifié après retrait du flag.
+
+**Statut** : terminé (décision #64; commit à référencer après création).
+**Dépendances** : 11-POLISH.
 
 ---
 
