@@ -125,7 +125,7 @@ def test_e2e_whitelist_blocks_unallowed():
                     {"model_path": str(rejected_path)},
                 ) as response:
                     assert response.code == 400
-                    assert "non autorisé" in json.loads(
+                    assert "ce modèle n'est pas autorisé" in json.loads(
                         response.read()
                     )["error"].lower()
 

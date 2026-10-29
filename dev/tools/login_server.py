@@ -81,6 +81,13 @@ ADMIN_USER_ACTION_RE = re.compile(
 )
 USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_-]{3,50}$")
 ADMIN_USERNAME_REGEX = re.compile(r"^[A-Za-z0-9_]{3,30}$")
+INVALID_GGUF_MESSAGE = (
+    "Le fichier GGUF est invalide (inexistant, vide ou mauvaise extension)"
+)
+MODEL_NOT_ALLOWED_MESSAGE = (
+    "Ce modèle n'est pas autorisé. Ajoutez-le dans "
+    '"Modèles autorisés" avant de le sélectionner'
+)
 EXEMPT_PATHS_WHEN_MUST_CHANGE = {
     "/change-password",
     "/logout",
@@ -1155,14 +1162,14 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
     except (OSError, RuntimeError, ValueError):
         error_response(
             handler,
-            "Fichier GGUF introuvable ou inaccessible",
+            INVALID_GGUF_MESSAGE,
             HTTPStatus.BAD_REQUEST,
         )
         return
     if path.suffix.lower() != ".gguf":
         error_response(
             handler,
-            "Extension .gguf requise",
+            INVALID_GGUF_MESSAGE,
             HTTPStatus.BAD_REQUEST,
         )
         return
@@ -1170,7 +1177,7 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
         if not path.is_file():
             error_response(
                 handler,
-                "Le chemin doit désigner un fichier GGUF",
+                INVALID_GGUF_MESSAGE,
                 HTTPStatus.BAD_REQUEST,
             )
             return
@@ -1178,12 +1185,16 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
     except OSError:
         error_response(
             handler,
-            "Fichier GGUF introuvable ou inaccessible",
+            INVALID_GGUF_MESSAGE,
             HTTPStatus.BAD_REQUEST,
         )
         return
     if size_bytes <= 0:
-        error_response(handler, "Fichier GGUF vide", HTTPStatus.BAD_REQUEST)
+        error_response(
+            handler,
+            INVALID_GGUF_MESSAGE,
+            HTTPStatus.BAD_REQUEST,
+        )
         return
 
     try:
@@ -1212,7 +1223,7 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
     }:
         error_response(
             handler,
-            "Chemin non autorisé par la liste des modèles",
+            MODEL_NOT_ALLOWED_MESSAGE,
             HTTPStatus.BAD_REQUEST,
         )
         return

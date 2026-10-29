@@ -159,6 +159,10 @@ def test_set_model_invalid_path():
                 {"model_path": str(missing_path)},
             ) as response:
                 assert response.code == 400
+                assert json.loads(response.read())["error"] == (
+                    "Le fichier GGUF est invalide "
+                    "(inexistant, vide ou mauvaise extension)"
+                )
 
         assert citadelle_memory.get_setting(
             "current_model_path",
@@ -181,6 +185,10 @@ def test_set_model_invalid_extension():
                 {"model_path": str(text_path)},
             ) as response:
                 assert response.code == 400
+                assert json.loads(response.read())["error"] == (
+                    "Le fichier GGUF est invalide "
+                    "(inexistant, vide ou mauvaise extension)"
+                )
 
         assert citadelle_memory.get_setting(
             "current_model_path",
@@ -203,6 +211,10 @@ def test_set_model_rejects_empty_file():
                 {"model_path": str(empty_path)},
             ) as response:
                 assert response.code == 400
+                assert json.loads(response.read())["error"] == (
+                    "Le fichier GGUF est invalide "
+                    "(inexistant, vide ou mauvaise extension)"
+                )
 
         assert citadelle_memory.get_setting(
             "current_model_path",
@@ -488,7 +500,7 @@ def test_post_rejects_path_not_in_whitelist():
                 {"model_path": str(rejected_path)},
             ) as response:
                 assert response.code == 400
-                assert "chemin non autorisé" in json.loads(
+                assert "ce modèle n'est pas autorisé" in json.loads(
                     response.read()
                 )["error"].lower()
 
@@ -518,7 +530,7 @@ def test_post_rejects_invalid_path_regardless_of_whitelist():
                 {"model_path": str(invalid_path)},
             ) as response:
                 assert response.code == 400
-                assert "gguf introuvable" in json.loads(
+                assert "le fichier gguf est invalide" in json.loads(
                     response.read()
                 )["error"].lower()
 

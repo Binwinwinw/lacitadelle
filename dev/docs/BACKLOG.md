@@ -233,8 +233,7 @@ sur la base locale.
 
 ## Mode B-2 — Changement de modèle (admin)
 
-**Statut** : conception terminée (décision #50, 2026-10-25); implémentation
-Phase 11 en cours (11a, 11b et 11c terminés; 11d–11f à réaliser).
+**Statut** : Phase 11 complète (11a–11f et 11-POLISH; décisions #50–#63).
 **Décision actée** : 2026-10-25.
 **Dépendances** : Mode B-1 terminé (décision #49).
 
@@ -246,18 +245,15 @@ Phase 11 en cours (11a, 11b et 11c terminés; 11d–11f à réaliser).
 - Stocker la configuration runtime dans SQLite, table `settings`; la clé
   `current_model_path` désigne le GGUF actif. Le launcher ne doit plus
   dépendre d'un chemin de modèle codé en dur.
-- Conserver le comportement actuel : Qwen3-1.7B Q4_K_M reste le modèle par
-  défaut jusqu'à validation du flux de changement. `llamafile_config.json`
-  reste le manifeste des assets d'installation, distinct de l'état runtime.
-- Établir une whitelist curée de 5 à 10 modèles testés dans
-  `dev/docs/MODELES_COMPATIBLES.md`, à créer pendant B-2, et la référencer
-  depuis la page de réglages. Un modèle hors liste peut être essayé après
-  avertissement, mais doit subir le même test de chargement préalable.
-- Autoriser l'essai d'un modèle hors whitelist avec un avertissement clair :
-  « non testé, peut casser l'application ». Prévoir une dérogation avec cet
-  avertissement.
-- Avertir que l'incompatibilité peut concerner le template de chat, la taille
-  du contexte ou la mémoire disponible.
+- Conserver Qwen3-1.7B Q4_K_M comme modèle par défaut uniquement s'il existe
+  et figure dans `settings.allowed_models`. `llamafile_config.json` reste le
+  manifeste des assets d'installation, distinct de l'état runtime.
+- La whitelist V1 est un tableau JSON de chemins GGUF absolus géré depuis
+  `/settings`. Tout modèle hors liste est refusé; aucune dérogation ou essai
+  non autorisé n'est proposé.
+- Le catalogue de modèles testés, les empreintes et les avertissements de
+  compatibilité de template/contexte restent hors de cette V1 et nécessitent
+  un GO distinct.
 - Tester le chargement avant application et faire un rollback immédiat si le
   test échoue. Ajouter un filet de sécurité au prochain démarrage si le
   modèle nouvellement sélectionné ne démarre pas.
@@ -410,6 +406,18 @@ modifier leur contenu ni leur comportement.
 
 **Statut** : terminé (décision #62, commit `fd3fd79`).
 **Dépendances** : 11d et 11e.
+
+#### 11-POLISH — Dette documentaire et CORS
+
+**Périmètre** : aligner les compteurs agents, supprimer le doublon 11c,
+clarifier les erreurs GGUF/whitelist, documenter le reset admin temporaire
+et restreindre les origines CORS de llamafile.
+
+**Validation** : 176 tests; l'option supportée `--cors-origins` du runtime
+fourni est vérifiée.
+
+**Statut** : terminé (décision #63; commit à référencer après création).
+**Dépendances** : Phase 11f.
 
 ---
 

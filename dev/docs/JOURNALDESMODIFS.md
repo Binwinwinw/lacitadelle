@@ -1012,3 +1012,19 @@ auto-référençable).
 
 **Impact** : BACKLOG, journal et Roadmap pointent vers `fd3fd79`; aucun code
 ni test modifié.
+
+## [2026-10-29] Phase 11-POLISH — Documentation, messages et CORS
+
+**Commit** : hash final à référencer après création.
+
+**Fichiers modifiés** : `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/tools/login_server.py`, `dev/tests/test_admin_model.py`,
+`dev/tests/test_e2e_model_change.py`, `lancer.bat`,
+`dev/docs/RUNBOOK.md`, `.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : clore les dettes documentaires de la Phase 11, distinguer les
+erreurs de validation GGUF et restreindre CORS avec l'option du runtime.
+
+**Impact** : procédure admin de reset temporaire documentée, CORS limité
+aux origines locales et 176 tests conservés.

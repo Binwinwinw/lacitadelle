@@ -1380,3 +1380,25 @@ pouvait donc sélectionner un modèle hors whitelist.
 **Conséquences** : llamafile ne démarre pas avec un modèle absent de la
 whitelist, même si `dist/.current_model` est modifié manuellement. La Phase 11
 est terminée; 176 tests passent.
+
+## [2026-10-29] Phase 11-POLISH : dette documentaire et CORS
+
+**Contexte** : la Phase 11 a laissé des compteurs et un doublon de journal
+obsolètes, des erreurs GGUF/whitelist ambiguës, aucune procédure de reset
+admin, et le runtime llamafile conservait CORS ouvert à toutes les origines.
+
+**Décision(s)** :
+
+1. Aligner `AGENTS.md` sur 63 décisions, 176 tests et la Phase 11 complète;
+   retirer le doublon 11c de `JOURNALDEBORD.md`.
+2. Distinguer clairement les erreurs de validation GGUF des refus de
+   whitelist dans `POST /api/admin/model`.
+3. Documenter le reset local d'un compte admin dans `dev/docs/RUNBOOK.md`;
+   créer le script temporaire dans `%TEMP%`, jamais dans le dépôt.
+4. Configurer le runtime avec l'option supportée `--cors-origins` et limiter
+   les origines à `http://localhost:8081` et `http://127.0.0.1:8081`.
+5. Garder l'upload GGUF hors de ce lot; il fera l'objet de 11-POLISH-BIS.
+
+**Conséquences** : les documents reflètent l'état livré, les messages
+d'erreur identifient la cause, le reset admin est reproductible sans
+artefact dans le dépôt et CORS n'accepte plus l'origine générique `*`.
