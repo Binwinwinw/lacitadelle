@@ -1094,3 +1094,22 @@ auto-référençable).
 **Raison** : ajouter après création le hash final des corrections documentaires.
 
 **Impact** : le commit principal 11-POLISH-QUATER est référencé par `0982b96`.
+
+## [2026-10-29] Phase 11-FINAL-DETTES — CORS, guides et limites
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `AGENTS.md`, `.memory/decisions.md`, `README.md`,
+`README.fr.md`, `lancer.bat`, `dev/tools/login_server.py`,
+`dev/tests/test_llamafile_proxy.py`, `dev/tests/test_load.py`,
+`dev/docs/RUNBOOK.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : réduire la dette CORS, compléter les consignes utilisateur,
+mesurer le login séquentiel et consigner les limites concurrentes et 10C.
+
+**Impact** : CORS limité à une origine locale et routes proxy authentifiées;
+181 tests verts, dont 100 logins en 6,9 s. Playwright, test manuel 10C et
+charge concurrente restent reportés.

@@ -1423,3 +1423,34 @@ pas llamafile directement.
 
 **Conséquences** : CORS navigateur redevient fonctionnel en local. La
 restriction CORS en production reste une dette de déploiement.
+
+## [2026-10-29] Phase 11-FINAL-DETTES — CORS et dettes résiduelles
+
+**Contexte** : le proxy HTTP mono-thread servait déjà le chat, mais llamafile
+gardait CORS à `*`; le guide utilisateur ne décrivait pas les rôles et limites.
+Le test manuel 10C attend une base jetable, Playwright n'est pas installé et
+les requêtes concurrentes ne sont pas prises en charge.
+
+**Décision(s)** :
+
+1. Restreindre le CORS de llamafile à l'origine unique
+   `http://localhost:8081`. Exposer aussi via `login_server.py` des routes
+   authentifiées `GET /api/llamafile/v1/models` et
+   `POST /api/llamafile/v1/chat/completions`; ne pas ajouter d'en-tête CORS au
+   proxy.
+2. Compléter les guides `README.md` et `README.fr.md` sur les rôles, la
+   gestion des modèles, le dépannage, la sécurité et les limites.
+3. Vérifier 100 logins séquentiels sous 10 secondes; les tests concurrents
+   sont reportés car `HTTPServer` traite les requêtes une par une.
+4. Reporter Playwright à 11-POLISH-BIS, la dépendance n'étant pas installée.
+5. Documenter le test manuel 10C dans `RUNBOOK.md`; ne pas l'exécuter tant
+   qu'une base jetable n'est pas prête.
+6. Tracer la concurrence serveur comme dette P2, à traiter après production
+   dans un GO dédié couvrant `ThreadingHTTPServer`, SQLite WAL, sessions
+   thread-safe et tests de charge.
+
+**Conséquences** : CORS des navigateurs limité à l'origine locale autorisée;
+le proxy reste mono-thread. La suite compte 181 tests; 100 logins séquentiels
+ont pris 6,9 secondes sur la machine testée. Le nombre d'utilisateurs
+simultanés est inconnu. Playwright et le test manuel 10C restent reportés; les
+dettes P3 d'upload GGUF et de port 9931 ne sont pas traitées.

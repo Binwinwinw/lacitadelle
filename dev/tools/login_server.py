@@ -67,6 +67,8 @@ from model_health import CURRENT_MODEL_FILE
 PROXY_HOST = "127.0.0.1"
 PROXY_PORT = 8081
 LLAMAFILE_URL = "http://127.0.0.1:8080/v1/chat/completions"
+LLAMAFILE_MODELS_URL = "http://127.0.0.1:8080/v1/models"
+LLAMAFILE_PROXY_TIMEOUT = 60
 WEB_DIR = Path(__file__).resolve().parent / "web"
 MAX_CONTEXT_MESSAGES = 15
 SYSTEM_PROMPT = "Tu es Lacitadelle, un assistant IA local. Réponds en français."
@@ -1852,6 +1854,87 @@ def handle_post_message(
     )
 
 
+def proxy_llamafile(
+    handler: BaseHTTPRequestHandler,
+    url: str,
+    method: str,
+) -> None:
+    """Relaye une route llamafile fixe aux utilisateurs authentifiés."""
+    if get_authenticated_user_id(handler) is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+
+    data = None
+    headers = {}
+    if method == "POST":
+        if handler.headers.get_content_type() != "application/json":
+            error_response(
+                handler,
+                "Content-Type application/json requis",
+                HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+            )
+            return
+        content_length = int(handler.headers.get("Content-Length", "0"))
+        data = _read_post_body(handler, content_length)
+        headers["Content-Type"] = "application/json"
+
+    request = urllib.request.Request(
+        url,
+        data=data,
+        headers=headers,
+        method=method,
+    )
+    try:
+        with urllib.request.urlopen(
+            request,
+            timeout=LLAMAFILE_PROXY_TIMEOUT,
+        ) as response:
+            response_body = response.read()
+            status = response.getcode() or HTTPStatus.OK
+            content_type = response.headers.get(
+                "Content-Type",
+                "application/json",
+            )
+    except urllib.error.HTTPError as exc:
+        exc.close()
+        sys.stderr.write(
+            f"[llamafile-proxy] Upstream HTTP error {exc.code}\n"
+        )
+        error_response(
+            handler,
+            "Le serveur de modèle a refusé la requête",
+            HTTPStatus.BAD_GATEWAY,
+        )
+        return
+    except urllib.error.URLError as exc:
+        sys.stderr.write(
+            "[llamafile-proxy] Upstream unavailable "
+            f"({type(exc.reason).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Serveur de modèle indisponible",
+            HTTPStatus.BAD_GATEWAY,
+        )
+        return
+    except OSError as exc:
+        sys.stderr.write(
+            f"[llamafile-proxy] Upstream I/O error ({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Serveur de modèle indisponible",
+            HTTPStatus.BAD_GATEWAY,
+        )
+        return
+
+    handler.send_response(status)
+    handler.send_header("Content-Type", content_type)
+    handler.send_header("Content-Length", str(len(response_body)))
+    handler.end_headers()
+    handler.wfile.write(response_body)
+
+
 class RequestHandler(BaseHTTPRequestHandler):
     """Gère l'authentification, le chat et l'administration en lecture seule."""
 
@@ -1888,6 +1971,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_preferences(self)
             elif path == "/api/me":
                 handle_get_api_me(self)
+            elif path == "/api/llamafile/v1/models":
+                proxy_llamafile(self, LLAMAFILE_MODELS_URL, "GET")
             elif path == "/api/settings/model":
                 handle_get_api_settings_model(self)
             elif path == "/api/settings/allowed_models":
@@ -1949,6 +2034,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_api_admin_model(self)
             elif path == "/api/settings/allowed_models":
                 handle_post_api_settings_allowed_models(self)
+            elif path == "/api/llamafile/v1/chat/completions":
+                proxy_llamafile(self, LLAMAFILE_URL, "POST")
             elif path == "/logout":
                 handle_post_logout(self)
             elif path == "/api/sessions":

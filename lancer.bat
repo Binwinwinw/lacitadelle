@@ -88,7 +88,7 @@ if errorlevel 1 (
 
 :MODEL_PATH_READY
 echo Demarrage du serveur llamafile (port 8080)...
-start "Lacitadelle Server" dist\llamafile.exe -m "%MODEL_PATH%" --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps
+start "Lacitadelle Server" dist\llamafile.exe -m "%MODEL_PATH%" --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps --cors-origins http://localhost:8081
 
 echo Attente active du serveur llamafile (maximum 120 secondes)...
 set /a LLAMA_TRIES=0

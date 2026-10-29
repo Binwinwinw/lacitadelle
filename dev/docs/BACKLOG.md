@@ -227,8 +227,9 @@ une tranche indépendante.
 **Tests** : quatre tests couvrent la création et son hash, l'admin actif
 existant, l'admin inactif et les messages de démarrage/erreur.
 
-**Moment de traitement** : terminé; test manuel par le décideur à effectuer
-sur la base locale.
+**Test manuel** : non exécuté; en attente d'une base jetable. La procédure
+isolée est documentée dans [`RUNBOOK.md`](./RUNBOOK.md). Ne pas utiliser la
+base locale réelle pour ce test.
 
 ---
 
@@ -426,13 +427,14 @@ mais son résultat multi-origines n'était pas valide pour les navigateurs.
 
 #### 11-POLISH-BIS-CORS — Retour au CORS par défaut
 
-**Périmètre** : supprimer `--cors-origins` de `lancer.bat`; documenter le
-frontend indirect via `login_server.py` et la restriction CORS requise pour
-une future mise en production.
+**Périmètre** : supprimer la liste multi-origines invalide de
+`lancer.bat`; le frontend utilise le proxy Python. La restriction locale a
+ensuite été appliquée par #65 avec l'origine unique
+`http://localhost:8081`.
 
 **Validation** : 176 tests; démarrage réel vérifié après retrait du flag.
 
-**Statut** : terminé (décision #64, commit `56e8e54`).
+**Statut** : terminé (décisions #64 et #65; #64 commit `56e8e54`).
 **Dépendances** : 11-POLISH.
 
 #### 11-POLISH-BIS — Upload GGUF (bouton Parcourir)
@@ -441,6 +443,7 @@ une future mise en production.
 **Périmètre provisoire** : permettre à l'admin de sélectionner un GGUF local
 avec un bouton « Parcourir ». Le stockage, la taille maximale et la validation
 complémentaire restent à cadrer.
+**Playwright E2E** : reporté à 11-POLISH-BIS; dépendance non installée.
 **Dépendances** : whitelist configurable 11e.
 
 ---
@@ -449,3 +452,14 @@ complémentaire restent à cadrer.
 
 - **Nettoyage base locale** (`admin`/`user`, `phase6c-admin` sans mot de passe,
   `phase6c-chat`) : au moment de la mise en production.
+
+### Concurrence serveur (P2)
+
+**Statut** : reportée; le serveur actuel est mono-thread. Une requête lente
+bloque les suivantes et le nombre d'utilisateurs simultanés n'est pas testé.
+**Décision actée** : 2026-10-29 (décision #65).
+**Dépendances** : mise en production et GO CONCURRENCE dédié.
+**Périmètre** : `ThreadingHTTPServer`, SQLite WAL, sessions thread-safe et
+tests de charge concurrents.
+**Questions ouvertes** : capacité simultanée cible et limites à certifier.
+**Moment de traitement** : après production, selon les retours utilisateurs.
