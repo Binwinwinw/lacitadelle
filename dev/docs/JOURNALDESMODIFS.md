@@ -1015,7 +1015,7 @@ ni test modifié.
 
 ## [2026-10-29] Phase 11-POLISH — Documentation, messages et CORS
 
-**Commit** : hash final à référencer après création.
+**Commit** : `09524b5`.
 
 **Fichiers modifiés** : `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
 `dev/tools/login_server.py`, `dev/tests/test_admin_model.py`,
@@ -1028,3 +1028,16 @@ erreurs de validation GGUF et restreindre CORS avec l'option du runtime.
 
 **Impact** : procédure admin de reset temporaire documentée, CORS limité
 aux origines locales et 176 tests conservés.
+
+## [2026-10-29] Phase 11-POLISH — Référence du commit
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit 11-POLISH.
+
+**Impact** : BACKLOG et journal pointent vers `09524b5`; aucun code ni test
+modifié.

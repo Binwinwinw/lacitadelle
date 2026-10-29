@@ -416,7 +416,7 @@ et restreindre les origines CORS de llamafile.
 **Validation** : 176 tests; l'option supportée `--cors-origins` du runtime
 fourni est vérifiée.
 
-**Statut** : terminé (décision #63; commit à référencer après création).
+**Statut** : terminé (décision #63, commit `09524b5`).
 **Dépendances** : Phase 11f.
 
 ---
