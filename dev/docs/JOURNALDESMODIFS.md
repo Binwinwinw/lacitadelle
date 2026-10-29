@@ -1071,7 +1071,7 @@ modifié.
 
 ## [2026-10-29] Phase 11-POLISH-QUATER — Corrections documentaires
 
-**Commit** : hash final à référencer après création.
+**Commit** : `0982b96`.
 
 **Fichiers modifiés** : `AGENTS.md`, `dev/docs/BACKLOG.md`,
 `dev/docs/ROADMAP.md`, `dev/docs/JOURNALDEBORD.md` et
@@ -1083,3 +1083,14 @@ modifié.
 **Impact** : compteurs, inventaire B-1, snapshots TODO et Roadmap alignés;
 doublon historique retiré et sous-lot upload ajouté au Backlog; 176 tests
 inchangés.
+
+## [2026-10-29] Référence du commit 11-POLISH-QUATER
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final des corrections documentaires.
+
+**Impact** : le commit principal 11-POLISH-QUATER est référencé par `0982b96`.
