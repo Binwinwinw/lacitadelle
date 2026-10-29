@@ -382,6 +382,16 @@ validation par nom de fichier ou empreinte; ils nécessitent un GO distinct.
 **Statut** : terminé (décision #60, commit `4762646`).
 **Dépendances** : 11d.
 
+#### 11e-bis — Ordre des sections de /settings
+
+**Périmètre** : placer « Modèles autorisés » avant « Changer de modèle » sans
+modifier leur contenu ni leur comportement.
+
+**Tests** : 171 tests existants passent; ordre HTML, IDs et JavaScript vérifiés.
+
+**Statut** : terminé (décision #61; commit à référencer après création).
+**Dépendances** : 11e.
+
 #### 11f — E2E + filet au démarrage
 
 **Périmètre** :

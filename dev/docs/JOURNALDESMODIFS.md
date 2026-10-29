@@ -956,3 +956,17 @@ Phase 11e.
 
 **Impact** : BACKLOG et journal pointent vers `4762646`; aucun code ni test
 modifié.
+
+## [2026-10-28] Phase 11e-bis — Ordre whitelist avant sélection
+
+**Commit** : hash final à référencer après création.
+
+**Fichiers modifiés** : `dev/tools/web/settings.html`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : afficher la configuration de la whitelist avant le choix du
+modèle actif.
+
+**Impact** : déplacement HTML uniquement; IDs, JavaScript et endpoints
+inchangés; 171 tests passent.

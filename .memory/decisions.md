@@ -1339,3 +1339,18 @@ modèles sélectionnables aux fichiers approuvés par l'admin.
 **Conséquences** : seuls les chemins explicitement autorisés peuvent être
 sélectionnés; une whitelist vide est fail-closed. Cette V1 ne fournit pas de
 catalogue de modèles ni de validation par empreinte.
+
+## [2026-10-28] Réordonner UI /settings : whitelist avant changement (11e-bis)
+
+**Contexte** : l'ordre actuel plaçait « Changer de modèle » avant « Modèles
+autorisés », alors que le parcours logique consiste à configurer la whitelist
+avant de choisir le modèle actif.
+
+**Décision(s)** :
+
+1. Déplacer la section « Modèles autorisés » avant « Changer de modèle » dans
+   `settings.html`.
+2. Ne modifier aucun comportement, identifiant HTML, script ou endpoint.
+
+**Conséquences** : l'ordre de la page suit le parcours utilisateur attendu,
+sans changement fonctionnel.

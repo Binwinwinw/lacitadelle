@@ -44,6 +44,20 @@
                 <p id="settings-status" class="settings-status" role="status"
                    aria-live="polite"></p>
             </section>
+            <section id="allowed-models-section" class="settings-section"
+                     aria-labelledby="allowed-models-heading" hidden>
+                <h2 id="allowed-models-heading">Modèles autorisés</h2>
+                <p>Seuls les GGUF de cette liste peuvent être sélectionnés.</p>
+                <form id="allowed-models-form" class="settings-form">
+                    <label for="allowed-model-path">Chemin du fichier GGUF</label>
+                    <input type="text" id="allowed-model-path"
+                           name="model_path" required>
+                    <button type="submit" class="settings-save">Ajouter</button>
+                </form>
+                <ul id="allowed-models-list"></ul>
+                <p id="allowed-models-status" class="settings-status"
+                   role="status" aria-live="polite"></p>
+            </section>
             <section id="model-section" class="settings-section"
                      aria-labelledby="model-heading" hidden>
                 <h2 id="model-heading">Changer de modèle</h2>
@@ -65,20 +79,6 @@
                     Pour appliquer le modèle configuré, fermez cette fenêtre et
                     relancez lancer.bat.
                 </p>
-            </section>
-            <section id="allowed-models-section" class="settings-section"
-                     aria-labelledby="allowed-models-heading" hidden>
-                <h2 id="allowed-models-heading">Modèles autorisés</h2>
-                <p>Seuls les GGUF de cette liste peuvent être sélectionnés.</p>
-                <form id="allowed-models-form" class="settings-form">
-                    <label for="allowed-model-path">Chemin du fichier GGUF</label>
-                    <input type="text" id="allowed-model-path"
-                           name="model_path" required>
-                    <button type="submit" class="settings-save">Ajouter</button>
-                </form>
-                <ul id="allowed-models-list"></ul>
-                <p id="allowed-models-status" class="settings-status"
-                   role="status" aria-live="polite"></p>
             </section>
             <section id="user-indicators-section" class="settings-section"
                      aria-labelledby="user-indicators-heading" hidden>
