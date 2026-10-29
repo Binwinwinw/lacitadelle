@@ -1129,7 +1129,8 @@ def handle_post_api_admin_users_create(handler: BaseHTTPRequestHandler) -> None:
 
 def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
     """POST /api/admin/model : enregistre le chemin d'un GGUF existant."""
-    if require_admin(handler) is None:
+    admin_id = require_admin(handler)
+    if admin_id is None:
         return
 
     try:
@@ -1226,6 +1227,13 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
         mirror_write_started = False
         try:
             conn.execute("BEGIN IMMEDIATE")
+            admin = conn.execute(
+                "SELECT username FROM users WHERE id = ?",
+                (admin_id,),
+            ).fetchone()
+            if admin is None:
+                raise sqlite3.DatabaseError("Admin account no longer exists")
+            admin_username = admin["username"]
             row = conn.execute(
                 "SELECT value FROM settings WHERE key = ?",
                 ("current_model_path",),
@@ -1288,6 +1296,9 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
         )
         return
 
+    sys.stderr.write(
+        f"[security] Changement modele: {admin_username} -> {path}\n"
+    )
     json_response(
         handler,
         {

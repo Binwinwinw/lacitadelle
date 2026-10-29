@@ -983,3 +983,19 @@ auto-référençable).
 
 **Impact** : BACKLOG et journal pointent vers `80814a0`; aucun code ni test
 modifié.
+
+## [2026-10-28] Phase 11f — Filet whitelist, E2E et logs sécurité
+
+**Commit** : hash final à référencer après création.
+
+**Fichiers modifiés** : `dev/tools/model_health.py`, `lancer.bat`,
+`dev/tools/login_server.py`, `dev/tests/test_model_health.py`,
+`dev/tests/test_e2e_model_change.py`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/ROADMAP.md`,
+`dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : empêcher le démarrage d'un modèle hors whitelist, tester le
+workflow admin de bout en bout et tracer les changements et rollbacks.
+
+**Impact** : contrôle fail-closed avant llamafile, tests E2E et logs
+`[security]` dans `dist/proxy.log`; 176 tests passent.

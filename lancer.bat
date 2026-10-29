@@ -25,7 +25,7 @@ if exist "%MODEL_PATH%" goto MODEL_PATH_VALID
 
 echo ERREUR : le modele "%MODEL_PATH%" est introuvable.
 echo Tentative de rollback...
-python dev\tools\model_health.py --rollback
+python dev\tools\model_health.py --rollback 2>> dist\proxy.log
 if errorlevel 1 goto MODEL_PATH_DEFAULT
 
 set "MODEL_PATH="
@@ -36,7 +36,9 @@ if not exist "%MODEL_PATH%" (
     goto MODEL_PATH_DEFAULT
 )
 echo Modele restaure : "%MODEL_PATH%"
-goto MODEL_PATH_VALID
+python dev\tools\model_health.py --check-whitelist "%MODEL_PATH%" 2>> dist\proxy.log
+if errorlevel 1 goto MODEL_WHITELIST_DEFAULT
+goto MODEL_PATH_READY
 
 :MODEL_PATH_DEFAULT
 echo Utilisation du modele par defaut.
@@ -45,8 +47,46 @@ if not exist "%MODEL_PATH%" (
     echo ERREUR : le modele par defaut "%MODEL_PATH%" est introuvable.
     exit /b 1
 )
+python dev\tools\model_health.py --check-whitelist "%MODEL_PATH%" 2>> dist\proxy.log
+if errorlevel 1 (
+    echo ERREUR : le modele par defaut n'est pas dans la whitelist.
+    exit /b 1
+)
+goto MODEL_PATH_READY
 
 :MODEL_PATH_VALID
+python dev\tools\model_health.py --check-whitelist "%MODEL_PATH%" 2>> dist\proxy.log
+if errorlevel 1 goto MODEL_NOT_WHITELISTED
+goto MODEL_PATH_READY
+
+:MODEL_NOT_WHITELISTED
+echo ERREUR : le modele n'est pas dans la whitelist.
+echo Tentative de rollback...
+python dev\tools\model_health.py --rollback 2>> dist\proxy.log
+if errorlevel 1 goto MODEL_WHITELIST_DEFAULT
+set "MODEL_PATH="
+if exist dist\.current_model set /p MODEL_PATH=<dist\.current_model
+if not defined MODEL_PATH goto MODEL_WHITELIST_DEFAULT
+if not exist "%MODEL_PATH%" goto MODEL_WHITELIST_DEFAULT
+python dev\tools\model_health.py --check-whitelist "%MODEL_PATH%" 2>> dist\proxy.log
+if errorlevel 1 goto MODEL_WHITELIST_DEFAULT
+echo Modele restaure : "%MODEL_PATH%"
+goto MODEL_PATH_READY
+
+:MODEL_WHITELIST_DEFAULT
+echo Utilisation du modele par defaut.
+set "MODEL_PATH=dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf"
+if not exist "%MODEL_PATH%" (
+    echo ERREUR : le modele par defaut "%MODEL_PATH%" est introuvable.
+    exit /b 1
+)
+python dev\tools\model_health.py --check-whitelist "%MODEL_PATH%" 2>> dist\proxy.log
+if errorlevel 1 (
+    echo ERREUR : le modele par defaut n'est pas dans la whitelist.
+    exit /b 1
+)
+
+:MODEL_PATH_READY
 echo Demarrage du serveur llamafile (port 8080)...
 start "Lacitadelle Server" dist\llamafile.exe -m "%MODEL_PATH%" --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps
 
@@ -113,7 +153,7 @@ exit /b 0
 :MODEL_LOAD_FAILED
 echo ERREUR : llamafile ne confirme pas le modele configure.
 echo Restauration du chemin precedent...
-python dev\tools\model_health.py --rollback
+python dev\tools\model_health.py --rollback 2>> dist\proxy.log
 if errorlevel 1 (
     echo ERREUR : rollback impossible. Voir dist\.current_model et la base locale.
 ) else (

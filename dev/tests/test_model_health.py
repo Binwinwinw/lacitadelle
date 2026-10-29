@@ -2,6 +2,7 @@
 
 import json
 import sys
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
@@ -10,6 +11,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
+import citadelle_memory
 import model_health
 
 
@@ -87,6 +89,62 @@ def test_health_check_http_error():
         ) == (False, "http_error")
 
 
+def test_check_whitelist_returns_true_for_allowed_path():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        db_path = Path(temp_dir) / "memory.db"
+        model_path = Path(temp_dir) / "allowed.gguf"
+        model_path.write_bytes(b"gguf")
+        citadelle_memory.migrate_to_v6(db_path)
+        citadelle_memory.set_setting(
+            "allowed_models",
+            json.dumps([str(model_path.resolve()).replace("\\", "/")]),
+            db_path=db_path,
+        )
+
+        assert model_health.check_whitelist(str(model_path), db_path=db_path)
+        with patch.object(model_health, "check_whitelist", return_value=True):
+            assert model_health.main(
+                ["--check-whitelist", str(model_path)]
+            ) == 0
+
+
+def test_check_whitelist_returns_false_for_unallowed_path():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        db_path = Path(temp_dir) / "memory.db"
+        allowed_path = Path(temp_dir) / "allowed.gguf"
+        rejected_path = Path(temp_dir) / "rejected.gguf"
+        allowed_path.write_bytes(b"gguf")
+        rejected_path.write_bytes(b"gguf")
+        citadelle_memory.migrate_to_v6(db_path)
+        citadelle_memory.set_setting(
+            "allowed_models",
+            json.dumps([str(allowed_path.resolve())]),
+            db_path=db_path,
+        )
+
+        assert not model_health.check_whitelist(
+            str(rejected_path),
+            db_path=db_path,
+        )
+
+
+def test_check_whitelist_empty_returns_false():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        db_path = Path(temp_dir) / "memory.db"
+        model_path = Path(temp_dir) / "model.gguf"
+        model_path.write_bytes(b"gguf")
+        citadelle_memory.migrate_to_v6(db_path)
+
+        assert not model_health.check_whitelist(str(model_path), db_path=db_path)
+
+        citadelle_memory.set_setting("allowed_models", "[]", db_path=db_path)
+        assert not model_health.check_whitelist(str(model_path), db_path=db_path)
+        with patch.object(model_health, "check_whitelist", return_value=False):
+            assert model_health.main(
+                ["--check-whitelist", str(model_path)]
+            ) == 1
+
+
 def test_pytest_does_not_pollute_current_model_file():
     real_file = model_health.CURRENT_MODEL_FILE
     if real_file.exists():
@@ -106,6 +164,9 @@ def run_all():
         test_health_check_mismatch,
         test_health_check_timeout,
         test_health_check_http_error,
+        test_check_whitelist_returns_true_for_allowed_path,
+        test_check_whitelist_returns_false_for_unallowed_path,
+        test_check_whitelist_empty_returns_false,
         test_pytest_does_not_pollute_current_model_file,
     ]
     for test in tests:

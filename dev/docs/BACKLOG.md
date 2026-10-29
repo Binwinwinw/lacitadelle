@@ -396,23 +396,20 @@ modifier leur contenu ni leur comportement.
 
 **Périmètre** :
 
-- Au démarrage de `login_server.py`, si le modèle courant échoue à charger,
-  revenir automatiquement à `previous_model_path` conservé dans `settings`
-  et journaliser l'incident.
-- Tester de bout en bout : changement vers un modèle valide et redémarrage;
-  modèle invalide avec rollback immédiat; modèle sélectionné qui échoue au
-  démarrage suivant avec rollback de sécurité.
+- `model_health.check_whitelist()` valide le modèle courant contre
+  `settings.allowed_models` et refuse une liste absente ou vide.
+- `lancer.bat` vérifie la whitelist avant llamafile; après rollback, il
+  revérifie le chemin restauré et ne démarre le modèle par défaut que s'il
+  existe et est autorisé.
+- Le test E2E couvre le POST admin, la mise à jour SQLite et
+  `dist/.current_model`, ainsi que le refus d'un modèle valide non autorisé.
+- Les changements et rollbacks sont journalisés avec `[security]` dans
+  `dist/proxy.log`.
 
-**Statut** : à implémenter.
+**Tests** : cinq tests ajoutés (trois whitelist, deux E2E); 176 tests au total.
+
+**Statut** : terminé (décision #62; commit à référencer après création).
 **Dépendances** : 11d et 11e.
-
-**Questions ouvertes à traiter pendant la Phase 11** :
-
-- **11f — Rollback** : mécanisme de surveillance du démarrage suivant et
-  déclenchement du retour au modèle précédent.
-
-**Moment de traitement** : Phase 11, après validation de la présente
-conception.
 
 ---
 

@@ -148,6 +148,22 @@ que son corps soit consommé.
 **Livrable** : lecture bornée du corps POST avant contrôle d'authentification,
 test de non-régression sur 200 requêtes et validation répétée de la suite.
 
+## [Phase 11] Mode B-2 — Gestion admin des modèles (2026-10-25 → 2026-10-28)
+
+**Commits** : `7a13c19` (11d), `4762646` (11e), `80814a0` (11e-bis) et
+hash 11f à référencer après création.
+
+**Décisions** : #50–#62.
+
+**Source** : Trace + Décideur.
+
+**Objectif** : configurer les modèles GGUF autorisés, appliquer le choix
+admin au démarrage avec validation fail-closed, et préserver le rollback.
+
+**Livrable** : whitelist JSON configurable et UI admin, vérification de
+l'existence et de l'autorisation avant llamafile, rollback/fallback contrôlés,
+logs de sécurité et E2E du changement de modèle; 176 tests passent.
+
 ## État actuel (2026-10-23)
 
 - Distribution : `lacitadelle-distribution.zip`, 92 019 octets (taille
@@ -165,6 +181,4 @@ clôturées; elles ne deviendront des entrées définitives de cette Roadmap
 qu'après leur implémentation.
 
 - **Mode B-1** : page de réglages (user + admin + logs et indicateurs).
-- **Mode B-2** : changement de modèle admin, avec rollback obligatoire et
-  whitelist curée.
 - **Nettoyage base locale** : à effectuer au moment de la production.

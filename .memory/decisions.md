@@ -1354,3 +1354,29 @@ avant de choisir le modèle actif.
 
 **Conséquences** : l'ordre de la page suit le parcours utilisateur attendu,
 sans changement fonctionnel.
+
+## [2026-10-28] Filet sécurité whitelist au démarrage + E2E (Phase 11f)
+
+**Contexte** : 11d-ter vérifiait que le GGUF existait avant llamafile, mais
+pas qu'il était autorisé. Une modification manuelle de `dist/.current_model`
+pouvait donc sélectionner un modèle hors whitelist.
+
+**Décision(s)** :
+
+1. Ajouter `model_health.check_whitelist(path, db_path=None)`, qui retourne
+   `False` si la whitelist est absente, vide ou invalide.
+2. Dans `lancer.bat`, vérifier le modèle après le contrôle d'existence et
+   avant llamafile. Si le chemin n'est pas autorisé, tenter le rollback,
+   vérifier à nouveau le chemin restauré, puis utiliser le défaut seulement
+   s'il existe et figure dans la whitelist; sinon arrêter.
+3. Ajouter un E2E qui couvre le changement admin, la persistance SQLite et le
+   miroir fichier, ainsi que le refus d'un GGUF valide hors whitelist.
+4. Journaliser les changements et rollbacks avec le préfixe `[security]`;
+   rediriger les diagnostics du lancement et les rollbacks vers
+   `dist/proxy.log`.
+5. Ajouter cinq tests : trois pour `check_whitelist` et deux pour le workflow
+   E2E.
+
+**Conséquences** : llamafile ne démarre pas avec un modèle absent de la
+whitelist, même si `dist/.current_model` est modifié manuellement. La Phase 11
+est terminée; 176 tests passent.

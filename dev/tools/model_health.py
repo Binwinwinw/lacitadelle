@@ -31,6 +31,49 @@ def _normalize_path(path: str) -> str:
     return os.path.normcase(os.path.normpath(path)).replace("\\", "/")
 
 
+def _normalize_whitelist_path(path: str) -> str:
+    resolved = Path(path).expanduser().resolve()
+    return os.path.normcase(os.path.normpath(str(resolved))).replace("\\", "/")
+
+
+def check_whitelist(model_path: str, db_path: Path | None = None) -> bool:
+    """Return whether a model path is in the configured allowlist."""
+    if not isinstance(model_path, str) or not model_path.strip():
+        return False
+    try:
+        raw_models = get_setting("allowed_models", db_path=db_path)
+    except sqlite3.Error as exc:
+        sys.stderr.write(
+            "[security] Allowed model list could not be read "
+            f"({type(exc).__name__})\n"
+        )
+        return False
+    if raw_models is None:
+        return False
+    try:
+        models = json.loads(raw_models)
+    except json.JSONDecodeError as exc:
+        sys.stderr.write(
+            "[security] Allowed model list is invalid "
+            f"({type(exc).__name__})\n"
+        )
+        return False
+    if not isinstance(models, list) or any(
+        not isinstance(path, str) or not path.strip() for path in models
+    ):
+        sys.stderr.write("[security] Allowed model list is invalid\n")
+        return False
+
+    try:
+        normalized_path = _normalize_whitelist_path(model_path)
+        normalized_models = {
+            _normalize_whitelist_path(path) for path in models
+        }
+    except (OSError, RuntimeError, ValueError):
+        return False
+    return normalized_path in normalized_models
+
+
 def check_model_loaded(
     expected_path: str,
     base_url: str = DEFAULT_BASE_URL,
@@ -105,6 +148,10 @@ def restore_previous_model(
                 )
                 raise
         raise
+    reason = previous_path or "modele par défaut"
+    sys.stderr.write(
+        f"[security] Rollback modele: {reason} -> {model_path}\n"
+    )
     return model_path
 
 
@@ -112,8 +159,19 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     actions = parser.add_mutually_exclusive_group(required=True)
     actions.add_argument("--check", metavar="MODEL_PATH")
+    actions.add_argument("--check-whitelist", metavar="MODEL_PATH")
     actions.add_argument("--rollback", action="store_true")
     args = parser.parse_args(argv)
+
+    if args.check_whitelist is not None:
+        if check_whitelist(args.check_whitelist):
+            return 0
+        print(
+            "[security] Modèle absent de la whitelist: "
+            f"{args.check_whitelist}",
+            file=sys.stderr,
+        )
+        return 1
 
     if args.rollback:
         try:
