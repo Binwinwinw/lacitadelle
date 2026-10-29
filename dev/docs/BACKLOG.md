@@ -23,8 +23,9 @@ le journal des phases.
 **Avancement** : 10B-1 (préférences), 10B-1b (changement de mot de passe),
 10B-2 (admin read-only), 10B-3a à 10B-3e (CRUD admin), 10B-4a/4b
 (métriques et logs) et 10B-5 (indicateurs agrégés) sont terminés.
-Le décompte historique de 19 sous-lots n'a pas été revérifié lors de l'audit
-11c-PRE-2B; l'inventaire détaillé ci-dessous reste inchangé.
+Décompte historique non revérifié en 11-POLISH-TER : 11 sous-lots 10B sont
+nommés ci-dessous; les 8 autres du total historique de 19 ne sont pas
+identifiables dans l'inventaire conservé.
 
 La conception globale et la clôture du Mode B-1 sont consignées dans les
 décisions #30 et #49.
@@ -61,7 +62,7 @@ décisions #30 et #49.
 **Questions tranchées** : les huit choix de conception sont consignés dans la
 décision #30 de `.memory/decisions.md`.
 
-**Moment de traitement** : à décider par le décideur.
+**Moment de traitement** : terminé (voir décisions #1–#49).
 
 ### 10B-3 — CRUD admin (découpé en 5 sous-lots)
 
@@ -330,7 +331,8 @@ au chemin configuré et les contrôles d'accès du POST existant.
 
 **Consolidation 2026-10-28** : page `/admin/model` dédiée (11c v1; commits
 `cedd1e5` et `2864b3c`) retirée manuellement par `4347c2f` (décision #56);
-11c v2 dans `/settings` conservée.
+11c v2 dans `/settings` conservée. La décision #55 (page dédiée) est
+explicitement retirée par la consolidation #56.
 **Statut** : terminé (décision #54, commit `a79d6f3`; consolidation #56).
 **Dépendances** : 11b.
 
@@ -432,6 +434,14 @@ une future mise en production.
 
 **Statut** : terminé (décision #64, commit `56e8e54`).
 **Dépendances** : 11-POLISH.
+
+#### 11-POLISH-BIS — Upload GGUF (bouton Parcourir)
+
+**Statut** : à planifier (GO séparé, annoncé par la décision #63).
+**Périmètre provisoire** : permettre à l'admin de sélectionner un GGUF local
+avec un bouton « Parcourir ». Le stockage, la taille maximale et la validation
+complémentaire restent à cadrer.
+**Dépendances** : whitelist configurable 11e.
 
 ---
 

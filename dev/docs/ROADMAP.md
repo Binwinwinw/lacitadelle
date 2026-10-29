@@ -20,13 +20,9 @@ antérieure sans trace écrite ne doit être ajoutée.
 - Le brief signale la release `v3-distribution`, mais aucun tag n'apparaît dans
   `git tag -l`. La consultation de la release GitHub n'a pas abouti, car `gh`
   n'est pas authentifié. Son existence distante reste à confirmer.
-- L'état V3.0 d'`AGENTS.md` et la section V3.0 de `JOURNALDESMODIFS.md`
-  indiquent 73 tests; la décision #26 et l'entrée Phase 8b consignent 76 tests
-  stables. La valeur 76 correspond à l'état après Phase 8b; l'indication 73
-  reste un état documentaire antérieur.
-- La table mémoire d'`AGENTS.md` indique 23 décisions; `decisions.md` en
-  contient 26. Cette valeur est également obsolète et n'est pas corrigée dans
-  le présent GO.
+- Les comptes 73/76 tests et 23/26 décisions correspondaient aux instantanés
+  historiques de 2023; ils ont été actualisés dans `AGENTS.md` en
+  11-POLISH (176 tests, 64 décisions).
 - `JOURNALDESMODIFS.md` date la synthèse de refonte des Phases 1–7 du
   2026-10-22 au 2026-10-23, tandis que les dix commits qu'elle énumère sont
   datés du 2026-10-22 dans Git. Les dates des phases ci-dessous suivent les
@@ -148,14 +144,17 @@ que son corps soit consommé.
 **Livrable** : lecture bornée du corps POST avant contrôle d'authentification,
 test de non-régression sur 200 requêtes et validation répétée de la suite.
 
-## [Phase 11] Mode B-2 — Gestion admin des modèles (2026-10-25 → 2026-10-28)
+## [Phase 11] Mode B-2 — Gestion admin des modèles (2026-10-25 → 2026-10-29)
 
 **Commits** : `7a13c19` (11d), `4762646` (11e), `80814a0` (11e-bis) et
-`fd3fd79` (11f).
+`fd3fd79` (11f), `09524b5` (11-POLISH), `af693cf` (référence),
+`56e8e54` (11-POLISH-BIS-CORS) et `4d06583` (référence).
 
-**Décisions** : #50–#62.
+**Décisions** : #50–#64.
 
 **Source** : Trace + Décideur.
+
+**Statut** : terminée le 2026-10-29.
 
 **Objectif** : configurer les modèles GGUF autorisés, appliquer le choix
 admin au démarrage avec validation fail-closed, et préserver le rollback.
@@ -164,14 +163,15 @@ admin au démarrage avec validation fail-closed, et préserver le rollback.
 l'existence et de l'autorisation avant llamafile, rollback/fallback contrôlés,
 logs de sécurité et E2E du changement de modèle; 176 tests passent.
 
-## État actuel (2026-10-23)
+## État actuel (2026-10-29)
 
-- Distribution : `lacitadelle-distribution.zip`, 92 019 octets (taille
-  vérifiée localement). La release GitHub `v3-distribution` est signalée dans
-  le brief, mais reste non vérifiée par l'IDE.
-- Tests : 76, validés 10/10 runs en Phase 8b.
-- Décisions : 26 actées.
-- Règles : sept règles structurelles dans `AGENTS.md`.
+- Distribution : `lacitadelle-distribution.zip`; la taille de 92 019 octets
+  est un instantané vérifié le 2026-10-23, non remesuré ici. La release
+  GitHub `v3-distribution` reste non vérifiée par l'IDE.
+- Tests : 176.
+- Décisions : 64 actées.
+- Phase 11 : complète.
+- Règles : neuf règles structurelles dans `AGENTS.md`.
 - Tâches à venir : voir `TODO.md` (local, gitignoré).
 
 ## Prochaines phases possibles (non clôturées)
@@ -180,5 +180,6 @@ Voir [`BACKLOG.md`](./BACKLOG.md) pour le détail. Ces phases ne sont pas
 clôturées; elles ne deviendront des entrées définitives de cette Roadmap
 qu'après leur implémentation.
 
-- **Mode B-1** : page de réglages (user + admin + logs et indicateurs).
+- **11-POLISH-BIS** : upload GGUF par l'admin (bouton « Parcourir »), à
+  planifier séparément.
 - **Nettoyage base locale** : à effectuer au moment de la production.

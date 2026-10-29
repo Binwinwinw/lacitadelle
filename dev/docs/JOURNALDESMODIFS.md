@@ -1068,3 +1068,18 @@ auto-référençable).
 
 **Impact** : BACKLOG et journal pointent vers `56e8e54`; aucun code ni test
 modifié.
+
+## [2026-10-29] Phase 11-POLISH-QUATER — Corrections documentaires
+
+**Commit** : hash final à référencer après création.
+
+**Fichiers modifiés** : `AGENTS.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/ROADMAP.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : corriger les écarts documentaires #1, #2, #3, #5, #6, #7 et
+#8 relevés lors de l'audit 11-POLISH-TER; documenter #55 comme retirée par #56.
+
+**Impact** : compteurs, inventaire B-1, snapshots TODO et Roadmap alignés;
+doublon historique retiré et sous-lot upload ajouté au Backlog; 176 tests
+inchangés.

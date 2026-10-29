@@ -10,7 +10,7 @@ mozilla-ai/llamafile.
 ## État actuel
 
 V3.0 fonctionnelle localement. Phase 11 complète; 176 tests permanents et
-63 décisions datées. `install.bat` télécharge llamafile-thin et le GGUF;
+64 décisions datées. `install.bat` télécharge llamafile-thin et le GGUF;
 `lancer.bat` démarre le runtime et le proxy. La distribution V3 est
 `lacitadelle-distribution.zip`, sans Git ni binaires intégrés. V3.0/V3.1
 désignent les versions du périmètre d'authentification.
@@ -25,6 +25,7 @@ désignent les versions du périmètre d'authentification.
 | [CHANGELOG.md](./CHANGELOG.md) | Pointeur vers les documents d'historique |
 | [AGENTS.md](./AGENTS.md) | Instructions et règles agents |
 | [ARCHITECTURE.md](./dev/docs/ARCHITECTURE.md) | Architecture et flux |
+| [RUNBOOK.md](./dev/docs/RUNBOOK.md) | Procédures d'exploitation manuelles |
 | [OBJECTIF.md](./dev/docs/OBJECTIF.md) | Objectifs et périmètre produit |
 | [ROADMAP.md](./dev/docs/ROADMAP.md) | Histoire du projet par phase |
 | [BACKLOG.md](./dev/docs/BACKLOG.md) | Tâches futures validées |
@@ -46,7 +47,7 @@ Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
 3. **AGENTS.md** : comprendre les règles de collaboration (9 règles structurelles).
 4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 11f).
 5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
-6. **.memory/decisions.md** : comprendre les décisions actées (63 décisions datées).
+6. **.memory/decisions.md** : comprendre les décisions actées (64 décisions datées).
 7. **dev/docs/JOURNALDEBORD.md / dev/docs/JOURNALDESMODIFS.md** : consulter la chronologie des sessions et la synthèse par commit.
 8. **TODO.md** (local, gitignoré, si présent) : consulter le pense-bête immédiat du décideur.
 9. **CHANGELOG.md** : suivre ses pointeurs vers les documents d'historique.
@@ -256,7 +257,7 @@ Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à
 
 | Fichier | Contenu | À lire quand |
 | --- | --- | --- |
-| `.memory/decisions.md` | Décisions actées (63) | Avant toute action structurante |
+| `.memory/decisions.md` | Décisions actées (64) | Avant toute action structurante |
 | `.memory/instructions.md` | Rappel et pointeurs | En début de session |
 | `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
 | `.memory/quirks.md` | Pièges et particularités | Avant de coder |
