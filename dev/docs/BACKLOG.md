@@ -430,7 +430,7 @@ une future mise en production.
 
 **Validation** : 176 tests; démarrage réel vérifié après retrait du flag.
 
-**Statut** : terminé (décision #64; commit à référencer après création).
+**Statut** : terminé (décision #64, commit `56e8e54`).
 **Dépendances** : 11-POLISH.
 
 ---

@@ -1044,7 +1044,7 @@ modifié.
 
 ## [2026-10-29] Phase 11-POLISH-BIS-CORS — Retour au défaut llamafile
 
-**Commit** : hash final à référencer après création.
+**Commit** : `56e8e54`.
 
 **Fichiers modifiés** : `lancer.bat`, `.memory/decisions.md`,
 `dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md` et
@@ -1055,3 +1055,16 @@ valeur `Access-Control-Allow-Origin`, refusée par les navigateurs.
 
 **Impact** : suppression du flag; le défaut CORS local du runtime est
 restauré. Le frontend reste proxyfié par `login_server.py`.
+
+## [2026-10-29] Phase 11-POLISH-BIS-CORS — Référence du commit
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du correctif CORS.
+
+**Impact** : BACKLOG et journal pointent vers `56e8e54`; aucun code ni test
+modifié.
