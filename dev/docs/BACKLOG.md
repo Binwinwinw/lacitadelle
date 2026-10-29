@@ -408,7 +408,7 @@ modifier leur contenu ni leur comportement.
 
 **Tests** : cinq tests ajoutés (trois whitelist, deux E2E); 176 tests au total.
 
-**Statut** : terminé (décision #62; commit à référencer après création).
+**Statut** : terminé (décision #62, commit `fd3fd79`).
 **Dépendances** : 11d et 11e.
 
 ---

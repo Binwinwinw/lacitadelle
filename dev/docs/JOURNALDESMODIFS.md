@@ -986,7 +986,7 @@ modifié.
 
 ## [2026-10-28] Phase 11f — Filet whitelist, E2E et logs sécurité
 
-**Commit** : hash final à référencer après création.
+**Commit** : `fd3fd79`.
 
 **Fichiers modifiés** : `dev/tools/model_health.py`, `lancer.bat`,
 `dev/tools/login_server.py`, `dev/tests/test_model_health.py`,
@@ -999,3 +999,16 @@ workflow admin de bout en bout et tracer les changements et rollbacks.
 
 **Impact** : contrôle fail-closed avant llamafile, tests E2E et logs
 `[security]` dans `dist/proxy.log`; 176 tests passent.
+
+## [2026-10-28] Phase 11f — Référence du commit
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md` et `dev/docs/ROADMAP.md`.
+
+**Raison** : ajouter après création le hash final de clôture de la Phase 11.
+
+**Impact** : BACKLOG, journal et Roadmap pointent vers `fd3fd79`; aucun code
+ni test modifié.

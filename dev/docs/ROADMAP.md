@@ -151,7 +151,7 @@ test de non-régression sur 200 requêtes et validation répétée de la suite.
 ## [Phase 11] Mode B-2 — Gestion admin des modèles (2026-10-25 → 2026-10-28)
 
 **Commits** : `7a13c19` (11d), `4762646` (11e), `80814a0` (11e-bis) et
-hash 11f à référencer après création.
+`fd3fd79` (11f).
 
 **Décisions** : #50–#62.
 
