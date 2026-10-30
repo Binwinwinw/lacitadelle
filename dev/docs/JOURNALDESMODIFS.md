@@ -1182,7 +1182,7 @@ limitation mémoire par IP; cinq tests de sécurité ajoutés, suite complète
 
 ## [2026-10-30] Phase MEP-BIS — Validation locale et compteurs
 
-**Commit** : référence à ajouter après création du commit.
+**Commit** : `9cd6ab9`.
 
 **Fichiers modifiés** : `AGENTS.md`, `.memory/decisions.md`,
 `dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md` et
@@ -1194,3 +1194,14 @@ compteurs du guide agents et auditer les prérequis documentés de production.
 **Impact** : 186 tests permanents et 68 décisions référencés; HTTP local
 vérifié (login, cookie, CSRF, 429). Les 429 sont journalisés comme accès
 `[proxy]`, sans événement dédié `[security]`; aucun déploiement effectué.
+
+## [2026-10-30] Référence du commit Phase MEP-BIS
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit de validation
+MEP-BIS.
+
+**Impact** : le commit principal Phase MEP-BIS est référencé par `9cd6ab9`.
