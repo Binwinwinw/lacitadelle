@@ -13,31 +13,23 @@ if not exist dist\llamafile.exe (
     exit /b 1
 )
 
-set "MODEL_PATH="
-if exist dist\.current_model (
-    set /p MODEL_PATH=<dist\.current_model
-)
-if not defined MODEL_PATH (
-    set "MODEL_PATH=dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf"
+python dev\tools\model_health.py --initialize-whitelist 2>> dist\proxy.log
+if errorlevel 1 (
+    echo ERREUR : initialisation ou verification du GGUF integre impossible.
+    exit /b 1
 )
 
-if exist "%MODEL_PATH%" goto MODEL_PATH_VALID
-
-echo ERREUR : le modele "%MODEL_PATH%" est introuvable.
-echo Tentative de rollback...
-python dev\tools\model_health.py --rollback 2>> dist\proxy.log
+python dev\tools\model_health.py --has-current-model 2>> dist\proxy.log
+if errorlevel 2 goto MODEL_STATE_ERROR
 if errorlevel 1 goto MODEL_PATH_DEFAULT
 
 set "MODEL_PATH="
-if exist dist\.current_model set /p MODEL_PATH=<dist\.current_model
-if not defined MODEL_PATH goto MODEL_PATH_DEFAULT
-if not exist "%MODEL_PATH%" (
-    echo ERREUR : le modele restaure "%MODEL_PATH%" est introuvable.
-    goto MODEL_PATH_DEFAULT
-)
-echo Modele restaure : "%MODEL_PATH%"
+if not exist dist\.current_model goto MODEL_PATH_INVALID
+set /p MODEL_PATH=<dist\.current_model
+if not defined MODEL_PATH goto MODEL_PATH_INVALID
+if not exist "%MODEL_PATH%" goto MODEL_PATH_INVALID
 python dev\tools\model_health.py --check-whitelist "%MODEL_PATH%" 2>> dist\proxy.log
-if errorlevel 1 goto MODEL_WHITELIST_DEFAULT
+if errorlevel 1 goto MODEL_NOT_WHITELISTED
 goto MODEL_PATH_READY
 
 :MODEL_PATH_DEFAULT
@@ -47,21 +39,20 @@ if not exist "%MODEL_PATH%" (
     echo ERREUR : le modele par defaut "%MODEL_PATH%" est introuvable.
     exit /b 1
 )
-python dev\tools\model_health.py --check-whitelist "%MODEL_PATH%" 2>> dist\proxy.log
-if errorlevel 1 (
-    echo ERREUR : le modele par defaut n'est pas dans la whitelist.
-    exit /b 1
-)
 goto MODEL_PATH_READY
 
-:MODEL_PATH_VALID
-python dev\tools\model_health.py --check-whitelist "%MODEL_PATH%" 2>> dist\proxy.log
-if errorlevel 1 goto MODEL_NOT_WHITELISTED
-goto MODEL_PATH_READY
+:MODEL_STATE_ERROR
+echo ERREUR : impossible de lire l'etat du modele configure.
+exit /b 1
+
+:MODEL_PATH_INVALID
+echo ERREUR : le modele configure "%MODEL_PATH%" est introuvable.
+goto MODEL_ROLLBACK
 
 :MODEL_NOT_WHITELISTED
 echo ERREUR : le modele n'est pas dans la whitelist.
 echo Tentative de rollback...
+:MODEL_ROLLBACK
 python dev\tools\model_health.py --rollback 2>> dist\proxy.log
 if errorlevel 1 goto MODEL_WHITELIST_DEFAULT
 set "MODEL_PATH="

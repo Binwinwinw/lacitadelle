@@ -497,3 +497,16 @@ mono-thread initiale.
 **Prochaine étape** : déploiement manuel par le décideur après validation
 de l'hôte cible, du pare-feu et des contrôles derrière Caddy; dette P2
 concurrence à arbitrer séparément.
+
+## Phase 12-FIX-WHITELIST-CYCLE — Première installation
+
+**Statut** : implémentation terminée le 2026-10-30 (décision #70);
+194 tests verts, aucun déploiement.
+**Dépendances** : assets llamafile-thin et GGUF intégrés déjà présents;
+leur téléchargement par `install.bat` requiert toujours le réseau.
+**Périmètre livré** : migration idempotente de whitelist avec SHA-256 du GGUF
+intégré, démarrage initial sans chemin courant, refus explicite du rollback
+automatique sans modèle précédent.
+**Tests** : huit nouveaux tests; les 186 tests existants restent inchangés.
+**Questions ouvertes** : validation de bout en bout sur VM vierge hors réseau.
+**Prochaine étape** : GO MEP-TER après validation manuelle par le Décideur.

@@ -12,7 +12,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from citadelle_memory import get_setting, set_setting
+from citadelle_memory import get_setting, migrate_to_v7, set_setting
 
 DEFAULT_MODEL_PATH = str(
     Path("dev")
@@ -25,6 +25,13 @@ CURRENT_MODEL_FILE = (
     Path(__file__).resolve().parents[2] / "dist" / ".current_model"
 )
 DEFAULT_BASE_URL = "http://127.0.0.1:8080"
+
+
+class _NoPreviousModel:
+    __slots__ = ()
+
+
+NO_PREVIOUS_MODEL = _NoPreviousModel()
 
 
 def _normalize_path(path: str) -> str:
@@ -116,13 +123,39 @@ def check_model_loaded(
     return False, "mismatch"
 
 
+def has_current_model_path(db_path: Path | None = None) -> bool:
+    current_path = get_setting("current_model_path", db_path=db_path)
+    if not current_path:
+        return False
+    try:
+        return Path(current_path).is_file()
+    except (OSError, ValueError):
+        return False
+
+
+def get_previous_model_path(
+    db_path: Path | None = None,
+) -> str | _NoPreviousModel:
+    previous_path = get_setting("previous_model_path", db_path=db_path)
+    return previous_path if previous_path else NO_PREVIOUS_MODEL
+
+
 def restore_previous_model(
     db_path: Path | None = None,
     model_file: Path | None = None,
-) -> str:
-    """Restore the prior model path, or the default when no prior is recorded."""
-    previous_path = get_setting("previous_model_path", db_path=db_path)
-    model_path = previous_path or DEFAULT_MODEL_PATH
+    *,
+    allow_default: bool = True,
+) -> str | _NoPreviousModel:
+    """Restore a prior path, optionally retaining the legacy default fallback."""
+    previous_path = get_previous_model_path(db_path=db_path)
+    if previous_path is NO_PREVIOUS_MODEL:
+        if not allow_default:
+            return NO_PREVIOUS_MODEL
+        model_path = DEFAULT_MODEL_PATH
+        reason = "modele par défaut"
+    else:
+        model_path = previous_path
+        reason = previous_path
     target = model_file or CURRENT_MODEL_FILE
     try:
         previous_mirror = target.read_bytes()
@@ -148,7 +181,6 @@ def restore_previous_model(
                 )
                 raise
         raise
-    reason = previous_path or "modele par défaut"
     sys.stderr.write(
         f"[security] Rollback modele: {reason} -> {model_path}\n"
     )
@@ -158,10 +190,34 @@ def restore_previous_model(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     actions = parser.add_mutually_exclusive_group(required=True)
+    actions.add_argument("--initialize-whitelist", action="store_true")
+    actions.add_argument("--has-current-model", action="store_true")
     actions.add_argument("--check", metavar="MODEL_PATH")
     actions.add_argument("--check-whitelist", metavar="MODEL_PATH")
     actions.add_argument("--rollback", action="store_true")
     args = parser.parse_args(argv)
+
+    if args.initialize_whitelist:
+        try:
+            migrate_to_v7()
+        except (OSError, sqlite3.Error, ValueError) as exc:
+            print(
+                f"[security] Initialisation whitelist refusée ({type(exc).__name__}): {exc}",
+                file=sys.stderr,
+            )
+            return 3
+        return 0
+
+    if args.has_current_model:
+        try:
+            return 0 if has_current_model_path() else 1
+        except sqlite3.Error as exc:
+            print(
+                f"[model] Current model path could not be read "
+                f"({type(exc).__name__})",
+                file=sys.stderr,
+            )
+            return 2
 
     if args.check_whitelist is not None:
         if check_whitelist(args.check_whitelist):
@@ -175,7 +231,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.rollback:
         try:
-            model_path = restore_previous_model()
+            model_path = restore_previous_model(allow_default=False)
+            if model_path is NO_PREVIOUS_MODEL:
+                print(
+                    "[security] rollback refusé : aucun modèle antérieur valide",
+                    file=sys.stderr,
+                )
+                return 3
         except (OSError, sqlite3.Error) as exc:
             print(
                 f"Rollback impossible ({type(exc).__name__}).",

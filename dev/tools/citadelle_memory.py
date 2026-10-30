@@ -30,6 +30,17 @@ from typing import Any, Iterator
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 CITADELLE_DATA_DIR = PROJECT_ROOT / "citadelle_data"
 DB_PATH = CITADELLE_DATA_DIR / "memory.db"
+INTEGRATED_MODEL_GGUF = (
+    PROJECT_ROOT
+    / "dev"
+    / "tools"
+    / "vendor"
+    / "llamafile"
+    / "Qwen3-1.7B-Q4_K_M.gguf"
+)
+SHA256_INTEGRATED_MODEL_GGUF = (
+    "16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207"
+)
 
 # Utilisateur par défaut
 DEFAULT_USERNAME = "lacitadelle"
@@ -281,6 +292,50 @@ def migrate_to_v6(db_path: Path | None = None) -> None:
     """Ajoute la table des paramètres runtime de façon idempotente."""
     with _connect(db_path) as conn:
         conn.executescript(SCHEMA_SETTINGS_SQL)
+
+
+def migrate_to_v7(
+    db_path: Path | None = None,
+    integrated_model_path: Path | None = None,
+) -> bool:
+    """Initialise la whitelist de première installation avec le GGUF vérifié."""
+    migrate_to_v6(db_path)
+    current_model = get_setting("current_model_path", db_path=db_path)
+    if current_model:
+        try:
+            if Path(current_model).is_file():
+                return False
+        except (OSError, ValueError):
+            pass
+
+    model_path = integrated_model_path or INTEGRATED_MODEL_GGUF
+    if not model_path.is_file():
+        return False
+
+    digest = hashlib.sha256()
+    with model_path.open("rb") as model_file:
+        for chunk in iter(lambda: model_file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    if digest.hexdigest() != SHA256_INTEGRATED_MODEL_GGUF:
+        raise ValueError("SHA-256 invalide pour le GGUF intégré.")
+
+    raw_models = get_setting("allowed_models", db_path=db_path)
+    if raw_models is not None:
+        try:
+            models = json.loads(raw_models)
+        except json.JSONDecodeError as exc:
+            raise ValueError("La whitelist de modèles est invalide.") from exc
+        if not isinstance(models, list):
+            raise ValueError("La whitelist de modèles doit être une liste.")
+        if models:
+            return False
+
+    set_setting(
+        "allowed_models",
+        json.dumps([str(model_path.resolve())]),
+        db_path=db_path,
+    )
+    return True
 
 
 def get_setting(

@@ -1569,3 +1569,34 @@ compte ni mot de passe de la base réelle n'a été utilisé. La journalisation
 spécifique des limites n'est pas présente; les requêtes 429 restent visibles
 dans les logs d'accès. Aucun déploiement réel ni audit exhaustif de sécurité
 n'est affirmé; la checklist Décideur reste à exécuter sur l'hôte cible.
+
+## [2026-10-30] Première installation hors réseau — cycle whitelist/modèle
+
+**Contexte** : le diagnostic Phase 12 a confirmé qu'un premier démarrage
+sans `current_model_path` échouait avant l'initialisation de SQLite :
+`lancer.bat` contrôlait une whitelist vide avant le lancement du proxy.
+Le rollback automatique était aussi appelé sans vérifier qu'un modèle
+précédent était enregistré.
+
+**Décision(s)** :
+
+1. Ajouter la migration idempotente V7 qui crée `settings` si nécessaire et
+   peuple `allowed_models` avec le seul GGUF intégré si aucun modèle courant
+   ni whitelist non vide n'existe, après vérification de son SHA-256
+   `16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207`.
+   Ne pas inscrire un fichier absent ou dont le hash diffère.
+2. Dans `lancer.bat`, initialiser la whitelist avant le démarrage du runtime.
+   Sans modèle courant configuré et existant, démarrer le défaut intégré
+   vérifié; avec un modèle courant existant, conserver le contrôle whitelist.
+3. Introduire `NO_PREVIOUS_MODEL`; le rollback automatique refuse l'absence
+   de précédent et journalise `[security] rollback refusé : aucun modèle
+   antérieur valide`. Le helper appelé explicitement conserve son repli
+   historique vers le défaut afin de préserver les appels manuels existants.
+4. Ajouter huit tests dédiés sans modifier les 186 tests préexistants.
+5. Ne pas déployer. Le démarrage hors réseau suppose que runtime et GGUF sont
+   déjà présents; `install.bat` télécharge encore les assets si absents.
+
+**Conséquences** : 194 tests passent. Le premier lancement local peut initialiser
+la whitelist à partir du GGUF intégré vérifié; les erreurs d'intégrité
+bloquent le démarrage sans créer d'autorisation fantôme. La validation sur
+VM vierge hors réseau reste à effectuer par le Décideur.

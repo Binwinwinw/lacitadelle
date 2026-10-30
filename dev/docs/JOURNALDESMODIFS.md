@@ -1205,3 +1205,21 @@ vérifié (login, cookie, CSRF, 429). Les 429 sont journalisés comme accès
 MEP-BIS.
 
 **Impact** : le commit principal Phase MEP-BIS est référencé par `9cd6ab9`.
+
+## [2026-10-30] Phase 12-FIX-WHITELIST — Première installation
+
+**Commit** : référence à ajouter après création du commit.
+
+**Fichiers modifiés** : `lancer.bat`, `dev/tools/citadelle_memory.py`,
+`dev/tools/model_health.py`, `dev/tests/test_first_install_model.py`,
+`.memory/diag-12-whitelist.md`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : initialiser la whitelist du GGUF intégré sur base neuve,
+conditionner le contrôle de démarrage à un modèle courant valide et refuser
+un rollback automatique sans précédent.
+
+**Impact** : SHA-256 du GGUF vérifié avant autorisation initiale; huit tests
+ajoutés, 194 tests verts, aucun test préexistant modifié. Aucun déploiement;
+validation VM vierge à faire.
