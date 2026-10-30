@@ -1133,7 +1133,7 @@ octets; SHA-256 vérifié identique après téléchargement depuis GitHub.
 
 ## [2026-10-30] Phase MEP — Préparation production
 
-**Commit** : hash final à référencer après création.
+**Commit** : `a729e99`.
 
 **Fichiers modifiés** : `Caddyfile`, `AGENTS.md`,
 `dev/docs/ARCHITECTURE-PROD.md`, `dev/docs/RUNBOOK-PROD.md`,
@@ -1147,3 +1147,14 @@ SQLite et le monitoring sans déployer de service.
 **Impact** : Caddyfile modèle et runbooks prêts pour revue; aucun code métier,
 test, DNS, pare-feu, certificat ou service modifié/déployé. Le go-live reste
 bloqué par les contrôles V3.1 non implémentés.
+
+## [2026-10-30] Référence du commit Phase MEP
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit de préparation MEP.
+
+**Impact** : le commit principal Phase MEP est référencé par `a729e99`.
