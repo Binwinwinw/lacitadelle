@@ -8,21 +8,45 @@ import zipfile
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DEV_DIR = PROJECT_ROOT / "dev"
 ARCHIVE_PATH = PROJECT_ROOT / "lacitadelle-distribution.zip"
 
 MAX_FILE_SIZE = 10 * 1024 * 1024
 MAX_ARCHIVE_SIZE = 5 * 1024 * 1024
 EXCLUDED_DIRS = {
     ".git",
-    ".github",
     ".idea",
-    ".memory",
+    ".mypy_cache",
     ".pytest_cache",
     ".vscode",
     "__pycache__",
+    ".venv",
+    "venv",
+    "node_modules",
+    "backup",
+    "backups",
+    "build",
+    "citadelle_data",
+    "dist",
+    "release-build",
+    "system-commandline-sentinel-files",
 }
-EXCLUDED_SUFFIXES = {".exe", ".gguf", ".pyc", ".pyo"}
+EXCLUDED_SUFFIXES = {
+    ".dll",
+    ".dylib",
+    ".exe",
+    ".gguf",
+    ".key",
+    ".llamafile",
+    ".log",
+    ".p12",
+    ".pem",
+    ".pfx",
+    ".pyc",
+    ".pyo",
+    ".safetensors",
+    ".so",
+    ".zip",
+}
 README_CONTENT = (
     "1. Extrayez cette archive dans un dossier accessible en ecriture.\n"
     "2. Lancez install.bat (Python et Internet requis au premier lancement).\n"
@@ -38,11 +62,13 @@ def collect_files() -> list[tuple[Path, str]]:
         path = PROJECT_ROOT / filename
         if not path.is_file():
             raise FileNotFoundError(f"Fichier requis absent : {path}")
-        files.append((path, filename))
 
-    for current, directories, filenames in os.walk(DEV_DIR):
+    for current, directories, filenames in os.walk(PROJECT_ROOT):
         directories[:] = sorted(
-            name for name in directories if name not in EXCLUDED_DIRS
+            name
+            for name in directories
+            if name not in EXCLUDED_DIRS
+            and not (Path(current) / name).is_symlink()
         )
         for filename in sorted(filenames):
             path = Path(current) / filename
@@ -51,7 +77,11 @@ def collect_files() -> list[tuple[Path, str]]:
 
             relative_path = path.relative_to(PROJECT_ROOT)
             suffix = path.suffix.lower()
-            if suffix in EXCLUDED_SUFFIXES:
+            if (
+                suffix in EXCLUDED_SUFFIXES
+                or filename.lower().startswith(".env")
+                or filename.lower().endswith("thin")
+            ):
                 continue
             if path.stat().st_size > MAX_FILE_SIZE:
                 continue

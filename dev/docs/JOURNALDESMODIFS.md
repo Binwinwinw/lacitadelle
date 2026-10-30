@@ -1235,3 +1235,36 @@ Phase 12-FIX-WHITELIST.
 
 **Impact** : le commit principal Phase 12-FIX-WHITELIST est référencé par
 `9b5a0b4`.
+
+## [2026-10-30] RELEASE-ZIP — Archive source-only et guides
+
+**Commit** : référence à ajouter après création du commit.
+
+**Fichiers modifiés** : `dev/tools/creer_archive.py`, `RELEASE-NOTES.md`,
+`SECURITY.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`. L'archive ZIP reste ignorée par Git.
+
+**Raison** : aligner le générateur sur le contenu source-only déjà publié,
+inclure les fichiers racine, `.memory/`, les notes de release et les
+recommandations de sécurité, sans embarquer de binaires.
+
+**Impact** : archive source-only recréée localement; runtime et GGUF restent
+téléchargés par le bootstrap. Le SHA-256 est communiqué séparément; aucun
+déploiement ni publication externe n'est effectué.
+
+## [2026-10-30] RELEASE-ZIP — Archive source-only v3 et notes
+
+**Commit** : référence à ajouter après création du commit.
+
+**Fichiers modifiés** : `dev/tools/creer_archive.py`, `RELEASE-NOTES.md`,
+`SECURITY.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`. L'archive ZIP reste ignorée par Git.
+
+**Raison** : aligner le générateur sur le contenu source-only existant,
+embarquer les documents de sécurité/release et exclure données locales,
+caches, secrets et binaires.
+
+**Impact** : archive régénérée localement depuis le source V3/Phase 12; les
+SHA-256 runtime/GGUF sont conservés dans le bootstrap. Le SHA-256 de l'archive
+est communiqué séparément pour éviter une empreinte auto-référente; aucun
+binaire ni déploiement n'est ajouté.
