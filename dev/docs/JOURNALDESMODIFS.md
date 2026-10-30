@@ -1158,3 +1158,24 @@ auto-référençable).
 **Raison** : ajouter après création le hash final du commit de préparation MEP.
 
 **Impact** : le commit principal Phase MEP est référencé par `a729e99`.
+
+## [2026-10-30] Sécurité V3.1 — Cookie Secure, CSRF et rate limiting
+
+**Commit** : référence à ajouter après création du commit.
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/chat.html`, `dev/tools/web/chat.js`,
+`dev/tools/web/settings.html`, `dev/tools/web/admin.html`,
+`dev/tools/web/change-password.html`, `dev/tests/test_security.py`,
+`dev/tests/_helpers.py`, `dev/tests/test_change_password.py`,
+`dev/docs/AUTH_CONTRACT.md`, `dev/docs/RUNBOOK-PROD.md`,
+`dev/docs/ARCHITECTURE-PROD.md`, `dev/docs/BACKLOG.md`,
+`.memory/decisions.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : ajouter les protections V3.1 bloquantes avant toute exposition
+publique et conserver la compatibilité des tests HTTP authentifiés.
+
+**Impact** : Secure conditionnel au HTTPS, jeton CSRF par session et
+limitation mémoire par IP; cinq tests de sécurité ajoutés, suite complète
+186 tests verts. Aucun déploiement effectué; MEP-BIS reste manuel.

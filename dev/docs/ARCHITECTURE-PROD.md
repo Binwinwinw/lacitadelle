@@ -84,14 +84,14 @@ L'hôte doit disposer de Python 3.10+, du runtime llamafile téléchargé et du
 GGUF configuré par `lancer.bat`. La base et le modèle restent sur disque local;
 ils ne sont ni stockés par Caddy ni servis comme fichiers statiques.
 
-## Sécurité et limites avant toute exposition
+## Sécurité et limites avant exposition
 
-Cette architecture termine TLS, mais Caddy ne remplace pas les contrôles
-d'authentification de l'application. Le contrat V3.0 confirme que le cookie
-de session n'a pas l'attribut `Secure` et que CSRF et rate limiting ne sont
-pas actifs. Ces contrôles sont requis par le contrat V3.1 avant toute écoute
-sur le réseau. **Ne pas publier ce service avant un GO distinct qui les
-implémente et les valide.**
+Les contrôles V3.1 (cookie `Secure` si HTTPS, CSRF sur POST authentifiés et
+rate limiting) sont implémentés par la décision #68. Le cookie conserve
+`SameSite=Strict`; `/login` et `/register` sont exemptés du CSRF car ils
+précèdent la session. Cette préparation n'a toutefois ni configuré un domaine
+ni validé le flux Caddy en production : vérifier le cookie `Secure`, les
+réponses CSRF et les 429 sur l'hôte cible avant l'ouverture publique.
 
 Le serveur Python utilise `HTTPServer` mono-thread : une inférence lente
 bloque les requêtes suivantes et la capacité simultanée n'est pas certifiée.

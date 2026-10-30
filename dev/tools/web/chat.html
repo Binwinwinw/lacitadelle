@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{CSRF_TOKEN}}">
     <title>La Citadelle - Chat</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -17,6 +18,7 @@
             </a>
             <ul id="sessions-list"></ul>
             <form method="POST" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                 <button type="submit" class="logout-btn">Déconnexion</button>
             </form>
         </aside>
@@ -25,6 +27,7 @@
                 <p class="placeholder">Sélectionnez une session ou créez-en une nouvelle.</p>
             </div>
             <form id="chat-form" class="chat-form">
+                <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                 <textarea
                     id="user-input"
                     placeholder="Votre message..."

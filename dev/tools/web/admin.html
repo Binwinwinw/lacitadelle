@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{CSRF_TOKEN}}">
     <title>La Citadelle - Administration</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,6 +15,7 @@
             <a href="/settings" class="sidebar-link">Réglages</a>
             <a href="/admin" class="sidebar-link" aria-current="page">Administration</a>
             <form method="POST" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                 <button type="submit" class="logout-btn">Déconnexion</button>
             </form>
         </aside>
@@ -73,6 +75,7 @@
                  aria-labelledby="create-user-heading">
                 <h2 id="create-user-heading">Créer un utilisateur</h2>
                 <form id="create-user-form" class="settings-form">
+                    <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                     <label for="new-username">Nom d'utilisateur</label>
                     <input type="text" id="new-username" name="username"
                            required minlength="3" maxlength="30"
@@ -170,6 +173,13 @@
         let currentUsername = null;
         let logsInterval = null;
         let indicatorsInterval = null;
+        const csrfToken = document.querySelector(
+            'meta[name="csrf-token"]',
+        ).content;
+
+        function csrfHeaders(headers = {}) {
+            return { ...headers, "X-CSRF-Token": csrfToken };
+        }
 
         function showConfirmModal(title, message, expectedInput = null) {
             const modal = document.getElementById("confirm-modal");
@@ -268,6 +278,7 @@
                     `/api/admin/users/${user.id}/${action}`,
                     {
                         method: "POST",
+                        headers: csrfHeaders(),
                         credentials: "same-origin",
                     },
                 );
@@ -401,6 +412,7 @@
                     `/api/admin/users/${user.id}/${action}`,
                     {
                         method: "POST",
+                        headers: csrfHeaders(),
                         credentials: "same-origin",
                     },
                 );
@@ -448,6 +460,7 @@
                     `/api/admin/users/${user.id}/delete`,
                     {
                         method: "POST",
+                        headers: csrfHeaders(),
                         credentials: "same-origin",
                     },
                 );
@@ -485,6 +498,7 @@
                     `/api/admin/users/${user.id}/reset-password`,
                     {
                         method: "POST",
+                        headers: csrfHeaders(),
                         credentials: "same-origin",
                     },
                 );
@@ -756,7 +770,9 @@
             try {
                 const response = await fetch("/api/admin/users", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: csrfHeaders({
+                        "Content-Type": "application/json",
+                    }),
                     body: JSON.stringify({ username }),
                     credentials: "same-origin",
                 });

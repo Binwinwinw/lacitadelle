@@ -17,16 +17,20 @@ Aucune dépendance externe. Python 3.10+ requis.
 
 from __future__ import annotations
 
+import hmac
+import ipaddress
 import json
 import math
 import os
 import re
 import secrets
 import sqlite3
+import ssl
 import sys
 import time
 import urllib.error
 import urllib.request
+from collections import deque
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from http.cookies import SimpleCookie
@@ -77,6 +81,8 @@ SESSION_TTL_SECONDS = 86400
 HTTP_TIMEOUT = 120
 SQLITE_TIMEOUT = 5.0
 MAX_POST_BODY_SIZE = 1_048_576
+CSRF_TOKEN_HEADER = "X-CSRF-Token"
+CSRF_EXEMPT_PATHS = {"/login", "/register"}
 SESSION_MSG_RE = re.compile(r"^/api/sessions/(\d+)/messages$")
 ADMIN_USER_ACTION_RE = re.compile(
     r"^/api/admin/users/(\d+)/(deactivate|activate|promote|demote|delete|reset-password)$"
@@ -106,6 +112,7 @@ EXEMPT_PATHS_WHEN_MUST_CHANGE = {
 SESSIONS: dict[str, int] = {}
 MUST_CHANGE: dict[str, bool] = {}
 SESSION_EXPIRY: dict[str, float] = {}
+CSRF_TOKENS: dict[str, str] = {}
 
 
 class LoginError(Exception):
@@ -135,6 +142,7 @@ def create_session_token(user_id: int, must_change: bool = False) -> str:
     SESSIONS[token] = user_id
     MUST_CHANGE[token] = must_change
     SESSION_EXPIRY[token] = time.time() + SESSION_TTL_SECONDS
+    CSRF_TOKENS[token] = secrets.token_urlsafe(32)
     return token
 
 
@@ -163,6 +171,31 @@ def revoke_session(token: str) -> None:
     SESSIONS.pop(token, None)
     MUST_CHANGE.pop(token, None)
     SESSION_EXPIRY.pop(token, None)
+    CSRF_TOKENS.pop(token, None)
+
+
+def csrf_token_for_session(token: str | None) -> str | None:
+    """Retourne le token CSRF d'une session valide."""
+    if token is None or not is_session_valid(token):
+        return None
+    return CSRF_TOKENS.get(token)
+
+
+def request_is_https(handler: BaseHTTPRequestHandler) -> bool:
+    """Détecte HTTPS direct ou derrière le proxy Caddy local."""
+    if getattr(handler.server, "ssl", False) or isinstance(
+        handler.connection,
+        ssl.SSLSocket,
+    ):
+        return True
+    try:
+        remote_ip = ipaddress.ip_address(handler.client_address[0])
+    except ValueError:
+        return False
+    if not remote_ip.is_loopback:
+        return False
+    forwarded_proto = handler.headers.get("X-Forwarded-Proto", "")
+    return forwarded_proto.split(",", 1)[0].strip().lower() == "https"
 
 
 def must_change_required(token: str | None) -> bool:
@@ -215,6 +248,8 @@ def set_cookie_token(handler: BaseHTTPRequestHandler, token: str) -> None:
     cookie[SESSION_COOKIE_NAME]["samesite"] = "Strict"
     cookie[SESSION_COOKIE_NAME]["path"] = "/"
     cookie[SESSION_COOKIE_NAME]["max-age"] = SESSION_TTL_SECONDS
+    if request_is_https(handler):
+        cookie[SESSION_COOKIE_NAME]["secure"] = True
     handler.send_header("Set-Cookie", cookie[SESSION_COOKIE_NAME].OutputString())
 
 
@@ -226,6 +261,8 @@ def clear_cookie_token(handler: BaseHTTPRequestHandler) -> None:
     cookie[SESSION_COOKIE_NAME]["httponly"] = True
     cookie[SESSION_COOKIE_NAME]["samesite"] = "Strict"
     cookie[SESSION_COOKIE_NAME]["path"] = "/"
+    if request_is_https(handler):
+        cookie[SESSION_COOKIE_NAME]["secure"] = True
     handler.send_header("Set-Cookie", cookie[SESSION_COOKIE_NAME].OutputString())
 
 
@@ -315,6 +352,166 @@ def _read_post_body(handler: BaseHTTPRequestHandler, content_length: int) -> byt
     return handler.rfile.read(content_length)
 
 
+def csrf_token_from_request(handler: BaseHTTPRequestHandler) -> str | None:
+    token = handler.headers.get(CSRF_TOKEN_HEADER)
+    if token:
+        return token
+    if handler.headers.get_content_type() != "application/x-www-form-urlencoded":
+        return None
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+    except (TypeError, ValueError):
+        return None
+    fields = parse_qs(
+        _read_post_body(handler, content_length).decode("utf-8", errors="replace"),
+        keep_blank_values=True,
+    )
+    return fields.get("csrf_token", [None])[0]
+
+
+def csrf_token_is_valid(handler: BaseHTTPRequestHandler) -> bool:
+    expected = csrf_token_for_session(read_cookie_token(handler))
+    provided = csrf_token_from_request(handler)
+    return (
+        expected is not None
+        and provided is not None
+        and hmac.compare_digest(expected, provided)
+    )
+
+
+def _client_ip(handler: BaseHTTPRequestHandler) -> str:
+    remote = handler.client_address[0]
+    try:
+        remote_ip = ipaddress.ip_address(remote)
+    except (TypeError, ValueError):
+        return str(remote)
+    if remote_ip.is_loopback:
+        forwarded_for = handler.headers.get("X-Forwarded-For", "")
+        for value in forwarded_for.split(","):
+            try:
+                return str(ipaddress.ip_address(value.strip()))
+            except ValueError:
+                continue
+    return str(remote_ip)
+
+
+def _rate_limit_policy(
+    path: str,
+    method: str,
+) -> tuple[str, int, int] | None:
+    if path.startswith("/api/admin/") or path in {
+        "/api/settings/model",
+        "/api/settings/allowed_models",
+    }:
+        return "admin", 10, 60
+    if method == "POST" and (
+        SESSION_MSG_RE.fullmatch(path)
+        or path == "/api/llamafile/v1/chat/completions"
+    ):
+        return "chat", 30, 60
+    return None
+
+
+def _rate_limit_state(handler: BaseHTTPRequestHandler, now: float) -> dict:
+    state = getattr(handler.server, "_citadelle_rate_limits", None)
+    if not isinstance(state, dict):
+        state = {
+            "windows": {},
+            "login_blocks": {},
+            "last_cleanup": now,
+        }
+        handler.server._citadelle_rate_limits = state
+
+    if now - state["last_cleanup"] >= 3600:
+        cutoff = now - 3600
+        for key, timestamps in list(state["windows"].items()):
+            while timestamps and timestamps[0] <= cutoff:
+                timestamps.popleft()
+            if not timestamps:
+                del state["windows"][key]
+        for ip, blocked_until in list(state["login_blocks"].items()):
+            if blocked_until <= now:
+                del state["login_blocks"][ip]
+        state["last_cleanup"] = now
+    return state
+
+
+def rate_limit_remaining(
+    handler: BaseHTTPRequestHandler,
+    path: str,
+    method: str,
+) -> int | None:
+    policy = _rate_limit_policy(path, method)
+    if policy is None:
+        return None
+
+    category, limit, window_seconds = policy
+    now = time.monotonic()
+    state = _rate_limit_state(handler, now)
+    ip = _client_ip(handler)
+    key = (category, ip)
+    timestamps = state["windows"].setdefault(key, deque())
+    cutoff = now - window_seconds
+    while timestamps and timestamps[0] <= cutoff:
+        timestamps.popleft()
+    if len(timestamps) >= limit:
+        return max(1, math.ceil(window_seconds - (now - timestamps[0])))
+
+    timestamps.append(now)
+    return None
+
+
+def login_rate_limit_remaining(handler: BaseHTTPRequestHandler) -> int | None:
+    now = time.monotonic()
+    state = _rate_limit_state(handler, now)
+    ip = _client_ip(handler)
+    blocked_until = state["login_blocks"].get(ip, 0)
+    if blocked_until > now:
+        return math.ceil(blocked_until - now)
+    state["login_blocks"].pop(ip, None)
+
+    key = ("login", ip)
+    failures = state["windows"].setdefault(key, deque())
+    cutoff = now - 300
+    while failures and failures[0] <= cutoff:
+        failures.popleft()
+    if len(failures) >= 5:
+        state["login_blocks"][ip] = now + 900
+        del state["windows"][key]
+        return 900
+    return None
+
+
+def record_login_failure(handler: BaseHTTPRequestHandler) -> None:
+    now = time.monotonic()
+    state = _rate_limit_state(handler, now)
+    ip = _client_ip(handler)
+    key = ("login", ip)
+    failures = state["windows"].setdefault(key, deque())
+    cutoff = now - 300
+    while failures and failures[0] <= cutoff:
+        failures.popleft()
+    failures.append(now)
+
+
+def clear_login_failures(handler: BaseHTTPRequestHandler) -> None:
+    state = _rate_limit_state(handler, time.monotonic())
+    state["windows"].pop(("login", _client_ip(handler)), None)
+
+
+def rate_limit_response(
+    handler: BaseHTTPRequestHandler,
+    retry_after: int,
+) -> None:
+    body = json.dumps({"error": "Too Many Requests"}).encode("utf-8")
+    handler.send_response(HTTPStatus.TOO_MANY_REQUESTS)
+    handler.send_header("Content-Type", "application/json; charset=utf-8")
+    handler.send_header("Content-Length", str(len(body)))
+    handler.send_header("Retry-After", str(retry_after))
+    handler.end_headers()
+    handler.wfile.write(body)
+
+
 def serve_static(handler: BaseHTTPRequestHandler, filename: str) -> None:
     """Sert un fichier statique depuis WEB_DIR."""
     file_path = WEB_DIR / filename
@@ -327,9 +524,17 @@ def serve_static(handler: BaseHTTPRequestHandler, filename: str) -> None:
         ".css": "text/css; charset=utf-8",
         ".js": "application/javascript; charset=utf-8",
     }.get(file_path.suffix, "application/octet-stream")
+    if file_path.suffix == ".html":
+        token = csrf_token_for_session(read_cookie_token(handler)) or ""
+        content = content.replace(
+            b"{{CSRF_TOKEN}}",
+            token.encode("ascii"),
+        )
     handler.send_response(HTTPStatus.OK)
     handler.send_header("Content-Type", content_type)
     handler.send_header("Content-Length", str(len(content)))
+    if file_path.suffix == ".html":
+        handler.send_header("Cache-Control", "no-store")
     handler.end_headers()
     handler.wfile.write(content)
 
@@ -1328,6 +1533,10 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
 
 def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
     """POST /login : vérifie le mot de passe et ouvre une session."""
+    retry_after = login_rate_limit_remaining(handler)
+    if retry_after is not None:
+        rate_limit_response(handler, retry_after)
+        return
     try:
         content_length = int(handler.headers.get("Content-Length", "0"))
     except (TypeError, ValueError):
@@ -1343,6 +1552,7 @@ def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
     username = params.get("username", [""])[0].strip()
     password = params.get("password", [""])[0]
     if not username or not password:
+        record_login_failure(handler)
         error_response(handler, "Identifiants invalides", HTTPStatus.UNAUTHORIZED)
         return
 
@@ -1358,6 +1568,7 @@ def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
             or row["is_active"] != 1
             or not verify_password(password, row["password_hash"])
         ):
+            record_login_failure(handler)
             error_response(handler, "Identifiants invalides", HTTPStatus.UNAUTHORIZED)
             return
         user_id = int(row["id"])
@@ -1370,6 +1581,7 @@ def handle_post_login(handler: BaseHTTPRequestHandler) -> None:
     finally:
         conn.close()
 
+    clear_login_failures(handler)
     token = create_session_token(user_id, must_change=must_change)
     handler.send_response(HTTPStatus.FOUND)
     set_cookie_token(handler, token)
@@ -1827,6 +2039,15 @@ def handle_post_message(
         )
         return
 
+    retry_after = rate_limit_remaining(
+        handler,
+        urlparse(handler.path).path,
+        "POST",
+    )
+    if retry_after is not None:
+        rate_limit_response(handler, retry_after)
+        return
+
     history = get_messages_for_user(user_id, session_id, limit=MAX_CONTEXT_MESSAGES)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.extend(
@@ -1877,6 +2098,14 @@ def proxy_llamafile(
         content_length = int(handler.headers.get("Content-Length", "0"))
         data = _read_post_body(handler, content_length)
         headers["Content-Type"] = "application/json"
+        retry_after = rate_limit_remaining(
+            handler,
+            urlparse(handler.path).path,
+            method,
+        )
+        if retry_after is not None:
+            rate_limit_response(handler, retry_after)
+            return
 
     request = urllib.request.Request(
         url,
@@ -1940,6 +2169,10 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
+        retry_after = rate_limit_remaining(self, path, "GET")
+        if retry_after is not None:
+            rate_limit_response(self, retry_after)
+            return
         if check_must_change_gate(self, read_cookie_token(self), path):
             return
         try:
@@ -2017,7 +2250,27 @@ class RequestHandler(BaseHTTPRequestHandler):
             error_response(self, "Requête incomplète", HTTPStatus.BAD_REQUEST)
             self.close_connection = True
             return
+        is_chat_path = (
+            SESSION_MSG_RE.fullmatch(path) is not None
+            or path == "/api/llamafile/v1/chat/completions"
+        )
+        if not is_chat_path:
+            retry_after = rate_limit_remaining(self, path, "POST")
+            if retry_after is not None:
+                rate_limit_response(self, retry_after)
+                return
         if check_must_change_gate(self, read_cookie_token(self), path):
+            return
+        if (
+            path not in CSRF_EXEMPT_PATHS
+            and get_authenticated_user_id(self) is not None
+            and not csrf_token_is_valid(self)
+        ):
+            error_response(
+                self,
+                "CSRF token invalid",
+                HTTPStatus.FORBIDDEN,
+            )
             return
         try:
             if path == "/login":
@@ -2081,6 +2334,7 @@ def main() -> int:
     SESSIONS.clear()
     MUST_CHANGE.clear()
     SESSION_EXPIRY.clear()
+    CSRF_TOKENS.clear()
     try:
         migrate_to_v3()
         migrate_to_v4()

@@ -5,10 +5,11 @@
 Ce runbook prépare une exploitation Windows; aucun DNS, pare-feu, certificat,
 service Caddy ni serveur public n'est configuré par ce GO.
 
-**Interdiction de mise en service publique avec le V3.0 actuel** : le cookie
-de session n'a pas `Secure`, et le contrat documente l'absence de CSRF et de
-rate limiting. HTTPS au niveau Caddy ne corrige pas ces contrôles applicatifs.
-Attendre un GO dédié V3.1 et sa validation avant d'exposer le domaine.
+Les contrôles V3.1 (cookie `Secure` si HTTPS, CSRF sur les POST authentifiés
+et rate limiting) sont implémentés par la décision #68. Cette préparation ne
+déploie rien : avant l'ouverture publique, valider ces contrôles derrière le
+Caddy réellement installé, le DNS, le certificat, les sauvegardes et les
+alertes sur l'hôte cible.
 
 La concurrence reste aussi non certifiée : `login_server.py` est mono-thread
 et une inférence lente bloque les requêtes suivantes. Les seuils de monitoring
@@ -16,11 +17,17 @@ ci-dessous ne sont pas un test de capacité. Avant l'exposition, le décideur
 doit accepter explicitement la charge initiale attendue ou lancer le GO
 CONCURRENCE; ne pas annoncer une capacité non mesurée.
 
+Les limites mémoire actuelles sont : après 5 échecs de `/login` par IP en
+5 minutes, la tentative suivante est bloquée 15 minutes; les POST d'inférence
+chat 30 par minute; `/api/admin/*` et les API de configuration admin modèle
+10 par minute. Les compteurs sont réinitialisés au redémarrage du proxy et ne
+limitent pas l'inscription; ils ne constituent pas une protection DDoS.
+
 ## Checklist du décideur avant déploiement
 
 - [ ] Décider du FQDN public et vérifier les DNS `A` / `AAAA`.
-- [ ] Implémenter et valider `Secure`, CSRF et rate limiting dans l'application
-      avant l'ouverture à Internet.
+- [ ] Valider derrière Caddy le cookie `Secure`, le rejet/acceptation CSRF et
+      les réponses 429 avant l'ouverture à Internet.
 - [ ] Décider si la capacité mono-thread est acceptable ou lancer le GO
       CONCURRENCE avant la mise en service.
 - [ ] Installer Caddy depuis le site officiel sur l'hôte Windows; choisir un

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{CSRF_TOKEN}}">
     <title>La Citadelle - Réglages</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -15,6 +16,7 @@
                 Administration
             </a>
             <form method="POST" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                 <button type="submit" class="logout-btn">Déconnexion</button>
             </form>
         </aside>
@@ -28,6 +30,7 @@
             <section class="settings-section" aria-labelledby="preferences-heading">
                 <h2 id="preferences-heading">Préférences</h2>
                 <form id="preferences-form" class="settings-form">
+                    <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                     <label for="theme">Thème</label>
                     <select id="theme" name="theme" required>
                         <option value="light">Clair</option>
@@ -49,6 +52,7 @@
                 <h2 id="allowed-models-heading">Modèles autorisés</h2>
                 <p>Seuls les GGUF de cette liste peuvent être sélectionnés.</p>
                 <form id="allowed-models-form" class="settings-form">
+                    <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                     <label for="allowed-model-path">Chemin du fichier GGUF</label>
                     <input type="text" id="allowed-model-path"
                            name="model_path" required>
@@ -65,6 +69,7 @@
                     <code id="model-current">(non chargé)</code>
                 </p>
                 <form id="model-form" class="settings-form">
+                    <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                     <label for="model-path">Chemin GGUF (absolu)</label>
                     <input type="text" id="model-path" name="model_path"
                            placeholder="C:\chemin\vers\modele.gguf" required>
@@ -173,6 +178,13 @@
         let logsInterval = null;
         let indicatorsInterval = null;
         let allowedModels = [];
+        const csrfToken = document.querySelector(
+            'meta[name="csrf-token"]',
+        ).content;
+
+        function csrfHeaders(headers = {}) {
+            return { ...headers, "X-CSRF-Token": csrfToken };
+        }
 
         function applyPreferences(preferences) {
             document.documentElement.dataset.theme = preferences.theme;
@@ -320,7 +332,9 @@
                     "/api/settings/allowed_models",
                     {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: csrfHeaders({
+                            "Content-Type": "application/json",
+                        }),
                         body: JSON.stringify({ models }),
                         credentials: "same-origin",
                     },
@@ -515,7 +529,9 @@
             try {
                 const response = await fetch("/api/admin/model", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: csrfHeaders({
+                        "Content-Type": "application/json",
+                    }),
                     body: JSON.stringify({
                         model_path: modelPathInput.value.trim(),
                     }),
@@ -562,7 +578,9 @@
             try {
                 const response = await fetch("/settings/preferences", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: csrfHeaders({
+                        "Content-Type": "application/json",
+                    }),
                     body: JSON.stringify({
                         theme: themeSelect.value,
                         font_size: fontSizeSelect.value,

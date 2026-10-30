@@ -5,11 +5,11 @@
 La V2 historique utilisait un login sans mot de passe. La V3.0 livrée ajoute
 l'authentification par mot de passe, l'inscription, le changement obligatoire
 de mot de passe et les sessions en mémoire du proxy. Les routes
-d'administration sont reportées en V3.1, avec HTTPS, CSRF et rate limiting.
+d'administration, CSRF et rate limiting V3.1 sont livrés; l'exposition
+publique reste à valider lors du déploiement manuel derrière Caddy.
 
-Ce document décrit le comportement V3.0 livré et les extensions prévues en
-V3.1 et V3.2. Les routes admin ci-dessous sont une cible V3.1, pas des routes
-disponibles en V3.0.
+Ce document distingue le comportement V3.0 local des protections V3.1
+maintenant livrées. V3.2 demeure une cible future.
 
 ## Décisions actées (2026-10-19)
 
@@ -41,12 +41,15 @@ disponibles en V3.0.
 ### Session
 
 - Le cookie s'appelle `lacitadelle_session` et a `Max-Age=86400` (24 heures), `HttpOnly`, `SameSite=Strict` et `Path=/`.
-- `Secure` n'est pas posé : le proxy reste en HTTP local sur loopback.
+- `Secure` est posé lorsque le proxy reçoit `X-Forwarded-Proto: https` depuis
+  le reverse proxy loopback ou utilise une connexion TLS directe. Le proxy
+  n'accepte ce header que d'un pair loopback. En HTTP local, l'attribut reste
+  absent.
 - L'expiration de 24 heures est appliquée côté serveur également ; l'expiration du cookie navigateur seule ne suffit pas à invalider le token conservé par le proxy.
 - Les sessions restent en mémoire du proxy, comme en V2. Un redémarrage du proxy les invalide et impose une reconnexion.
 - Un logout révoque le token et expire le cookie.
 
-### Administration (cible V3.1)
+### Administration (V3.1 livrée)
 
 - `GET /admin` sert la page d'administration uniquement à un administrateur.
 - La page liste les utilisateurs avec `id`, `username`, `role`, `is_active`, `last_login_at` et `created_at`.
@@ -74,7 +77,7 @@ En V3.1, un admin ne peut pas se désactiver lui-même, se rétrograder hors tra
 
 En V3.1, un reset admin génère un mot de passe temporaire fort et aléatoire de 16 caractères, le hash avec scrypt, positionne `must_change_password = 1` et affiche le secret à l'admin une seule fois. Le login avec ce secret est autorisé, mais la session porte le flag `must_change_password` : seules `/change-password` et `/logout` sont accessibles tant que le mot de passe n'a pas été changé. La nouvelle valeur doit faire au moins 8 caractères, être différente de l'ancienne et correspondre à sa confirmation ; le succès met à jour le hash, remet le flag à `0` et redirige vers `/`.
 
-**Durée du mot de passe temporaire** : valide indéfiniment en V3.1 (pas d'expiration automatique). L'admin peut régénérer un nouveau mot de passe temporaire à tout moment via `POST /admin/users/{id}/reset`. En cas de doute, l'admin doit régénérer.
+**Durée du mot de passe temporaire** : valide indéfiniment en V3.1 (pas d'expiration automatique). L'admin peut régénérer un nouveau mot de passe temporaire à tout moment via `POST /api/admin/users/{id}/reset-password`. En cas de doute, l'admin doit régénérer.
 
 ### Décision 4 — Révocation immédiate des sessions
 
@@ -129,17 +132,16 @@ Toutes ces routes exigent une session valide avec le rôle `admin`.
 | Méthode | Route | Comportement |
 | --- | --- | --- |
 | `GET` | `/admin` | Sert l'interface et la liste des utilisateurs. |
-| `POST` | `/admin/users` | Crée un compte depuis l'administration. |
-| `POST` | `/admin/users/{id}/reset` | Génère un mot de passe temporaire aléatoire de 16 caractères, stocke son hash, positionne `must_change_password = 1`, révoque les sessions et affiche le secret une seule fois. |
-| `POST` | `/admin/users/{id}/toggle` | Active ou désactive le compte ciblé. |
-| `POST` | `/admin/users/{id}/role` | Change le rôle entre `user` et `admin` selon le transfert atomique unique-administrateur défini ci-dessus. |
-| `DELETE` | `/admin/users/{id}` | Supprime le compte et ses données liées ; refuse la suppression du compte appelant. |
+| `POST` | `/api/admin/users` | Crée un compte depuis l'administration. |
+| `POST` | `/api/admin/users/{id}/reset-password` | Génère un mot de passe temporaire aléatoire de 16 caractères, stocke son hash, positionne `must_change_password = 1`, révoque les sessions et affiche le secret une seule fois. |
+| `POST` | `/api/admin/users/{id}/deactivate` ou `/activate` | Désactive ou réactive le compte ciblé. |
+| `POST` | `/api/admin/users/{id}/promote` ou `/demote` | Change le rôle selon le transfert atomique unique-administrateur défini ci-dessus. |
+| `POST` | `/api/admin/users/{id}/delete` | Supprime le compte et ses données liées ; refuse la suppression du compte appelant. |
 
 La désactivation révoque immédiatement les tokens de l'utilisateur. Un administrateur ne peut désactiver ni rétrograder son propre compte ; une promotion d'un autre utilisateur est le seul transfert permis et rétrograde l'administrateur appelant dans la même transaction.
 
-Les routes admin sont explicitement reportées en V3.1. Voir
-`.memory/decisions.md`, entrée `[2026-10-21] Routes admin reportées en V3.1`.
-Elles ne sont pas disponibles dans le proxy V3.0.
+Ces routes sont disponibles dans le proxy V3.1 livré. Les routes de mutation
+exigent une session admin active et un token CSRF valide.
 
 ### Routes V2 conservées
 
@@ -168,11 +170,27 @@ Les routes `/api/sessions`, `/api/sessions/{id}/messages` et les opérations de 
 - La comparaison des hashes utilise `hmac.compare_digest`.
 - Les échecs d'authentification ne divulguent pas l'existence d'un nom d'utilisateur.
 - Les sessions et messages restent filtrés par `user_id` ; les accès inter-utilisateurs sont refusés sans révéler l'existence de la ressource.
-- Le cookie est `HttpOnly`, `SameSite=Strict`, limité à `Path=/` et valable 24 heures ; pas de `Secure` car l'usage est local en HTTP.
+- Le cookie est `HttpOnly`, `SameSite=Strict`, limité à `Path=/` et valable
+  24 heures.
+- Sur une requête HTTPS via Caddy, le cookie porte aussi `Secure`. Caddy doit
+  être le seul pair autorisé à fournir `X-Forwarded-Proto` au proxy.
 - En V3.1, la révocation d'un token après désactivation, reset ou suppression est immédiate en mémoire ; les requêtes ultérieures de cette session reçoivent `401`.
-- V3.0 reste liée à `127.0.0.1` et utilise HTTP local. Elle n'ajoute ni protection CSRF ni rate limiting ; ces limites ne sont acceptables que pour cet usage local.
-- En V3.1, HTTPS, validation CSRF pour chaque POST/DELETE et limitation de débit sur le login deviennent obligatoires avant toute écoute sur le réseau local.
-- Un certificat auto-signé V3.1 déclenche un avertissement navigateur. En entreprise, l'administrateur doit distribuer le certificat dans le magasin de confiance des clients (GPO Windows, MDM ou équivalent).
+- Les POST authentifiés exigent un token CSRF aléatoire lié à la session,
+  injecté dans les pages HTML et vérifié via `X-CSRF-Token` ou le champ de
+  formulaire `csrf_token`. Un token absent ou invalide renvoie 403.
+  `/login` et `/register` sont exemptés car ils précèdent la session.
+- Le rate limiting mémoire est par IP : après 5 échecs de login en 5 minutes,
+  la tentative suivante est bloquée 15 minutes; les POST d'inférence
+  `/api/sessions/{id}/messages` et
+  `/api/llamafile/v1/chat/completions` sont limités à 30 par minute;
+  `/api/admin/*` et les API de configuration admin du modèle sont limités à
+  10 par minute. Les refus renvoient 429 et `Retry-After`; les compteurs sont
+  en mémoire et réinitialisés au redémarrage. `X-Forwarded-For` est utilisé
+  seulement lorsque le pair direct est loopback; sinon l'adresse socket sert
+  de clé.
+- Le V3.0 local reste HTTP loopback. En production, Caddy termine HTTPS avec
+  un certificat public ACME; il n'est pas nécessaire d'installer une CA locale
+  pour un certificat Let's Encrypt.
 
 ## Cadre de déploiement progressif (V3.0 / V3.1 / V3.2)
 
@@ -187,16 +205,24 @@ Les routes `/api/sessions`, `/api/sessions/{id}/messages` et les opérations de 
   en V3.1.
 - La structure de `citadelle_data/config.json` prévoit `host` et `port`. La structure CSRF est prévue mais désactivée.
 
-### V3.1 — HTTPS et protections pour réseau local
+### V3.1 — Administration et protections livrées
 
-- Implémenter les routes admin `/admin`, `/admin/users`, reset, toggle, role
-  et delete, avec un seul administrateur actif.
-- Le proxy écoute sur `0.0.0.0:8081` ou une adresse LAN configurable dans `config.json`.
-- HTTPS utilise un certificat auto-signé généré au premier lancement (OpenSSL en sous-processus ou solution standard disponible), puis un `SSLContext`.
-- Un token CSRF par session est injecté dans le HTML et vérifié sur toutes les requêtes POST et DELETE.
-- Le rate limiting du login est de 5 tentatives par minute par IP et de 5 tentatives par minute par nom d'utilisateur.
-- Le certificat auto-signé affiche un avertissement navigateur. En entreprise, l'informaticien distribue le certificat dans le magasin de confiance des clients (GPO Windows, MDM ou équivalent).
-- Let's Encrypt via reverse proxy (Caddy ou nginx) est reporté à V4.
+- Livrée le 2026-10-30 (décision #68) : routes admin, cookie `Secure` quand
+  HTTPS est détecté, validation CSRF des POST authentifiés et rate limiting
+  par IP.
+- Le proxy Python reste lié à `127.0.0.1:8081`; Caddy termine HTTPS et relaie
+  vers ce loopback. llamafile reste sur `127.0.0.1:8080`.
+- Le token CSRF aléatoire est associé à la session en mémoire, injecté dans
+  les pages et vérifié par en-tête ou champ de formulaire. `/login` et
+  `/register` sont exemptés avant session; les autres POST authentifiés le
+  requièrent.
+- Rate limit IP : `/login` 5 tentatives par fenêtre de 5 min, puis blocage
+  15 min; les POST d'inférence chat 30/min; `/api/admin/*` 10/min. L'état est
+  en mémoire, est nettoyé par TTL et disparaît au redémarrage. Ce mécanisme
+  ne remplace ni le contrôle d'accès ni une protection DDoS.
+- Le déploiement réel exige un Caddyfile validé, DNS, firewall, sauvegardes et
+  monitoring; voir `RUNBOOK-PROD.md`. Les contrôles applicatifs sont livrés,
+  mais aucun hôte public n'a été configuré dans le GO V3.1.
 
 ### V3.2 — Multi-admin et configuration réseau avancée
 
@@ -225,31 +251,38 @@ Les routes `/api/sessions`, `/api/sessions/{id}/messages` et les opérations de 
   opérations interdites sur le dernier admin.
 - **V3.1** : HTTPS, CSRF et rate limiting sont actifs avant l'écoute réseau.
 
-## Plan d'implémentation révisé (Next Move)
+## État livré et évolutions
 
 ### V3.0 — Authentification locale (fait)
 
 Register, login avec mot de passe, change-password, logout, gating
 `must_change_password` et expiration de session 24 h côté cookie et serveur.
-Les routes admin ne font pas partie de V3.0.
+Les routes admin ne font pas partie du périmètre V3.0.
 
 Le proxy reste sur `127.0.0.1:8081` en HTTP.
 
-### V3.1 — Administration et déploiement réseau local
+### V3.1 — Administration et protections de session (livrée)
 
-Routes admin, HTTPS auto-signé, jeton CSRF sur POST/DELETE, rate limiting
-du login et configuration de l'écoute.
+Livrée le 2026-10-30 (décision #68) : routes admin, cookie `Secure` si HTTPS
+est détecté, token CSRF par session sur les POST authentifiés, et rate
+limiting mémoire par IP. `/login` et `/register` restent exemptés avant
+session. Le backend continue d'écouter sur `127.0.0.1:8081`; en production,
+Caddy termine TLS devant ce loopback.
 
-Voir `.memory/decisions.md`, entrée
-`[2026-10-21] Routes admin reportées en V3.1`.
+Les contrôles V3.1 sont livrés, mais aucun hôte public n'est encore déployé.
+Voir `ARCHITECTURE-PROD.md` et `RUNBOOK-PROD.md` pour les prérequis MEP.
 
-Le certificat auto-signé déclenche un avertissement navigateur. En entreprise, l'informaticien devra déployer le certificat dans les magasins de confiance des postes clients (GPO Windows, MDM ou équivalent).
+Le rate limiting est local à une instance et est réinitialisé au redémarrage.
+Il n'offre ni protection DDoS ni capacité multi-instance.
 
 ### V3.2 — Multi-admin et configuration avancée
 
 1. **Next Move 8j** : multi-admin configurable (`max_admins = 2` par défaut) et transferts de rôle atomiques dans les deux sens.
 2. **Next Move 8k** : configuration réseau avancée dans `citadelle_data/config.json` : `host`, `port`, `ssl_cert`, `ssl_key`, `max_admins` et `rate_limit_login`, créée avec des valeurs par défaut au premier lancement.
 
-### V4+
+### Mise en production — préparation (déploiement manuel)
 
-- Certificat Let's Encrypt via reverse proxy, par exemple Caddy ou nginx.
+Caddy et le certificat public ACME/Let's Encrypt sont préparés dans le
+Caddyfile et `RUNBOOK-PROD.md`. Le décideur configure le DNS, le pare-feu, le
+service Caddy, les sauvegardes et le monitoring; cette documentation ne
+signifie pas qu'un déploiement a eu lieu.

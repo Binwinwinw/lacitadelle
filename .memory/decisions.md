@@ -1507,3 +1507,33 @@ sauvegarde restent à choisir. Les contrôles applicatifs V3.1 sont bloquants
 avant exposition publique. La capacité mono-thread doit être acceptée
 explicitement pour la charge initiale ou faire l'objet d'un GO CONCURRENCE,
 conformément à la décision #65.
+
+## [2026-10-30] Sécurité V3.1 : cookie Secure, CSRF et rate limiting
+
+**Contexte** : la préparation MEP a confirmé trois protections manquantes
+avant toute exposition publique : attribut `Secure` du cookie de session,
+protection CSRF des POST authentifiés et limitation du débit.
+
+**Décision(s)** :
+
+1. Ajouter `Secure` aux cookies de session et de suppression lorsque la
+   requête arrive en HTTPS (TLS direct ou `X-Forwarded-Proto: https` depuis
+   le proxy loopback), sans l'imposer au développement HTTP local; conserver
+   `HttpOnly` et `SameSite=Strict`.
+2. Générer un jeton CSRF par session, le rendre disponible dans les pages et
+   vérifier les POST authentifiés; login et inscription restent exemptés car
+   aucune session authentifiée n'existe encore.
+3. Limiter en mémoire par IP : après 5 échecs de login en 5 minutes, bloquer
+   les tentatives pendant 15 minutes; limiter les POST d'inférence chat à
+   30/minute et les API admin ainsi que la configuration admin du modèle à
+   10/minute. Retourner 429 et `Retry-After`; ne pas limiter l'inscription.
+4. Nettoyer les états expirés périodiquement; les limites mémoire sont
+   réinitialisées au redémarrage et ne constituent pas une protection DDoS.
+5. Ajouter cinq tests dédiés couvrant cookies HTTPS, CSRF absent/valide et
+   rate limiting login/chat-admin, sans modifier les cas ni assertions des
+   181 tests préexistants.
+
+**Conséquences** : les contrôles applicatifs V3.1 sont implémentés et les
+186 tests passent. Aucun déploiement n'est effectué par cette décision :
+DNS, Caddy, pare-feu, sauvegarde et monitoring doivent être validés
+manuellement; la capacité mono-thread demeure non certifiée.

@@ -2,6 +2,11 @@
 
 let currentSessionId = null;
 let isSending = false;
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+function csrfHeaders(headers = {}) {
+	return { ...headers, "X-CSRF-Token": csrfToken };
+}
 
 const sessionsList = document.getElementById("sessions-list");
 const messagesDiv = document.getElementById("messages");
@@ -175,7 +180,7 @@ async function sendMessage(content) {
 			`/api/sessions/${currentSessionId}/messages`,
 			{
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: csrfHeaders({ "Content-Type": "application/json" }),
 				body: JSON.stringify({ content }),
 				credentials: "same-origin",
 			}
@@ -220,7 +225,7 @@ async function createNewSession() {
 	try {
 		const response = await fetch("/api/sessions", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: csrfHeaders({ "Content-Type": "application/json" }),
 			body: JSON.stringify({}),
 			credentials: "same-origin",
 		});

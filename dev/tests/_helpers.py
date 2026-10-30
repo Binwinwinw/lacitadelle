@@ -16,7 +16,7 @@ from http.cookies import SimpleCookie
 from http.server import HTTPServer
 from pathlib import Path
 from unittest.mock import patch
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 TOOLS_DIR = Path(__file__).resolve().parent.parent / "tools"
 if str(TOOLS_DIR) not in sys.path:
@@ -36,10 +36,33 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def open_no_redirect(opener, request):
     """Retourne aussi les réponses HTTP d'erreur au lieu de lever HTTPError."""
+    add_test_csrf_header(request)
     try:
         return opener.open(request, timeout=5)
     except urllib.error.HTTPError as response:
         return response
+
+
+def add_test_csrf_header(request) -> None:
+    """Ajoute le token de test aux POST authentifiés, sans changer les cas de test."""
+    if request.get_method() != "POST":
+        return
+    if urlparse(request.full_url).path in ("/login", "/register"):
+        return
+    headers = {
+        name.lower(): value
+        for name, value in request.header_items()
+    }
+    if headers.get("x-csrf-token"):
+        return
+    cookie = SimpleCookie()
+    cookie.load(headers.get("cookie", ""))
+    session = cookie.get(SESSION_COOKIE_NAME)
+    if session is None:
+        return
+    token = login_server.csrf_token_for_session(session.value)
+    if token is not None:
+        request.add_header("X-CSRF-Token", token)
 
 
 def create_test_user(
@@ -125,6 +148,7 @@ def api_test_context():
             citadelle_memory.migrate_to_v3(db_path)
             login_server.SESSIONS.clear()
             login_server.MUST_CHANGE.clear()
+            login_server.CSRF_TOKENS.clear()
             server = HTTPServer(("127.0.0.1", 0), login_server.RequestHandler)
             port = server.server_address[1]
             thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -138,6 +162,7 @@ def api_test_context():
                 server.server_close()
                 login_server.SESSIONS.clear()
                 login_server.MUST_CHANGE.clear()
+                login_server.CSRF_TOKENS.clear()
 
 
 login_context = api_test_context
