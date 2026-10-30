@@ -1,0 +1,23 @@
+# Configuration préparatoire. Remplacer par le vrai domaine public avant usage.
+citadelle.example.com {
+	reverse_proxy 127.0.0.1:8081
+
+	header {
+		# N'activer includeSubDomains que si tous les sous-domaines sont en HTTPS.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+
+	log {
+		output file C:/ProgramData/LaCitadelle/Caddy/lacitadelle.log {
+			roll_size 100MiB
+			roll_interval 24h
+			roll_keep 7
+			roll_keep_for 168h
+			roll_local_time
+		}
+		format json
+	}
+}

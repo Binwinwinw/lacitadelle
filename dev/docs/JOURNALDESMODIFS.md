@@ -1129,3 +1129,21 @@ des fichiers suivis du dépôt à `e3a1082`.
 
 **Impact** : 82 entrées (81 fichiers suivis et `LISEZMOI.txt`), 219 243
 octets; SHA-256 vérifié identique après téléchargement depuis GitHub.
+
+
+## [2026-10-30] Phase MEP — Préparation production
+
+**Commit** : hash final à référencer après création.
+
+**Fichiers modifiés** : `Caddyfile`, `AGENTS.md`,
+`dev/docs/ARCHITECTURE-PROD.md`, `dev/docs/RUNBOOK-PROD.md`,
+`.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : préparer le reverse proxy HTTPS, le DNS/pare-feu, les sauvegardes
+SQLite et le monitoring sans déployer de service.
+
+**Impact** : Caddyfile modèle et runbooks prêts pour revue; aucun code métier,
+test, DNS, pare-feu, certificat ou service modifié/déployé. Le go-live reste
+bloqué par les contrôles V3.1 non implémentés.

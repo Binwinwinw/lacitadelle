@@ -475,3 +475,19 @@ publié.
 versionnée reste à décider avant mise en production.
 **Moment de traitement** : terminé; nouvelle version à publier sur décision du
 décideur.
+
+
+## Phase MEP — Préparation mise en production
+
+**Statut** : préparation documentaire et Caddyfile terminés; aucun
+déploiement effectué. La mise en service publique est bloquée jusqu'à
+l'implémentation et la validation des contrôles V3.1.
+**Décision actée** : 2026-10-30 (décision #67).
+**Dépendances** : FQDN public, DNS, règles pare-feu, compte de service et
+emplacement de sauvegarde; contrôles Secure/CSRF/rate limiting V3.1.
+**Périmètre livré** : architecture cible, configuration Caddy, sauvegardes
+SQLite, procédure de restauration et monitoring.
+**Questions ouvertes** : domaine réel, gestionnaire de service Windows,
+destination de sauvegarde, fournisseur d'uptime et capacité concurrente.
+**Moment de traitement** : déploiement manuel après validation des prérequis
+par le décideur; dette P2 concurrence à arbitrer séparément.

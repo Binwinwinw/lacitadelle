@@ -1476,3 +1476,34 @@ pas les README utilisateur.
 `3d28af6596b8f040f5403f447db92c9fe4591ae75d7d87c9c9b45f1a8e55ce78`.
 Aucun script ni fichier de code n'a été modifié; aucun commit n'est créé pour
 cette opération externe.
+
+## [2026-10-30] Préparation mise en production (Phase MEP)
+
+**Contexte** : La Citadelle compte 181 tests et 66 décisions. Le proxy et
+llamafile sont encore locaux, sans reverse proxy HTTPS, sauvegarde organisée
+ni monitoring configuré. Le contrat V3.0 précise toutefois que `Secure`,
+CSRF et rate limiting ne sont pas actifs; la dette P2 de concurrence reste
+également ouverte.
+
+**Décision(s)** :
+
+1. Préparer Caddy comme reverse proxy public HTTPS vers `127.0.0.1:8081`;
+   garder llamafile sur `127.0.0.1:8080` et n'ouvrir au public que TCP 80/443.
+2. Versionner à la racine un Caddyfile modèle avec domaine à remplacer,
+   en-têtes de sécurité et journaux JSON rotatifs.
+3. Documenter une sauvegarde SQLite quotidienne par `VACUUM INTO`, le
+   marqueur `dist/.current_model`, une rétention de sept jours et un test de
+   restauration mensuel.
+4. Documenter les journaux, les contrôles d'uptime et les seuils d'alerte.
+5. Ne pas configurer DNS, ouvrir le pare-feu, installer Caddy ni démarrer de
+   service dans ce GO; le déploiement reste manuel par le décideur.
+6. Ne pas exposer publiquement le V3.0 avant un GO distinct qui implémente et
+   valide le cookie `Secure`, CSRF et rate limiting. La capacité concurrente
+   reste non certifiée.
+
+**Conséquences** : configuration et procédures préparées, sans production
+déployée. Un domaine réel, un compte de service et un emplacement de
+sauvegarde restent à choisir. Les contrôles applicatifs V3.1 sont bloquants
+avant exposition publique. La capacité mono-thread doit être acceptée
+explicitement pour la charge initiale ou faire l'objet d'un GO CONCURRENCE,
+conformément à la décision #65.
