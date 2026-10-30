@@ -1208,7 +1208,7 @@ MEP-BIS.
 
 ## [2026-10-30] Phase 12-FIX-WHITELIST — Première installation
 
-**Commit** : référence à ajouter après création du commit.
+**Commit** : `9b5a0b4`.
 
 **Fichiers modifiés** : `lancer.bat`, `dev/tools/citadelle_memory.py`,
 `dev/tools/model_health.py`, `dev/tests/test_first_install_model.py`,
@@ -1223,3 +1223,15 @@ un rollback automatique sans précédent.
 **Impact** : SHA-256 du GGUF vérifié avant autorisation initiale; huit tests
 ajoutés, 194 tests verts, aucun test préexistant modifié. Aucun déploiement;
 validation VM vierge à faire.
+
+## [2026-10-30] Référence du commit Phase 12-FIX-WHITELIST
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit de correction
+Phase 12-FIX-WHITELIST.
+
+**Impact** : le commit principal Phase 12-FIX-WHITELIST est référencé par
+`9b5a0b4`.
