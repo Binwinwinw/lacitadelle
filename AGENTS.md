@@ -15,6 +15,10 @@ V3.1 fonctionnelle localement. Phase 11 complète; 194 tests permanents et
 `lacitadelle-distribution.zip`, sans Git ni binaires intégrés. V3.0/V3.1
 désignent les versions du périmètre d'authentification.
 
+<!-- Compteurs vérifiés le 2026-10-30
+à HEAD 564b284 (70 décisions, 194 tests).
+Vérité : .memory/decisions.md + pytest -q. -->
+
 ## Références projet
 
 | Fichier | Rôle |
@@ -36,7 +40,7 @@ désignent les versions du périmètre d'authentification.
 | [.memory/preferences.md](./.memory/preferences.md) | Préférences du décideur |
 | [.memory/quirks.md](./.memory/quirks.md) | Particularités et pièges |
 | [.memory/security.md](./.memory/security.md) | Règles de sécurité |
-| [TODO.md](./TODO.md) | Pense-bête immédiat, local et gitignoré |
+| [TODO.md](./TODO.md) | Liste partagée des actions actives |
 
 ## Ordre de lecture pour un contributeur ou un agent
 
@@ -44,12 +48,12 @@ Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
 
 1. **README.md / README.fr.md** : comprendre le produit pour l'utilisateur final.
 2. **CONTRIBUTING.md / CONTRIBUTING.fr.md** : comprendre comment contribuer.
-3. **AGENTS.md** : comprendre les règles de collaboration (9 règles structurelles).
+3. **AGENTS.md** : comprendre les règles de collaboration (10 règles structurelles).
 4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 11f).
 5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
 6. **.memory/decisions.md** : comprendre les décisions actées (70 décisions datées).
 7. **dev/docs/JOURNALDEBORD.md / dev/docs/JOURNALDESMODIFS.md** : consulter la chronologie des sessions et la synthèse par commit.
-8. **TODO.md** (local, gitignoré, si présent) : consulter le pense-bête immédiat du décideur.
+8. **TODO.md** : consulter la liste partagée des actions encore à mener.
 9. **CHANGELOG.md** : suivre ses pointeurs vers les documents d'historique.
 
 Après cette lecture, un contributeur ou un agent connaît le produit, les règles,
@@ -122,7 +126,7 @@ Fin de session : ajouter une ligne dans `dev/docs/JOURNALDEBORD.md` (date + fait
 
 ## Suivi et traçabilité
 
-Ce projet applique neuf règles structurelles pour garantir la traçabilité.
+Ce projet applique dix règles structurelles pour garantir la traçabilité.
 Elles s'appliquent à tous les GO (décideur, IDE, agents IA).
 
 ### Règle 1 — TODO de session obligatoire
@@ -188,13 +192,10 @@ Corollaires :
 
 ### Règle 5 — TODO.md maintenu à chaque GO
 
-`TODO.md` (racine, gitignoré) liste les tâches à venir en ordre
-anti-chronologique (plus récent en haut). À chaque fin de GO : la tâche
-terminée est retirée, la suivante promue, les tâches futures restent, les
-tâches abandonnées sont tracées dans `JOURNALDEBORD.md`.
-
-`TODO.md` n'est jamais commité, jamais publié dans l'archive, jamais référencé
-dans les documents publics. Il vit exclusivement en local.
+`TODO.md` (racine) est versionné et partagé. Il contient uniquement les
+actions encore à mener; à chaque fin de GO, retirer les tâches terminées et
+mettre à jour les actions actives. Les règles détaillées sont définies à la
+Règle 10.
 
 ### Règle 6 — ROADMAP.md maintenue à chaque phase majeure
 
@@ -213,10 +214,10 @@ moment de traitement (à décider).
 À chaque nouvelle tâche validée, ajouter une entrée datée dans `BACKLOG.md`.
 À chaque clôture, mettre son statut à jour. Ne pas créer une entrée par GO.
 
-Relation avec `TODO.md` (local, gitignoré) :
+Relation avec `TODO.md` :
 
 - `BACKLOG.md` : plan versionné et daté, public, tâches validées uniquement.
-- `TODO.md` : pense-bête immédiat, local, pouvant contenir des notes internes.
+- `TODO.md` : source partagée des actions actives uniquement.
 
 Ne pas dupliquer dans `BACKLOG.md` le détail des décisions de
 `.memory/decisions.md`.
@@ -234,15 +235,25 @@ commit.
 ### Règle 9 — Traçabilité immédiate dans TODO.md
 
 Toute nouvelle décision, architecture ou proposition actée pendant une
-conversation ou un GO doit être intégrée à `TODO.md` (local, gitignoré)
-immédiatement, sans attendre la fin du GO.
+conversation ou un GO doit être intégrée à `TODO.md` immédiatement, sans
+attendre la fin du GO.
 
 Cela évite la perte de contexte entre deux sessions et garantit que les
 décisions sont tracées au moment où elles sont prises.
 
-`TODO.md` reste la source de vérité pour les tâches à venir. Une décision
-actée mais non planifiée doit apparaître dans la section « À trancher » de
-`TODO.md`.
+Une décision actée mais non planifiée doit apparaître dans la section
+« En attente de validation Décideur » de `TODO.md`.
+
+### Règle 10 — TODO.md vivant
+
+`TODO.md` est la source de vérité des dettes actives. Il est versionné et
+partagé.
+
+- Seules les actions non terminées y figurent.
+- Aucune tâche cochée `[x]` ne reste dans le fichier.
+- La trace des tâches terminées est conservée dans
+  `JOURNALDESMODIFS.md` et `JOURNALDEBORD.md`.
+- Chaque entrée a un propriétaire : `Décideur`, `IDE` ou `à planifier`.
 
 ## Périmètre et non-objectifs
 
