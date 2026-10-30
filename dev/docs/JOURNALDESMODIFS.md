@@ -1179,3 +1179,18 @@ publique et conserver la compatibilité des tests HTTP authentifiés.
 **Impact** : Secure conditionnel au HTTPS, jeton CSRF par session et
 limitation mémoire par IP; cinq tests de sécurité ajoutés, suite complète
 186 tests verts. Aucun déploiement effectué; MEP-BIS reste manuel.
+
+## [2026-10-30] Phase MEP-BIS — Validation locale et compteurs
+
+**Commit** : référence à ajouter après création du commit.
+
+**Fichiers modifiés** : `AGENTS.md`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`. `TODO.md` reste local et gitignoré.
+
+**Raison** : confirmer les contrôles V3.1 en runtime local, aligner les
+compteurs du guide agents et auditer les prérequis documentés de production.
+
+**Impact** : 186 tests permanents et 68 décisions référencés; HTTP local
+vérifié (login, cookie, CSRF, 429). Les 429 sont journalisés comme accès
+`[proxy]`, sans événement dédié `[security]`; aucun déploiement effectué.

@@ -1537,3 +1537,35 @@ protection CSRF des POST authentifiés et limitation du débit.
 186 tests passent. Aucun déploiement n'est effectué par cette décision :
 DNS, Caddy, pare-feu, sauvegarde et monitoring doivent être validés
 manuellement; la capacité mono-thread demeure non certifiée.
+
+## [2026-10-30] MEP-BIS : validation locale de la préparation production
+
+**Contexte** : après les décisions #67 et #68, la documentation MEP et les
+protections V3.1 doivent être vérifiées avant que le décideur n'effectue
+manuellement un éventuel déploiement.
+
+**Décision(s)** :
+
+1. Actualiser les compteurs d'AGENTS.md à 68 décisions et 186 tests; les neuf
+   règles structurelles restent inchangées.
+2. Valider le runtime local : `lancer.bat` répond sur 8080/8081 dans une
+   console Windows réelle; le login HTTP renvoie un cookie sans `Secure`,
+   une requête authentifiée sans CSRF reçoit 403, une requête avec le jeton
+   reçoit 200, et six échecs de login donnent cinq 401 puis un 429.
+3. Vérifier la checklist dans RUNBOOK-PROD.md et la cohérence V3.1 dans
+   ARCHITECTURE-PROD.md; aucun DNS, Caddy, pare-feu ni service public n'est
+   configuré par ce GO.
+4. Les réponses 429 figurent dans les logs d'accès `[proxy]`; le serveur
+   n'émet pas d'événement dédié `[security] rate limit`. Ne pas prétendre
+   qu'un tel événement a été vérifié.
+5. Garder le déploiement réel manuel et soumettre les ports 80/443 déjà
+   occupés sur l'hôte local à vérification par le décideur; leur écoute ne
+   prouve pas l'état du pare-feu externe.
+
+**Conséquences** : les protections répondent aux tests HTTP locaux et la
+préparation documentaire est cohérente. Le test d'authentification avec
+CSRF a été réalisé sur un serveur isolé avec une base temporaire; aucun
+compte ni mot de passe de la base réelle n'a été utilisé. La journalisation
+spécifique des limites n'est pas présente; les requêtes 429 restent visibles
+dans les logs d'accès. Aucun déploiement réel ni audit exhaustif de sécurité
+n'est affirmé; la checklist Décideur reste à exécuter sur l'hôte cible.

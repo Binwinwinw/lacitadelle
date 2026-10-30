@@ -479,8 +479,8 @@ décideur.
 
 ## Phase MEP — Préparation mise en production
 
-**Statut** : préparation MEP et contrôles applicatifs V3.1 terminés
-(décisions #67 et #68); aucun déploiement effectué.
+**Statut** : préparation et validation locale MEP-BIS terminées
+(décisions #67 à #69); aucun déploiement effectué.
 **Décision actée** : 2026-10-30.
 **Dépendances** : FQDN public, DNS, règles pare-feu, compte de service,
 emplacement de sauvegarde et vérification opérationnelle du Caddyfile.
@@ -488,8 +488,12 @@ emplacement de sauvegarde et vérification opérationnelle du Caddyfile.
 `Secure`, CSRF, rate limiting, sauvegardes SQLite, restauration et monitoring.
 **Sécurité V3.1** : implémentée et validée par 186 tests (décision #68);
 aucun cas ni assertion préexistant n'a été modifié.
+**Validation runtime** : login local, cookie HTTP, CSRF absent/valide et
+rate limit login vérifiés; 429 est consigné par le log d'accès `[proxy]`.
+Le préfixe dédié `[security] rate limit` n'est pas émis par le serveur.
 **Questions ouvertes** : domaine réel, gestionnaire de service Windows,
 destination de sauvegarde, fournisseur d'uptime et acceptation de la charge
 mono-thread initiale.
-**Prochaine étape** : MEP-BIS, validation manuelle du déploiement et des
-contrôles derrière Caddy; dette P2 concurrence à arbitrer séparément.
+**Prochaine étape** : déploiement manuel par le décideur après validation
+de l'hôte cible, du pare-feu et des contrôles derrière Caddy; dette P2
+concurrence à arbitrer séparément.
