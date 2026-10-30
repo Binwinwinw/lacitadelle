@@ -463,3 +463,15 @@ bloque les suivantes et le nombre d'utilisateurs simultanés n'est pas testé.
 tests de charge concurrents.
 **Questions ouvertes** : capacité simultanée cible et limites à certifier.
 **Moment de traitement** : après production, selon les retours utilisateurs.
+
+## Phase RELEASE-UPDATE — Asset utilisateur v3-distribution
+
+**Statut** : terminé le 2026-10-29 (décision #66).
+**Dépendances** : dépôt à `e3a1082` et release GitHub `v3-distribution`.
+**Périmètre livré** : asset `lacitadelle-distribution.zip` remplacé; archive
+vérifiée à 219 243 octets, 82 entrées et SHA-256 concordant avec l'asset
+publié.
+**Questions ouvertes** : aucune pour cette mise à jour; une nouvelle release
+versionnée reste à décider avant mise en production.
+**Moment de traitement** : terminé; nouvelle version à publier sur décision du
+décideur.

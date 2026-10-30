@@ -1113,3 +1113,19 @@ mesurer le login séquentiel et consigner les limites concurrentes et 10C.
 **Impact** : CORS limité à une origine locale et routes proxy authentifiées;
 181 tests verts, dont 100 logins en 6,9 s. Playwright, test manuel 10C et
 charge concurrente restent reportés.
+
+## [2026-10-29] RELEASE-UPDATE — Asset utilisateur v3-distribution
+
+**Commit** : identifiant consultable dans l'historique Git (hash non
+auto-référençable).
+
+**Fichiers modifiés** : `.memory/decisions.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`; asset
+`lacitadelle-distribution.zip` de la release `v3-distribution`.
+`TODO.md` reste local et gitignoré.
+
+**Raison** : remplacer l'asset antérieur à la Phase 11 par une archive issue
+des fichiers suivis du dépôt à `e3a1082`.
+
+**Impact** : 82 entrées (81 fichiers suivis et `LISEZMOI.txt`), 219 243
+octets; SHA-256 vérifié identique après téléchargement depuis GitHub.

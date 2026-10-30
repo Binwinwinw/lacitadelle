@@ -1454,3 +1454,25 @@ le proxy reste mono-thread. La suite compte 181 tests; 100 logins séquentiels
 ont pris 6,9 secondes sur la machine testée. Le nombre d'utilisateurs
 simultanés est inconnu. Playwright et le test manuel 10C restent reportés; les
 dettes P3 d'upload GGUF et de port 9931 ne sont pas traitées.
+
+## [2026-10-29] Mise à jour release GitHub (Phase RELEASE-UPDATE)
+
+**Contexte** : l'asset `lacitadelle-distribution.zip` de `v3-distribution`,
+daté du 2026-10-23 et de 89 955 octets, précédait la Phase 11 et ne contenait
+pas les README utilisateur.
+
+**Décision(s)** :
+
+1. Régénérer l'archive à partir des 81 fichiers suivis de `e3a1082`, avec les
+   exclusions demandées. Le GGUF n'étant pas dans l'ancien asset, ne pas
+   l'ajouter; conserver `LISEZMOI.txt`.
+2. Remplacer l'asset de la release existante `v3-distribution`; ne pas créer
+   de nouvelle release.
+3. Vérifier les fichiers requis et exclus, l'intégrité ZIP, la taille et le
+   SHA-256 de l'asset publié.
+
+**Conséquences** : l'asset publié contient 82 entrées (81 fichiers suivis et
+`LISEZMOI.txt`), pèse 219 243 octets et correspond au SHA-256
+`3d28af6596b8f040f5403f447db92c9fe4591ae75d7d87c9c9b45f1a8e55ce78`.
+Aucun script ni fichier de code n'a été modifié; aucun commit n'est créé pour
+cette opération externe.
