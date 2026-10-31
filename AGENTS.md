@@ -148,7 +148,7 @@ Les tâches non terminées sont explicitement listées en fin de GO.
 
 Tout commit qui touche du code, de la configuration, de la documentation ou
 des dépendances doit avoir une entrée dans `dev/docs/JOURNALDESMODIFS.md`
-dans le même commit :
+dans le même commit, sauf l'exception GO doc-only ci-dessous :
 
 ```text
 [YYYY-MM-DD] <Titre court>
@@ -159,11 +159,27 @@ Raison : pourquoi
 Impact : code / distribution / tests
 ```
 
-Pas d'exception : un commit structurant sans entrée dans
-`JOURNALDESMODIFS.md` n'est pas terminé.
+En dehors de l'exception GO doc-only ci-dessous, un commit structurant sans
+entrée dans `JOURNALDESMODIFS.md` n'est pas terminé.
 `JOURNALDEBORD.md` reste la chronologie des sessions (une ligne par session,
 datée). `JOURNALDESMODIFS.md` est la synthèse par commit (une entrée par
 commit structurant).
+
+**Exception — GO doc-only** :
+
+Un GO explicitement limité à la documentation peut omettre l'entrée de commit
+dans `JOURNALDESMODIFS.md` s'il ne modifie que la politique, `TODO.md`,
+`AGENTS.md`, `dev/docs/RUNBOOK-PROD.md`, `RELEASE-NOTES.md` ou `SECURITY.md`,
+sans toucher au code métier (`login_server.py`, `citadelle_memory.py`,
+`model_health.py`, `bootstrap.py`, `install.bat`, `lancer.bat`) ni aux tests.
+
+- Le GO autorise explicitement cette exception.
+- Le message de commit indique la nature doc-only du changement.
+- La traçabilité du commit reste vérifiable avec `git log` et `git show`.
+
+Cette exception concerne l'entrée par commit dans
+`JOURNALDESMODIFS.md`; elle ne modifie pas le suivi des sessions dans
+`JOURNALDEBORD.md`.
 
 ### Règle 3 — .gitignore proactif
 
