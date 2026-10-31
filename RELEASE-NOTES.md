@@ -56,3 +56,13 @@ est hors ligne seulement après leur téléchargement ou leur prépositionnement
 - Le serveur est mono-thread; une inférence lente bloque les requêtes suivantes.
 - Playwright E2E est reporté.
 - L'upload GGUF n'est pas implémenté.
+
+## Validation   2023-10-31
+
+- ✅ Windows 10/11 : validé (install + lancer + chat).
+- ✅ Linux (Ubuntu) : validé (install.sh + lancer.sh + chat).
+- ⏳ macOS : wrappers fournis et testés unitairement, validation runtime en cours.
+
+La version `v3.0.0-rc1` est publiée pour permettre les tests
+Windows/Linux en attendant la validation macOS.
+La version `v3.0.0` finale suivra après confirmation macOS.
