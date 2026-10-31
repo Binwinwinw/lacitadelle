@@ -457,3 +457,36 @@ sauvegarde SQLite vérifiée; ne restaurer les données que si nécessaire.
 - [HTTPS automatique Caddy](https://caddyserver.com/docs/automatic-https)
 - [Commandes `run`, `start` et `stop`](https://caddyserver.com/docs/command-line)
 - [Sauvegarde SQLite `VACUUM INTO`](https://www.sqlite.org/lang_vacuum.html#vacuuminto)
+
+## Notes de maintenance — Pièges connus
+
+Ces pièges ont été révélés par le test réel Linux de la Phase
+13-CROSS-PLATFORM-BIS. Ne pas les réintroduire.
+
+### Fins de ligne des wrappers Unix
+
+Les fichiers `.sh` et `.command` doivent utiliser LF, jamais CRLF.
+`.gitattributes` impose `*.sh text eol=lf` et `*.command text eol=lf`;
+ne pas retirer ces règles.
+
+Le générateur `creer_archive.py` normalise aussi les fins de ligne au build.
+Ces deux protections sont redondantes volontairement.
+
+### Llamafile est un APE
+
+llamafile est un Actually Portable Executable (APE) basé sur Cosmopolitan
+Libc. Sur Unix, le lanceur utilise `sh -c` et les arguments shell échappés
+par `shlex.join`; un `subprocess.Popen([binary, ...])` direct peut échouer
+avec `Exec format error`. Sous Windows, le lanceur appelle le binaire
+directement.
+
+### Ordre des arguments llamafile
+
+Toujours passer `-m <GGUF>` avant `--server`; l'ordre inverse peut afficher
+l'aide puis quitter sans charger le modèle.
+
+### Validation multi-OS
+
+Les 205 tests unitaires simulent certains OS et mockent les processus; ils ne
+garantissent pas le lancement réel sous Linux ou macOS. Valider manuellement
+l'installation et le chat sur chaque OS avant une release majeure.

@@ -1319,3 +1319,17 @@ sur Linux et l'ordre des arguments llamafile révélés par le test réel.
 
 **Impact** : trois tests T8/T9/T10 ajoutés; la suite compte 205 tests. Archive
 source-only régénérée; Linux validé, tests manuels Windows/macOS en attente.
+
+## [2026-10-31] Phase 13-CROSS-PLATFORM-TER — Leçons post-test Linux
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `RELEASE-NOTES.md`, `dev/docs/RUNBOOK-PROD.md`,
+`AGENTS.md`, `dev/docs/BACKLOG.md`, `dev/docs/JOURNALDESMODIFS.md` et
+`dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : diffuser les correctifs CRLF, APE et ordre des arguments aux
+utilisateurs, mainteneurs et futures sessions IDE après le test Linux réel.
+
+**Impact** : documentation uniquement; aucune modification de code ni de test.
+La suite reste à 205 tests; l'asset GitHub n'est pas modifié.

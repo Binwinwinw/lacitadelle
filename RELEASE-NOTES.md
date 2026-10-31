@@ -24,7 +24,25 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 
 ## Tests
 
-- 202 tests verts : 194 tests préexistants et huit nouveaux tests Phase 13.
+- 205 tests verts : 194 tests préexistants, huit tests Phase 13 et trois tests
+  correctifs T8/T9/T10.
+
+## Corrections post-test (Phase 13-CROSS-PLATFORM-BIS)
+
+Trois bugs ont été révélés par le test réel sur Linux et corrigés :
+
+- **Wrappers Unix en CRLF** : les fichiers `.sh` et `.command` pouvaient être
+  livrés avec des fins de ligne Windows, empêchant leur exécution. Corrigé par
+  `.gitattributes` (LF forcé) et la normalisation dans `creer_archive.py`.
+- **Exec format error sur llamafile** : le runtime est un APE (Actually
+  Portable Executable); sur Unix, le lanceur passe la commande par `sh -c`
+  avec les arguments échappés par `shlex.join`, plutôt que d'exécuter
+  directement le binaire via `subprocess`.
+- **Ordre des arguments llamafile** : `-m <GGUF>` doit précéder `--server`.
+
+Les tests T8/T9/T10 couvrent ces corrections. Le SHA-256 de l'archive est
+communiqué séparément avec la release; il n'est pas intégré à ces notes pour
+éviter une empreinte auto-référente.
 
 ## Installation
 

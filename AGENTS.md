@@ -12,7 +12,7 @@ mozilla-ai/llamafile.
 V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Elle télécharge le runtime llamafile-thin universel et le GGUF à l'installation.
-La suite compte 202 tests permanents et `.memory/decisions.md` 71 décisions.
+La suite compte 205 tests permanents et `.memory/decisions.md` 71 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
 <!-- Compteurs vérifiés le 2026-10-31.
@@ -76,6 +76,20 @@ En cas de changement d'une règle, mettre à jour les deux.
    Review → Simplify → Verif pour toute nouvelle fonctionnalité.
    Interdit : coder → supposer → passer à autre chose. Statut final
    explicite : OK / BLOQUÉ / PARTIEL.
+
+### Cross-platform — Pièges à ne pas réintroduire
+
+- **Wrappers Unix en LF** : les fichiers `.sh` et `.command` doivent rester en
+  LF. `.gitattributes` impose leurs fins de ligne et `creer_archive.py`
+  normalise les fichiers ZIP. Ne pas retirer ces protections.
+- **Llamafile = APE** : sur Linux/macOS, lancer le runtime via `sh -c` avec
+  les arguments construits par `shlex.join`, jamais par un `Popen` direct.
+  Voir `dev/tools/lancer.py`, fonction `start_llamafile`.
+- **Ordre des arguments** : `-m <GGUF>` doit toujours précéder `--server`.
+- **Validation réelle** : les mocks OS des tests ne remplacent pas une
+  validation manuelle sur chaque OS avant release. Les tests T8 (LF), T9
+  (`sh -c`) et T10 (appel direct Windows) sont dans
+  `dev/tests/test_cross_platform.py`.
 
 ## Règles non-négociables
 

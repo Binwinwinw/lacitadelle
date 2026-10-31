@@ -529,3 +529,13 @@ APE Unix via `sh -c` avec `shlex.join`, arguments `-m` avant `--server`.
 par le Décideur.
 **Prochaine étape** : exécuter les tests manuels Windows/macOS, puis
 diffuser l'archive sur décision du Décideur.
+
+### 13-CROSS-PLATFORM-TER — Documentation des leçons post-test Linux
+
+**Statut** : terminée le 2026-10-31.
+**Périmètre livré** : documenter les corrections CRLF, APE et ordre des
+arguments dans les notes de release, le runbook et AGENTS.md; préserver les
+dix règles structurelles.
+**Tests** : aucun exécuté ni modifié; référence conservée à 205.
+**Prochaine étape** : le Décideur met à jour la description GitHub de
+`v3.0.0-rc1`; l'asset ZIP reste inchangé.
