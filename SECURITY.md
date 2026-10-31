@@ -2,6 +2,16 @@
 
 ## Bonnes pratiques utilisateur
 
+### Configuration recommandée
+
+- Windows, Linux et macOS sont pris en charge par les wrappers natifs
+  (`.bat`, `.sh`, `.command`); Python 3.10+ est requis.
+- Garder les ports 8080 et 8081 sur loopback et activer le pare-feu de l'OS.
+- Vérifier le SHA-256 de l'archive et laisser l'installateur vérifier ceux du
+  runtime et du GGUF avant leur utilisation.
+- Sous macOS, n'autoriser un fichier `.command` bloqué par Gatekeeper qu'après
+  avoir vérifié l'origine de l'archive.
+
 ### Mot de passe administrateur
 
 - Le mot de passe admin initial est affiché une seule fois dans la console au
@@ -48,9 +58,11 @@ corriger. Le délai de réponse visé est de sept jours ouvrés.
 La Citadelle ne protège pas contre :
 
 - un accès physique à une machine déverrouillée; chiffrer le disque et
-  verrouiller la session Windows en l'absence;
+  verrouiller la session de l'OS hôte en l'absence;
 - un déni de service ou une surcharge concurrente; l'usage mono-utilisateur
   est la cible actuelle;
 - une compromission du système d'exploitation ou du compte Windows hôte.
 
-Maintenir Windows et l'antivirus à jour, et garder le pare-feu activé.
+Maintenir Windows, Linux ou macOS à jour, garder les protections de sécurité
+du système activées et vérifier les alertes Gatekeeper/quarantaine avant
+d'autoriser un runtime téléchargé.

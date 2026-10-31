@@ -8,8 +8,8 @@ La Citadelle is a local AI chat application. Your conversations are processed on
 
 ### Prerequisites
 
-- Windows 10 or later.
-- Python 3.10 or later.
+- Windows 10 or later, Linux, or macOS.
+- Python 3.10 or later (`python` on Windows; `python3` on Linux/macOS).
 - About 3 GB of free disk space.
 - An internet connection for the first launch.
 - Git is not required.
@@ -18,7 +18,10 @@ La Citadelle is a local AI chat application. Your conversations are processed on
 
 1. Download the latest archive from [GitHub Releases](https://github.com/Binwinwinw/lacitadelle/releases/latest) — the file is `lacitadelle-distribution.zip`.
 2. Unzip it into a folder where you have write access.
-3. Double-click `install.bat`. It checks that Python is available, downloads the llamafile runtime (about 42 MB) and Qwen3 model (about 1.28 GB), verifies their checksums, and starts `lancer.bat`.
+3. Run the native installer: double-click `install.bat` on Windows, run `./install.sh` on Linux, or open `install.command` on macOS. The installer downloads the universal llamafile runtime (about 44 MB) and Qwen3 model (about 1.28 GB), verifies their checksums, and starts the application.
+   On Linux, if needed, make the shell wrappers executable first:
+   `chmod +x install.sh lancer.sh`. On macOS, if Gatekeeper blocks the first
+   launch, control-click `install.command` and choose **Open**.
 4. Your browser opens at `http://localhost:8081`. Select **Sign up** (**Créer un compte**) to create an account, then log in.
 5. Start chatting.
 
@@ -34,7 +37,7 @@ Create an account, log in, and select **+ New session** (**+ Nouvelle session**)
   `admin`; there is no separate superadmin role.
 - Admins can manage the allowed GGUF model paths and select the active model
   from **Settings** (**Paramètres**). A selected model is loaded the next time
-  `lancer.bat` starts.
+  the native launcher starts.
 - Regular users can chat and access only their own conversations.
 
 ## Known limitations
@@ -60,20 +63,23 @@ protections described in the project security plan.
 
 ## Stopping La Citadelle
 
-Close both command windows:
+Press Ctrl+C in the launcher window to stop both local services.
 
-- **Lacitadelle Server** — model server on port 8080.
-- **Lacitadelle Proxy** — web interface and authentication on port 8081.
+On Windows, the llamafile runtime has its own console; the launcher console
+shows proxy output, including the one-time administrator password.
 
 ## Troubleshooting
 
-- **Antivirus blocks `dist\llamafile.exe`:** check your antivirus quarantine and allow the file if you trust this installation.
-- **Python is not found:** install Python 3.10 or later and make sure `python` is available on your PATH.
-- **A download fails:** check your internet connection and run `install.bat` again.
+- **The runtime is blocked:** check your operating system's security prompt or
+  quarantine and allow the verified file only if you trust this installation.
+- **Python is not found:** install Python 3.10 or later and make `python`
+  (Windows) or `python3` (Linux/macOS) available on PATH.
+- **A download fails:** check your internet connection and rerun the native
+  installer (`install.bat`, `install.sh`, or `install.command`).
 - **The browser does not open:** open `http://localhost:8081` manually after installation.
 - **A port is already in use:** close any earlier La Citadelle windows and
   retry. Do not expose the services on another network interface.
-- **The model is missing:** run `install.bat` again to verify or download the
+- **The model is missing:** rerun the native installer to verify or download the
   default runtime and model. An admin can select only an existing model in
   the allowed-model list.
 - **The admin account is inaccessible:** stop the application and follow the

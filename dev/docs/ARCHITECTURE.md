@@ -3,35 +3,45 @@
 ## Vue d'ensemble
 
 La Citadelle est distribuée sous forme d'une archive ZIP autonome, sans Git.
-Après extraction, `install.bat` télécharge et vérifie le runtime llamafile-thin
-et le modèle GGUF; `lancer.bat` démarre le serveur local, le proxy Python et le
-webchat authentifié. Le runtime et le modèle restent séparés.
+Après extraction, `install.py` télécharge et vérifie le runtime llamafile-thin
+universel et le modèle GGUF; `lancer.py` démarre le serveur local, le proxy
+Python et le webchat authentifié. Les wrappers natifs sont `install.bat` /
+`lancer.bat` (Windows), `.sh` (Linux) et `.command` (macOS). Le runtime et le
+modèle restent séparés.
 
 ## Composants
 
 ### 1. Runtime : llamafile-thin
 
 - Téléchargé directement depuis la release mozilla-ai/llamafile 0.10.6.
-- Installé dans `dist/`; sous Windows, bootstrap le renomme `llamafile.exe`.
-- N'embarque pas le GGUF; `lancer.bat` lui passe le chemin du modèle avec `-m`.
+- Installé dans `dist/` sous le nom `llamafile.exe`, `llamafile-linux` ou
+  `llamafile-macos` selon l'OS.
+- N'embarque pas le GGUF; `lancer.py` lui passe le chemin du modèle avec `-m`.
 - Le serveur HTTP local écoute sur le port 8080 et expose l'API compatible OpenAI `/v1/chat/completions`.
 
 ### 2. Modèle externe
 
 - Fichier `dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf`, d'environ 1,28 Go.
 - Qwen3-1.7B Q4_K_M, licence Apache 2.0.
-- Téléchargé et vérifié par checksum SHA-256 par `dev/tools/bootstrap.py` ; il n'est pas embarqué dans `dist/llamafile.exe`.
+- Téléchargé et vérifié par checksum SHA-256 par `dev/tools/bootstrap.py` ;
+  il n'est pas embarqué dans le runtime.
 
 ### 3. Bootstrap et packaging
 
-- `dev/tools/llamafile_config.json` marque llamafile-thin et le GGUF comme requis.
-- `dev/tools/bootstrap.py` télécharge llamafile-thin dans `dist/` et le GGUF dans `dev/tools/vendor/llamafile/`, puis vérifie les checksums.
+- `dev/tools/llamafile_config.json` décrit un seul asset runtime universel,
+  ses destinations par OS et le GGUF requis.
+- `dev/tools/bootstrap.py` choisit la destination selon l'OS, télécharge le
+  runtime dans `dist/` et le GGUF dans `dev/tools/vendor/llamafile/`, puis
+  vérifie les checksums et rend le runtime exécutable sur Unix.
 - `dev/tools/creer_archive.py` crée `lacitadelle-distribution.zip` sans Git, runtime, GGUF, exécutables ni fichiers de plus de 10 MiB.
 
 ### 4. Lancement
 
-- Après extraction de l'archive, `install.bat` vérifie la présence de Python, lance le bootstrap puis démarre `lancer.bat`.
-- `lancer.bat` exécute `dist/llamafile.exe -m dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf --server --host 127.0.0.1 --port 8080 --nologo --log-timestamps`, démarre le proxy Python V3.0 et ouvre `http://localhost:8081`.
+- Après extraction, l'un des wrappers natifs lance `install.py`, qui exécute le
+  bootstrap puis `lancer.py`.
+- `lancer.py` démarre le binaire correspondant à l'OS avec le GGUF et les
+  mêmes options de serveur (loopback, port 8080), démarre le proxy Python V3.1
+  sur le port 8081 et ouvre `http://localhost:8081`.
 - L'installation et le client Python nécessitent Python 3.10+ ; l'exécutable llamafile lui-même est le runtime d'inférence.
 
 ### 5. Client conversationnel et mémoire SQLite
@@ -45,21 +55,23 @@ webchat authentifié. Le runtime et le modèle restent séparés.
 ## Flux de première installation
 
 1. L'utilisateur extrait `lacitadelle-distribution.zip`; aucun clone Git n'est requis.
-2. Il double-clique sur `install.bat`.
-3. `install.bat` lance `bootstrap.py`, qui télécharge llamafile-thin et le GGUF, puis vérifie leurs checksums.
-4. `install.bat` lance `lancer.bat`, qui démarre llamafile-thin et le proxy puis ouvre le navigateur sur `localhost:8081`.
+2. Il lance le wrapper d'installation natif correspondant à son OS.
+3. `install.py` appelle `bootstrap.py`, qui télécharge le runtime universel
+   et le GGUF, puis vérifie leurs checksums.
+4. `install.py` lance `lancer.py`, qui démarre le runtime adapté, le proxy et
+   le navigateur sur `localhost:8081`.
 
 ## Flux d'utilisation quotidienne
 
 ### Interface web
 
-1. Double-cliquer sur `lancer.bat`.
+1. Lancer `lancer.bat`, `lancer.sh` ou `lancer.command` selon l'OS.
 2. Le serveur llamafile-thin démarre sur `localhost:8080` et le proxy sur `localhost:8081`.
 3. Le navigateur s'ouvre sur `http://localhost:8081`; l'utilisateur se connecte et discute avec Qwen3-1.7B en local, sur CPU.
 
 ### Client avec mémoire
 
-1. Démarrer les services avec `lancer.bat`.
+1. Démarrer les services avec le wrapper natif `lancer.*`.
 2. Dans un terminal séparé, lancer `python dev/tools/client.py`.
 3. Utiliser le REPL ; les sessions sont persistées dans SQLite.
 

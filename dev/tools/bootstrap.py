@@ -23,11 +23,12 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import platform
 import sys
 import time
 import urllib.error
 import urllib.request
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 # Chemins (relatifs au fichier, pas au cwd)
@@ -35,7 +36,6 @@ TOOLS_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = TOOLS_DIR.parent.parent
 CONFIG_PATH = TOOLS_DIR / "llamafile_config.json"
 VENDOR_DIR = TOOLS_DIR / "vendor" / "llamafile"
-DIST_DIR = PROJECT_ROOT / "dist"
 
 # Paramètres
 CHUNK_SIZE = 64 * 1024
@@ -44,8 +44,7 @@ PROGRESS_BAR_WIDTH = 30
 PROGRESS_TTY_INTERVAL = 0.1
 PROGRESS_LOG_INTERVAL = 5
 SHA256_LEN = 64
-RUNTIME_ASSET_NAME = "llamafile-thin"
-RUNTIME_FILENAME = "llamafile.exe" if sys.platform == "win32" else "llamafile"
+SUPPORTED_SYSTEMS = ("Windows", "Linux", "Darwin")
 
 # Codes de sortie
 EXIT_OK = 0
@@ -59,6 +58,17 @@ class BootstrapError(Exception):
     Les BootstrapError sont signalées à l'utilisateur sans traceback.
     Les autres exceptions indiquent un bug de programmation.
     """
+
+
+def _is_safe_relative_path(value: str) -> bool:
+    path = PurePosixPath(value)
+    return (
+        bool(value)
+        and bool(path.parts)
+        and "\\" not in value
+        and not path.is_absolute()
+        and all(part not in ("", ".", "..") for part in path.parts)
+    )
 
 
 def load_config() -> dict[str, Any]:
@@ -132,16 +142,61 @@ def load_config() -> dict[str, Any]:
                 f"Configuration invalide [asset '{name}'] : 'sha256' doit être hexadécimal."
             )
 
-        filename = meta.get("filename")
+        filename = meta.get("source_filename", meta.get("filename"))
         if not isinstance(filename, str) or not filename.strip():
             raise BootstrapError(
-                f"Configuration invalide [asset '{name}'] : 'filename' doit être une chaîne non vide."
+                f"Configuration invalide [asset '{name}'] : "
+                "'source_filename' ou 'filename' doit être une chaîne non vide."
             )
         if "/" in filename or "\\" in filename or ".." in filename:
             raise BootstrapError(
-                f"Configuration invalide [asset '{name}'] : 'filename' ne doit pas "
+                f"Configuration invalide [asset '{name}'] : le nom source ne doit pas "
                 f"contenir '/', '\\' ou '..' (trouvé : {filename!r})."
             )
+
+        destination = meta.get("destination")
+        destinations = meta.get("destination_by_os")
+        if destination is not None:
+            if not isinstance(destination, str) or not _is_safe_relative_path(
+                destination
+            ):
+                raise BootstrapError(
+                    f"Configuration invalide [asset '{name}'] : "
+                    "'destination' doit être un chemin relatif sûr."
+                )
+        elif not isinstance(destinations, dict) or set(destinations) != set(
+            SUPPORTED_SYSTEMS
+        ):
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : "
+                "'destination_by_os' doit définir Windows, Linux et Darwin."
+            )
+        if isinstance(destinations, dict):
+            for system, relative_path in destinations.items():
+                if system not in SUPPORTED_SYSTEMS or not isinstance(
+                    relative_path, str
+                ) or not _is_safe_relative_path(relative_path):
+                    raise BootstrapError(
+                        f"Configuration invalide [asset '{name}'] : "
+                        f"destination invalide pour {system!r}."
+                    )
+
+        post_download = meta.get("post_download", {})
+        if not isinstance(post_download, dict):
+            raise BootstrapError(
+                f"Configuration invalide [asset '{name}'] : "
+                "'post_download' doit être un objet."
+            )
+        for system, actions in post_download.items():
+            if (
+                system not in SUPPORTED_SYSTEMS
+                or not isinstance(actions, list)
+                or any(action not in ("rename", "chmod_x") for action in actions)
+            ):
+                raise BootstrapError(
+                    f"Configuration invalide [asset '{name}'] : "
+                    f"post_download invalide pour {system!r}."
+                )
 
         required = meta.get("required")
         if not isinstance(required, bool):
@@ -336,8 +391,8 @@ def process_asset(
     name: str,
     meta: dict[str, Any],
     *,
-    destination_dir: Path = VENDOR_DIR,
-    runtime: bool = False,
+    destination_path: Path,
+    make_executable: bool = False,
 ) -> None:
     """Traite un asset : télécharge si absent, répare si corrompu, vérifie.
 
@@ -350,18 +405,16 @@ def process_asset(
 
     Une seule tentative de réparation. Pas de boucle de retry.
 
-    Le caller choisit le dossier de destination. runtime=True renomme
-    llamafile-thin pour l'exécution et le rend exécutable sous Unix.
+    Le caller choisit le chemin final et si l'asset doit être exécutable.
 
     Raises:
         BootstrapError: sur tout échec.
     """
     url = meta["url"]
     expected_sha = meta["sha256"]
-    filename = meta["filename"]
-    final_filename = RUNTIME_FILENAME if runtime else filename
-    final_path = destination_dir / final_filename
-    temp_path = destination_dir / f".tmp-{final_filename}-{os.getpid()}"
+    filename = meta.get("source_filename", meta.get("filename"))
+    final_path = destination_path
+    temp_path = final_path.parent / f".tmp-{filename}-{os.getpid()}"
 
     # Cas 1 : fichier final présent
     if final_path.is_file():
@@ -382,7 +435,7 @@ def process_asset(
                     f"{final_path} : {e}"
                 ) from e
         else:
-            if runtime and sys.platform != "win32":
+            if make_executable:
                 _make_executable(final_path)
             print(f"[OK] {name} : déjà présent et valide ({filename})")
             return
@@ -392,7 +445,7 @@ def process_asset(
     try:
         download(url, temp_path)
         verify_sha256(temp_path, expected_sha)
-        if runtime and sys.platform != "win32":
+        if make_executable:
             _make_executable(temp_path)
     except BootstrapError as e:
         # Nettoyage du temporaire en cas d'échec
@@ -413,8 +466,17 @@ def process_asset(
     print(f"[OK] {name} : téléchargé et vérifié ({filename})")
 
 
-def main() -> int:
+def main(system: str | None = None) -> int:
     """Point d'entrée. Retourne le code de sortie."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
+
+    system = system or platform.system()
+    if system not in SUPPORTED_SYSTEMS:
+        print(f"ERREUR [système] : OS non supporté : {system}", file=sys.stderr)
+        return EXIT_CONFIG_ERROR
+
     try:
         config = load_config()
     except BootstrapError as e:
@@ -422,29 +484,48 @@ def main() -> int:
         return EXIT_CONFIG_ERROR
 
     assets = config["assets"]
-    required = [
-        (name, meta) for name, meta in assets.items()
-        if meta.get("required", False) is True
-    ]
+    required = []
+    for name, meta in assets.items():
+        if meta.get("required", False) is not True:
+            continue
+        destinations = meta.get("destination_by_os")
+        relative_path = (
+            destinations[system] if destinations is not None
+            else meta["destination"]
+        )
+        destination_path = PROJECT_ROOT.joinpath(
+            *PurePosixPath(relative_path).parts
+        )
+        actions = meta.get("post_download", {}).get(system, [])
+        required.append(
+            (name, meta, destination_path, "chmod_x" in actions)
+        )
 
     if not required:
         print("Aucun asset requis dans la configuration.")
         return EXIT_OK
 
-    print(f"Bootstrap : {len(required)} asset(s) requis à traiter.")
-    print(f"Runtime : {DIST_DIR}")
+    print(
+        f"Bootstrap : {len(required)} asset(s) requis pour {system} "
+        "à traiter."
+    )
+    runtime_paths = [
+        str(destination)
+        for name, _, destination, _ in required
+        if name.startswith("runtime-")
+    ]
+    print(f"Runtime : {', '.join(runtime_paths) or 'non configuré'}")
     print(f"Modèle : {VENDOR_DIR}")
     print()
 
     failures = []
-    for name, meta in required:
+    for name, meta, destination_path, make_executable in required:
         try:
-            is_runtime = name == RUNTIME_ASSET_NAME
             process_asset(
                 name,
                 meta,
-                destination_dir=DIST_DIR if is_runtime else VENDOR_DIR,
-                runtime=is_runtime,
+                destination_path=destination_path,
+                make_executable=make_executable,
             )
         except BootstrapError as e:
             failures.append((name, str(e)))

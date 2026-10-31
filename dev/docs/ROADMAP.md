@@ -163,15 +163,30 @@ admin au démarrage avec validation fail-closed, et préserver le rollback.
 l'existence et de l'autorisation avant llamafile, rollback/fallback contrôlés,
 logs de sécurité et E2E du changement de modèle; 176 tests passent.
 
-## État actuel (2026-10-29)
+## [Phase 13] Portage cross-platform Windows/Linux/macOS (2026-10-31)
 
-- Distribution : `lacitadelle-distribution.zip`; la taille de 92 019 octets
-  est un instantané vérifié le 2026-10-23, non remesuré ici. La release
-  GitHub `v3-distribution` reste non vérifiée par l'IDE.
-- Tests : 176.
-- Décisions : 64 actées.
-- Phase 11 : complète.
-- Règles : neuf règles structurelles dans `AGENTS.md`.
+**Commit** : Phase 13-CROSS-PLATFORM (identifiant consultable dans Git).
+
+**Décision** : #71; la décision #66 (archive source-only) est préservée.
+
+**Objectif** : rendre l'installation et le lancement disponibles sous Windows,
+Linux et macOS en utilisant le runtime llamafile thin universel.
+
+**Livrable** : `install.py` et `lancer.py`, six wrappers natifs, destinations
+runtime adaptées à l'OS, archive source-only mise à jour et documentation
+cohérente. Huit tests ajoutés; 202 tests passent.
+
+**Validation restante** : le Décideur doit tester les wrappers sur Windows,
+Linux et macOS avant la diffusion de l'archive.
+
+## État actuel (2026-10-31)
+
+- Distribution : archive ZIP source-only pour Windows, Linux et macOS; aucun
+  binaire n'est intégré.
+- Tests : 202.
+- Décisions : 71 actées.
+- Phase 11 : complète; Phase 13 implémentée, validation manuelle restante.
+- Règles : dix règles structurelles dans `AGENTS.md`.
 - Tâches à venir : voir `TODO.md` (local, gitignoré).
 
 ## Prochaines phases possibles (non clôturées)

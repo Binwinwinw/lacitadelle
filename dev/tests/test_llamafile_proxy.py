@@ -12,6 +12,7 @@ sys.path.insert(0, str(TESTS_DIR))
 sys.path.insert(0, str(TESTS_DIR.parent / "tools"))
 
 import login_server
+import lancer
 from _helpers import (
     SESSION_COOKIE_NAME,
     api_test_context,
@@ -22,11 +23,10 @@ from _helpers import (
 
 
 def test_lancer_allows_only_the_local_web_origin_for_llamafile():
-    launcher = Path(__file__).resolve().parents[2] / "lancer.bat"
-    content = launcher.read_text(encoding="utf-8")
-
-    assert "--cors-origins http://localhost:8081" in content
-    assert "--cors-origins http://localhost:8081," not in content
+    options = lancer.RUNTIME_OPTIONS
+    origin_index = options.index("--cors-origins")
+    assert options[origin_index + 1] == "http://localhost:8081"
+    assert options.count("--cors-origins") == 1
 
 
 def _upstream_response(payload: bytes):

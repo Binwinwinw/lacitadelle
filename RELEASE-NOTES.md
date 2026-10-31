@@ -1,13 +1,16 @@
 # La Citadelle — Release v3
 
-Date : 2026-10-30
-Commit source : `0f7bf68`
+Date : 2026-10-31
+Commit source : Phase 13-CROSS-PLATFORM (voir l'historique Git)
 Archive : `lacitadelle-distribution.zip` (source-only)
 SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 éviter une empreinte auto-référente.
 
 ## Nouveautés
 
+- **Phase 13-CROSS-PLATFORM** : exécution Windows, Linux et macOS avec un
+  runtime llamafile thin universel, des destinations adaptées à l'OS et des
+  wrappers natifs `.bat`, `.sh` et `.command`.
 - **V3.1 sécurité** : cookie `Secure` en HTTPS, protection CSRF des POST
   authentifiés et rate limiting du login, du chat et des routes admin.
 - **Phase 12-FIX-WHITELIST** : initialisation de première installation avec
@@ -21,16 +24,17 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 
 ## Tests
 
-- 194 tests verts : 186 tests préexistants et huit nouveaux tests Phase 12.
+- 202 tests verts : 194 tests préexistants et huit nouveaux tests Phase 13.
 
 ## Installation
 
 1. Extraire l'archive dans un dossier accessible en écriture.
-2. Double-cliquer sur `install.bat`. Python et Internet sont requis au
-   premier lancement si llamafile-thin ou le GGUF ne sont pas déjà présents.
-3. Le bootstrap télécharge et vérifie les assets; le GGUF représente environ
-   1,28 Go. `install.bat` démarre ensuite `lancer.bat`.
-4. Si nécessaire, lancer `lancer.bat` séparément.
+2. Lancer `install.bat` (Windows), `install.sh` (Linux) ou
+   `install.command` (macOS). Python 3.10+ et Internet sont requis au premier
+   lancement si le runtime ou le GGUF ne sont pas déjà présents.
+3. Le bootstrap télécharge le runtime universel et vérifie les assets; le GGUF
+   représente environ 1,28 Go. L'installateur démarre ensuite le lanceur natif.
+4. Si nécessaire, relancer `lancer.bat`, `lancer.sh` ou `lancer.command`.
 5. Ouvrir `http://127.0.0.1:8081/`.
 6. Au premier démarrage, relever le mot de passe admin affiché une seule fois
    dans la console du proxy.
@@ -48,6 +52,7 @@ est hors ligne seulement après leur téléchargement ou leur prépositionnement
 
 ## Limites connues
 
+- La validation manuelle sur Linux et macOS reste à effectuer avant diffusion.
 - Le serveur est mono-thread; une inférence lente bloque les requêtes suivantes.
 - Playwright E2E est reporté.
 - L'upload GGUF n'est pas implémenté.

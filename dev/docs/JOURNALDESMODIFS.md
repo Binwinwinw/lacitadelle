@@ -1290,3 +1290,19 @@ régénérée dans ce GO.
 INSTALL-DOC.
 
 **Impact** : le commit principal INSTALL-DOC est référencé par `9bc6c55`.
+
+## [2026-10-31] Phase 13-CROSS-PLATFORM — Windows, Linux et macOS
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : bootstrap, installateur et lanceur Python; wrappers
+natifs; configuration et générateur ZIP; tests; documentation produit,
+contrats, runbook, sécurité et release; décision #71, TODO, BACKLOG et journaux.
+
+**Raison** : ajouter le support Windows/Linux/macOS en réutilisant l'asset
+llamafile thin universel vérifié, sans modifier la politique source-only de la
+décision #66.
+
+**Impact** : huit tests multiplateformes ajoutés, suite complète à 202 tests;
+archive source-only régénérée. Validation manuelle Linux/macOS et diffusion
+restent en attente du Décideur.

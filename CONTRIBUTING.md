@@ -16,7 +16,11 @@ cd lacitadelle
 python dev/tools/bootstrap.py
 ```
 
-The bootstrap downloads and verifies the required assets. It places the runtime at `dist/llamafile.exe` on Windows and the Qwen3 GGUF model at `dev/tools/vendor/llamafile/`. See [BOOTSTRAP_CONTRACT.md](./dev/tools/BOOTSTRAP_CONTRACT.md) for validation, download, and repair behavior.
+The bootstrap downloads and verifies the universal runtime and Qwen3 GGUF
+model. It installs the runtime as `dist/llamafile.exe` on Windows,
+`dist/llamafile-linux` on Linux, or `dist/llamafile-macos` on macOS. See
+[BOOTSTRAP_CONTRACT.md](./dev/tools/BOOTSTRAP_CONTRACT.md) for configuration,
+validation, download, and repair behavior.
 
 ## Run tests
 
@@ -24,15 +28,19 @@ The bootstrap downloads and verifies the required assets. It places the runtime 
 python -m pytest
 ```
 
-The test suite currently contains 73 tests. The focused HTTP helper checks can also be run with:
+The test suite currently contains 202 tests. The focused HTTP helper checks can also be run with:
 
 ```powershell
 python dev/tests/test_http_helpers.py
 ```
 
+On Linux and macOS, use `python3` in place of `python`.
+
 ## Run in development
 
-On Windows, run `lancer.bat` to start the model server and web proxy. The model server listens on port 8080; the authenticated web proxy listens on port 8081.
+Run `lancer.bat` on Windows, `./lancer.sh` on Linux, or `lancer.command` on
+macOS to start the model server and web proxy. The model server listens on port
+8080; the authenticated web proxy listens on port 8081.
 
 To start the proxy manually, first start the llamafile model server on `127.0.0.1:8080`, then run:
 
@@ -51,7 +59,7 @@ This creates `lacitadelle-distribution.zip` in the repository root. The archive 
 ## Repository structure
 
 - `dev/tools/` — Python application and distribution tools.
-- `dev/tests/` — pytest suite (73 tests).
+- `dev/tests/` — pytest suite (202 tests).
 - `dev/docs/` — architecture, contracts, product scope, and project journals.
 - `.memory/` — project decisions and agent instructions.
 - `AGENTS.md` — agent workflow and repository rules.

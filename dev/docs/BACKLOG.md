@@ -510,3 +510,18 @@ automatique sans modèle précédent.
 **Tests** : huit nouveaux tests; les 186 tests existants restent inchangés.
 **Questions ouvertes** : validation de bout en bout sur VM vierge hors réseau.
 **Prochaine étape** : GO MEP-TER après validation manuelle par le Décideur.
+
+## Phase 13-CROSS-PLATFORM — Windows, Linux et macOS
+
+**Statut** : implémentation terminée le 2026-10-31 (décision #71); 202 tests
+verts. La validation manuelle Linux/macOS reste à effectuer avant diffusion.
+**Dépendances** : décision #66 (archive source-only) préservée; runtime
+llamafile thin universel 0.10.6.
+**Périmètre livré** : lanceur et installateur Python multiplateformes,
+wrappers `.bat`/`.sh`/`.command`, destinations runtime par OS, archive source-only
+et documentation mise à jour.
+**Tests** : huit tests multiplateformes ajoutés; les 194 tests existants passent.
+**Questions ouvertes** : compatibilité réelle à valider sur Linux et macOS;
+Windows à retester manuellement par le Décideur.
+**Prochaine étape** : exécuter la checklist manuelle sur les trois OS, puis
+diffuser l'archive sur décision du Décideur.

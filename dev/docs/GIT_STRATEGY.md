@@ -14,11 +14,12 @@ vendorisés et artefacts générés restent locaux et sont exclus par `.gitignor
 
 ## Assets téléchargés
 
-`dev/tools/bootstrap.py` télécharge le runtime llamafile-thin 0.10.6 dans
-`dist/` (`dist/llamafile.exe` sous Windows, `dist/llamafile` sous Unix) et le
-modèle GGUF séparément dans `dev/tools/vendor/llamafile/`. Les SHA-256 sont
-vérifiés selon `dev/tools/llamafile_config.json`. Aucun checkout local des
-sources upstream n'est requis pour utiliser la distribution.
+`dev/tools/bootstrap.py` télécharge l'unique runtime llamafile-thin universel
+0.10.6 dans `dist/` (`llamafile.exe` sous Windows, `llamafile-linux` sous
+Linux, `llamafile-macos` sous macOS) et le modèle GGUF séparément dans
+`dev/tools/vendor/llamafile/`. Les SHA-256 sont vérifiés selon
+`dev/tools/llamafile_config.json`. Aucun checkout local des sources upstream
+n'est requis pour utiliser la distribution.
 
 Le runtime, le modèle et les autres assets téléchargés ne sont pas versionnés.
 Les scripts, manifestes et contrats du bootstrap restent suivis par Git.

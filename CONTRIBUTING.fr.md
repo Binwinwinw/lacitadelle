@@ -16,7 +16,11 @@ cd lacitadelle
 python dev/tools/bootstrap.py
 ```
 
-Le bootstrap télécharge et vérifie les assets requis. Sous Windows, il place le moteur dans `dist/llamafile.exe` et le modèle GGUF Qwen3 dans `dev/tools/vendor/llamafile/`. Consultez [BOOTSTRAP_CONTRACT.md](./dev/tools/BOOTSTRAP_CONTRACT.md) pour les règles de validation, de téléchargement et de réparation.
+Le bootstrap télécharge et vérifie le runtime universel et le modèle GGUF
+Qwen3. Il installe le runtime dans `dist/llamafile.exe` sous Windows,
+`dist/llamafile-linux` sous Linux ou `dist/llamafile-macos` sous macOS.
+Consultez [BOOTSTRAP_CONTRACT.md](./dev/tools/BOOTSTRAP_CONTRACT.md) pour la
+configuration, la validation, le téléchargement et la réparation.
 
 ## Exécuter les tests
 
@@ -24,15 +28,20 @@ Le bootstrap télécharge et vérifie les assets requis. Sous Windows, il place 
 python -m pytest
 ```
 
-La suite contient actuellement 73 tests. Les tests ciblés des helpers HTTP peuvent aussi être lancés avec :
+La suite contient actuellement 202 tests. Les tests ciblés des helpers HTTP peuvent aussi être lancés avec :
 
 ```powershell
 python dev/tests/test_http_helpers.py
 ```
 
+Sous Linux et macOS, utiliser `python3` à la place de `python`.
+
 ## Exécuter en développement
 
-Sous Windows, lancez `lancer.bat` pour démarrer le serveur de modèle et le proxy web. Le serveur de modèle écoute sur le port 8080; le proxy web authentifié écoute sur le port 8081.
+Lancez `lancer.bat` sous Windows, `./lancer.sh` sous Linux ou
+`lancer.command` sous macOS pour démarrer le serveur de modèle et le proxy web.
+Le serveur de modèle écoute sur le port 8080; le proxy web authentifié écoute
+sur le port 8081.
 
 Pour démarrer le proxy manuellement, démarrez d’abord le serveur de modèle llamafile sur `127.0.0.1:8080`, puis exécutez :
 
@@ -51,7 +60,7 @@ Cette commande crée `lacitadelle-distribution.zip` à la racine du dépôt. L�
 ## Structure du dépôt
 
 - `dev/tools/` — application Python et outils de distribution.
-- `dev/tests/` — suite pytest (73 tests).
+- `dev/tests/` — suite pytest (202 tests).
 - `dev/docs/` — architecture, contrats, périmètre produit et journaux du projet.
 - `.memory/` — décisions du projet et instructions des agents.
 - `AGENTS.md` — règles de travail des agents et du dépôt.

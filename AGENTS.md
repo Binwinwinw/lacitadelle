@@ -9,14 +9,13 @@ mozilla-ai/llamafile.
 
 ## État actuel
 
-V3.1 fonctionnelle localement. Phase 11 complète; 194 tests permanents et
-70 décisions datées. `install.bat` télécharge llamafile-thin et le GGUF;
-`lancer.bat` démarre le runtime et le proxy. La distribution V3 est
-`lacitadelle-distribution.zip`, sans Git ni binaires intégrés. V3.0/V3.1
-désignent les versions du périmètre d'authentification.
+V3.1 fonctionnelle localement. La distribution source-only prend en charge
+Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
+Elle télécharge le runtime llamafile-thin universel et le GGUF à l'installation.
+La suite compte 202 tests permanents et `.memory/decisions.md` 71 décisions.
+V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
-<!-- Compteurs vérifiés le 2026-10-30
-à HEAD 564b284 (70 décisions, 194 tests).
+<!-- Compteurs vérifiés le 2026-10-31.
 Vérité : .memory/decisions.md + pytest -q. -->
 
 ## Références projet
@@ -49,9 +48,9 @@ Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
 1. **README.md / README.fr.md** : comprendre le produit pour l'utilisateur final.
 2. **CONTRIBUTING.md / CONTRIBUTING.fr.md** : comprendre comment contribuer.
 3. **AGENTS.md** : comprendre les règles de collaboration (10 règles structurelles).
-4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 11f).
+4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 13).
 5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
-6. **.memory/decisions.md** : comprendre les décisions actées (70 décisions datées).
+6. **.memory/decisions.md** : comprendre les décisions actées (71 décisions datées).
 7. **dev/docs/JOURNALDEBORD.md / dev/docs/JOURNALDESMODIFS.md** : consulter la chronologie des sessions et la synthèse par commit.
 8. **TODO.md** : consulter la liste partagée des actions encore à mener.
 9. **CHANGELOG.md** : suivre ses pointeurs vers les documents d'historique.
@@ -284,7 +283,7 @@ Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à
 
 | Fichier | Contenu | À lire quand |
 | --- | --- | --- |
-| `.memory/decisions.md` | Décisions actées (70) | Avant toute action structurante |
+| `.memory/decisions.md` | Décisions actées (71) | Avant toute action structurante |
 | `.memory/instructions.md` | Rappel et pointeurs | En début de session |
 | `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
 | `.memory/quirks.md` | Pièges et particularités | Avant de coder |

@@ -15,18 +15,22 @@ Clés optionnelles : `release_date` (str ISO 8601), `source` (str URL), `verifie
 
 ### Chaque asset (clé du dict `assets`)
 
-La clé est un identifiant logique (ex. `llamafile-thin`). Champs obligatoires :
+La clé est un identifiant logique (ex. `runtime-universal`). Champs obligatoires :
 
 | Champ      | Type | Règle                                                           |
 | ---------- | ---- | --------------------------------------------------------------- |
 | `url`      | str  | Non vide, doit commencer par `https://`                         |
 | `sha256`   | str  | Exactement 64 caractères hexadécimaux (a-f, A-F, 0-9)           |
-| `filename` | str  | Nom de fichier simple : pas de `/`, `\`, `..`, ni chemin absolu |
+| `source_filename` ou `filename` | str | Nom source simple : pas de `/`, `\` ou `..` |
 | `required` | bool | Booléen strict (pas de truthy). Absent = erreur                 |
+| `destination` ou `destination_by_os` | str / objet | Chemin relatif sous la racine, sans `..` |
 
 Champs optionnels :
 
 - `purpose` : chaîne libre, informative.
+- `destination_by_os` : destinations exactes pour `Windows`, `Linux` et
+  `Darwin` lorsqu'un asset dépend de l'OS.
+- `post_download` : actions documentées par OS (`rename`, `chmod_x`).
 
 ### Validation
 
@@ -39,8 +43,9 @@ Toute violation lève `BootstrapError` avec un message indiquant :
 ## Contrat des chemins
 
 - `CONFIG_PATH` = `dev/tools/llamafile_config.json` (relatif à la racine du projet).
-- `DIST_DIR` = `dist/`, destination du runtime llamafile-thin. Sous Windows,
-  il est publié sous le nom `llamafile.exe`; sous POSIX, `llamafile`.
+- Le runtime unique `llamafile-0.10.6-thin` est publié dans `dist/` sous le
+  nom configuré pour Windows, Linux ou macOS. Sous Linux/macOS, il reçoit les
+  droits d'exécution.
 - `VENDOR_DIR` = `dev/tools/vendor/llamafile/`, destination du GGUF.
 - Les répertoires de destination sont créés si absents (avec
   `mkdir(parents=True, exist_ok=True)`).
@@ -50,9 +55,9 @@ Toute violation lève `BootstrapError` avec un message indiquant :
 
 ### Cycle par asset (avec mode réparateur)
 
-Pour chaque asset avec `required: true`, le répertoire de destination dépend
-de son identifiant logique : `llamafile-thin` va dans `DIST_DIR`, le modèle
-`qwen3-1.7b-q4km` dans `VENDOR_DIR`.
+Pour chaque asset avec `required: true`, le bootstrap sélectionne la
+destination correspondant à l'OS détecté; `runtime-universal` va dans `dist/`
+et `qwen3-1.7b-q4km` dans `VENDOR_DIR`.
 
 1. **Fichier final présent dans son répertoire de destination** :
    - Calculer son SHA-256.
@@ -91,7 +96,7 @@ Si une exception survient pendant le téléchargement, supprimer le fichier temp
 ## Contrat de `main()`
 
 - Charger la config (`load_config()`).
-- Filtrer les assets `required: true`.
+- Détecter l'OS, puis filtrer les assets `required: true` et leurs destinations.
 - Pour chaque asset requis, exécuter `process_asset()`.
 - Afficher un résumé final sur `stdout` : nombre d'assets traités, succès/échec.
 - Retourner le code de sortie.

@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import os
+import shutil
+import stat
 import zipfile
 from pathlib import Path
 
@@ -47,10 +49,23 @@ EXCLUDED_SUFFIXES = {
     ".so",
     ".zip",
 }
+EXCLUDED_NAMES = {
+    "llamafile-linux",
+    "llamafile-macos",
+}
 README_CONTENT = (
-    "1. Extrayez cette archive dans un dossier accessible en ecriture.\n"
-    "2. Lancez install.bat (Python et Internet requis au premier lancement).\n"
-    "3. Lancez lancer.bat pour demarrer La Citadelle.\n"
+    "1. Extract this archive to a writable folder.\n"
+    "2. Run install.bat (Windows), install.sh (Linux), or install.command (macOS).\n"
+    "   Python 3.10+ and Internet are required for the first installation.\n"
+    "3. Use lancer.bat, lancer.sh, or lancer.command to start La Citadelle.\n"
+)
+ROOT_WRAPPERS = (
+    "install.bat",
+    "install.sh",
+    "install.command",
+    "lancer.bat",
+    "lancer.sh",
+    "lancer.command",
 )
 
 
@@ -58,7 +73,7 @@ def collect_files() -> list[tuple[Path, str]]:
     """Retourne les fichiers du paquet et leurs chemins dans l'archive."""
     files: list[tuple[Path, str]] = []
 
-    for filename in ("install.bat", "lancer.bat"):
+    for filename in ROOT_WRAPPERS:
         path = PROJECT_ROOT / filename
         if not path.is_file():
             raise FileNotFoundError(f"Fichier requis absent : {path}")
@@ -79,6 +94,7 @@ def collect_files() -> list[tuple[Path, str]]:
             suffix = path.suffix.lower()
             if (
                 suffix in EXCLUDED_SUFFIXES
+                or filename.lower() in EXCLUDED_NAMES
                 or filename.lower().startswith(".env")
                 or filename.lower().endswith("thin")
             ):
@@ -91,6 +107,19 @@ def collect_files() -> list[tuple[Path, str]]:
     return sorted(files, key=lambda item: item[1])
 
 
+def add_file(archive: zipfile.ZipFile, path: Path, archive_name: str) -> None:
+    """Ajoute un fichier en préservant les droits Unix des wrappers shell."""
+    if path.suffix not in {".sh", ".command"}:
+        archive.write(path, archive_name)
+        return
+
+    info = zipfile.ZipInfo.from_file(path, archive_name)
+    info.create_system = 3
+    info.external_attr = (stat.S_IFREG | 0o755) << 16
+    with path.open("rb") as source, archive.open(info, "w") as destination:
+        shutil.copyfileobj(source, destination)
+
+
 def main() -> int:
     files = collect_files()
     with zipfile.ZipFile(
@@ -100,7 +129,7 @@ def main() -> int:
         compresslevel=9,
     ) as archive:
         for path, archive_name in files:
-            archive.write(path, archive_name)
+            add_file(archive, path, archive_name)
         archive.writestr("LISEZMOI.txt", README_CONTENT)
 
     archive_size = ARCHIVE_PATH.stat().st_size

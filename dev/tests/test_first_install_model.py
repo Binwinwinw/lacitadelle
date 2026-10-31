@@ -8,6 +8,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 import citadelle_memory
+import lancer
 import model_health
 
 
@@ -158,21 +159,28 @@ def test_current_model_gate_and_lancer_default_branch(tmp_path, monkeypatch):
     )
     assert model_health.main(["--has-current-model"]) == 1
 
-    launcher = (Path(__file__).resolve().parents[2] / "lancer.bat").read_text(
-        encoding="utf-8"
+    model_file = tmp_path / "dist" / ".current_model"
+    model_file.parent.mkdir()
+    monkeypatch.setattr(lancer, "CURRENT_MODEL_FILE", model_file)
+    monkeypatch.setattr(model_health, "CURRENT_MODEL_FILE", model_file)
+    proxy_log = tmp_path / "proxy.log"
+    assert lancer.select_model_path(proxy_log) == (
+        Path(__file__).resolve().parents[2]
+        / "dev"
+        / "tools"
+        / "vendor"
+        / "llamafile"
+        / "Qwen3-1.7B-Q4_K_M.gguf"
     )
-    assert "python dev\\tools\\model_health.py --has-current-model" in launcher
-    assert "if errorlevel 1 goto MODEL_PATH_DEFAULT" in launcher
-    configured_branch = launcher.split(
-        "if errorlevel 1 goto MODEL_PATH_DEFAULT",
-        1,
-    )[1].split(":MODEL_PATH_DEFAULT", 1)[0]
-    assert "--check-whitelist" in configured_branch
-    default_branch = launcher.split(":MODEL_PATH_DEFAULT", 1)[1].split(
-        ":MODEL_STATE_ERROR",
-        1,
-    )[0]
-    assert "--check-whitelist" not in default_branch
+
+    model_path.write_bytes(b"current model")
+    citadelle_memory.set_setting("current_model_path", str(model_path))
+    citadelle_memory.set_setting(
+        "allowed_models",
+        json.dumps([str(model_path.resolve())]),
+    )
+    model_file.write_text(str(model_path.resolve()) + "\n", encoding="utf-8")
+    assert lancer.select_model_path(proxy_log) == model_path.resolve()
 
 
 def test_automatic_rollback_refuses_missing_previous_model(

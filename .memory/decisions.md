@@ -1600,3 +1600,36 @@ précédent était enregistré.
 la whitelist à partir du GGUF intégré vérifié; les erreurs d'intégrité
 bloquent le démarrage sans créer d'autorisation fantôme. La validation sur
 VM vierge hors réseau reste à effectuer par le Décideur.
+
+## [2026-10-31] Portage cross-platform : Windows + Linux + macOS
+
+**Contexte** : La Citadelle V3 était distribuée avec des wrappers Windows.
+Le Décideur souhaite aussi l'exécuter sur Linux et macOS. La release
+mozilla-ai/llamafile 0.10.6 publie un seul asset thin universel
+(`llamafile-0.10.6-thin`, SHA-256
+`756bf97febae557084e8ced9bde7a1cb0c7f6ce778530d582afa219406237a50`);
+aucune URL distincte par OS n'est publiée.
+
+**Décision(s)** :
+
+1. Détecter l'OS dans `install.py`, `bootstrap.py` et `lancer.py`, et refuser
+   explicitement les systèmes non pris en charge.
+2. Télécharger et vérifier l'unique runtime thin universel, puis le publier
+   dans `dist/` sous `llamafile.exe` (Windows), `llamafile-linux` (Linux) ou
+   `llamafile-macos` (macOS); ajouter les droits d'exécution sur Unix.
+3. Conserver la séparation runtime/GGUF et la distribution ZIP source-only
+   de la décision #66; ne jamais embarquer de binaires.
+4. Fournir des wrappers natifs `install.bat`/`lancer.bat`,
+   `install.sh`/`lancer.sh` et `install.command`/`lancer.command`.
+5. Utiliser `pathlib` pour les chemins du lanceur et de l'installateur, et
+   réutiliser le bootstrap pour le téléchargement et la vérification SHA-256.
+6. Ajouter huit tests multiplateformes et adapter les tests couplés au script
+   Windows retiré; conserver les 194 tests de comportement.
+7. Adapter la documentation utilisateur, le runbook, les contrats et les
+   notes de release. La validation manuelle sur Linux et macOS reste requise
+   avant diffusion.
+
+**Conséquences** : l'installation et le lancement prennent en charge Windows,
+Linux et macOS avec le même asset upstream vérifié. La suite compte 202 tests.
+La validation manuelle sur les trois systèmes et la publication de l'archive
+restent à la charge du Décideur.

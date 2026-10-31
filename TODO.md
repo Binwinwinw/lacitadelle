@@ -4,12 +4,14 @@
 tâche terminée est supprimée ici; sa trace reste dans
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 
-**Dernière mise à jour** : 2026-10-30.
+**Dernière mise à jour** : 2026-10-31.
 
 ## Actif
 
 ### Priorité P2
 
+- [ ] Valider manuellement les wrappers et l'installation sur Windows, Linux
+  et macOS avant la diffusion de l'archive multi-OS. — Propriétaire : Décideur.
 - [ ] Vérifier sur le serveur cible les ports TCP 80/443 et confirmer que
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
 - [ ] Planifier le GO CONCURRENCE après la mise en production; mesurer et

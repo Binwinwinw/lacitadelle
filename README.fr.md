@@ -8,8 +8,8 @@ La Citadelle est une application locale de chat avec une IA. Vos conversations s
 
 ### Prérequis
 
-- Windows 10 ou version ultérieure.
-- Python 3.10 ou version ultérieure.
+- Windows 10 ou version ultérieure, Linux ou macOS.
+- Python 3.10 ou version ultérieure (`python` sous Windows; `python3` sous Linux/macOS).
 - Environ 3 Go d’espace disque libre.
 - Une connexion Internet pour le premier lancement.
 - Git n’est pas requis.
@@ -18,7 +18,11 @@ La Citadelle est une application locale de chat avec une IA. Vos conversations s
 
 1. Téléchargez la dernière archive depuis les [releases GitHub](https://github.com/Binwinwinw/lacitadelle/releases/latest) : le fichier s’appelle `lacitadelle-distribution.zip`.
 2. Décompressez-la dans un dossier où vous avez le droit d’écrire.
-3. Double-cliquez sur `install.bat`. Le script vérifie que Python est disponible, télécharge le moteur llamafile (environ 42 Mo) et le modèle Qwen3 (environ 1,28 Go), vérifie leurs sommes de contrôle, puis lance `lancer.bat`.
+3. Lancez l’installateur natif : double-cliquez sur `install.bat` sous Windows, exécutez `./install.sh` sous Linux ou ouvrez `install.command` sous macOS. L’installateur télécharge le runtime llamafile universel (environ 44 Mo) et le modèle Qwen3 (environ 1,28 Go), vérifie leurs sommes de contrôle et démarre l’application.
+   Sous Linux, si nécessaire, rendez les wrappers exécutables :
+   `chmod +x install.sh lancer.sh`. Sous macOS, si Gatekeeper bloque le
+   premier lancement, faites un clic droit sur `install.command` puis choisissez
+   **Ouvrir**.
 4. Votre navigateur s’ouvre sur `http://localhost:8081`. Choisissez **Créer un compte**, puis connectez-vous.
 5. Commencez à discuter.
 
@@ -34,7 +38,7 @@ Créez un compte, connectez-vous, puis choisissez **+ Nouvelle session** pour d�
   `admin` : il n’existe pas de rôle superadmin distinct.
 - Les admins peuvent gérer les chemins GGUF autorisés et choisir le modèle
   actif depuis **Paramètres**. Le modèle sélectionné sera chargé au prochain
-  démarrage de `lancer.bat`.
+  démarrage du lanceur natif.
 - Les utilisateurs peuvent discuter et accéder uniquement à leurs propres
   conversations.
 
@@ -60,20 +64,24 @@ HTTPS et les protections supplémentaires prévues par le projet.
 
 ## Arrêter La Citadelle
 
-Fermez les deux fenêtres de votre terminal :
-
-- **Lacitadelle Server** — serveur de modèle sur le port 8080.
-- **Lacitadelle Proxy** — interface web et authentification sur le port 8081.
+Appuyez sur Ctrl+C dans la fenêtre du lanceur pour arrêter les deux services.
+Sous Windows, le runtime llamafile a sa propre console; la sortie du proxy,
+dont le mot de passe admin initial affiché une seule fois, apparaît dans la
+console du lanceur.
 
 ## Dépannage
 
-- **Si votre antivirus bloque `dist\llamafile.exe` :** vérifiez la quarantaine de l’antivirus et autorisez le fichier si vous faites confiance à cette installation.
-- **Python n’est pas reconnu :** installez Python 3.10 ou version ultérieure et vérifiez que `python` est disponible dans le PATH.
-- **Un téléchargement échoue :** vérifiez votre connexion Internet et relancez `install.bat`.
+- **Le runtime est bloqué :** vérifiez l’alerte de sécurité ou la quarantaine
+  de votre système et n’autorisez le fichier vérifié que si vous faites
+  confiance à cette installation.
+- **Python n’est pas reconnu :** installez Python 3.10 ou version ultérieure
+  et rendez `python` (Windows) ou `python3` (Linux/macOS) disponible dans PATH.
+- **Un téléchargement échoue :** vérifiez votre connexion Internet et relancez
+  l’installateur natif (`install.bat`, `install.sh` ou `install.command`).
 - **Le navigateur ne s’ouvre pas :** ouvrez manuellement `http://localhost:8081` après l’installation.
 - **Un port est déjà utilisé :** fermez les fenêtres d’une instance précédente,
   puis réessayez. N’exposez pas les services sur une autre interface réseau.
-- **Le modèle est introuvable :** relancez `install.bat` pour vérifier ou
+- **Le modèle est introuvable :** relancez l’installateur natif pour vérifier ou
   télécharger le moteur et le modèle par défaut. Un admin ne peut sélectionner
   qu’un modèle existant dans la liste autorisée.
 - **Le compte admin est inaccessible :** arrêtez l’application et suivez la
