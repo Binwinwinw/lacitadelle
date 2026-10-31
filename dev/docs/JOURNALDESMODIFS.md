@@ -1263,3 +1263,19 @@ binaire ni déploiement n'est ajouté.
 source-only.
 
 **Impact** : le commit principal RELEASE-ZIP est référencé par `14c7445`.
+
+## [2026-10-30] Phase 12-POLISH-INSTALL-DOC — Parcours poste neuf
+
+**Commit** : référence à ajouter après création du commit.
+
+**Fichiers modifiés** : `dev/docs/RUNBOOK-PROD.md`,
+`dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`.
+`TODO.md` ne contenait aucune dette `INSTALL-DOC` et reste inchangé.
+
+**Raison** : documenter le premier démarrage Windows, la sortie console du
+mot de passe one-time, la redirection stderr vers `dist/proxy.log` et le
+dépannage correspondant.
+
+**Impact** : documentation seulement; aucun code, test, base ou service
+modifié. Les tests de référence restent à 194; l'archive release n'est pas
+régénérée dans ce GO.

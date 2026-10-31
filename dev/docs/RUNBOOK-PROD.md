@@ -1,5 +1,129 @@
 # Runbook de préparation production
 
+## Première installation (poste neuf)
+
+La Citadelle s'exécute localement sous Windows. L'archive est source-only :
+elle ne contient ni llamafile ni modèle GGUF. Une connexion Internet est
+nécessaire au premier lancement si ces deux assets ne sont pas déjà présents.
+
+### Pré-requis et durée
+
+- Windows 10/11, Python 3.10+ dans le `PATH` (Python 3.13.17 a été testé).
+- Connexion Internet et droits d'écriture sur le dossier d'installation.
+- Environ 2 Go d'espace disque libre.
+- Prévoir 5–15 minutes pour télécharger environ 1,33 Go, selon la connexion,
+  puis 1–2 minutes pour le démarrage; durée totale indicative : 10–20 minutes.
+
+### Étapes
+
+1. Télécharger l'archive `lacitadelle-distribution.zip` depuis la source
+   officielle et l'extraire dans un dossier accessible en écriture, par
+   exemple `C:\citadelle\`.
+2. Facultatif : calculer le SHA-256 avec
+   `Get-FileHash .\lacitadelle-distribution.zip -Algorithm SHA256` et le
+   comparer à l'empreinte publiée séparément avec l'archive.
+3. Double-cliquer sur `install.bat`. Le bootstrap télécharge llamafile-thin
+   vers `dist\llamafile.exe` et le GGUF vers
+   `dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf`, puis vérifie leurs
+   SHA-256 depuis `dev\tools\llamafile_config.json`.
+4. `install.bat` démarre automatiquement `lancer.bat`. Deux consoles
+   apparaissent : llamafile et le proxy.
+5. **Copier immédiatement le mot de passe admin affiché dans la console du
+   proxy.** Il n'est affiché qu'une fois. La sortie standard du proxy reste
+   dans sa console; ses erreurs standard sont redirigées vers
+   `dist\proxy.log`. Le mot de passe n'est donc pas récupérable depuis ce log.
+6. Ouvrir `http://127.0.0.1:8081/`, se connecter comme `superadmin` avec le
+   mot de passe copié, puis le changer lorsqu'il est demandé.
+7. Utiliser le chat. `lancer.bat` ouvre aussi automatiquement l'interface;
+   le relancer séparément est utile après un arrêt.
+
+### Vérifications après installation
+
+- `dist\llamafile.exe` et
+  `dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf` existent.
+- `citadelle_data\memory.db` existe et la liste
+  `settings.allowed_models` contient le GGUF intégré autorisé.
+- Au premier lancement, `dist\.current_model` peut être absent : c'est
+  normal. Sans modèle courant configuré, le lanceur utilise le GGUF intégré
+  vérifié; le miroir est créé lors d'un changement de modèle.
+- Vérifier `dist\proxy.log` pour les erreurs d'initialisation ou
+  `[security] rollback refusé`; ce dernier message n'est pas attendu sur une
+  première installation saine.
+
+## Dépannage — Première installation
+
+### « dist\llamafile.exe introuvable »
+
+`install.bat` n'a pas terminé le bootstrap ou l'asset runtime manque. Relancer
+`install.bat` avec Internet disponible. Pour une installation manuelle, le
+runtime vérifié doit être placé à `dist\llamafile.exe` (pas dans
+`dev\tools\vendor\llamafile\`); comparer son hash à
+`dev\tools\llamafile_config.json`.
+
+### « Python introuvable »
+
+Installer Python 3.10+ depuis [python.org](https://www.python.org/), cocher
+**Add Python to PATH**, puis ouvrir un nouveau terminal et vérifier
+`python --version`.
+
+### Téléchargement échoué ou expiré
+
+Vérifier la connexion, puis relancer `install.bat`; le bootstrap reprend les
+assets manquants et vérifie leur checksum. Sur un réseau d'entreprise,
+configurer `HTTP_PROXY`/`HTTPS_PROXY` selon les consignes de l'organisation.
+Ne pas remplacer un fichier partiel par un asset de source non vérifiée.
+
+### Page vide ou fichiers web introuvables
+
+Vérifier que l'archive contient `dev\tools\web\` avec notamment `login.html`,
+`chat.html`, `settings.html` et `admin.html`. En cas de fichiers absents,
+retélécharger et ré-extraire l'archive officielle sans déplacer ce dossier.
+
+### Initialisation whitelist refusée ou SHA-256 invalide
+
+Vérifier la présence de
+`dev\tools\vendor\llamafile\Qwen3-1.7B-Q4_K_M.gguf` et comparer son SHA-256
+au manifeste. Relancer `install.bat` avec Internet pour laisser le bootstrap
+réparer un asset corrompu. Le lanceur ne doit pas inscrire un fichier absent
+ou dont le hash est invalide.
+
+### « rollback refusé : aucun modèle antérieur valide »
+
+Ce message signifie qu'aucun chemin précédent n'est enregistré; il ne prouve
+pas à lui seul que le GGUF est corrompu. Sur une première installation saine,
+le chemin courant est absent et le lanceur démarre directement le modèle
+intégré après vérification de son hash. Si le message apparaît, consulter
+`dist\proxy.log` et distinguer ce refus d'un échec explicite de vérification
+SHA-256.
+
+### Mot de passe admin perdu
+
+Si la console `Lacitadelle Proxy` est encore ouverte, récupérer le mot de passe
+one-time dans sa sortie standard; il n'est pas dans `dist\proxy.log`. Si une
+session admin authentifiée reste ouverte, l'utiliser pour réinitialiser le
+compte.
+
+Sans session admin utilisable, le dernier recours consiste à arrêter les deux
+serveurs et à sauvegarder `citadelle_data\memory.db`, ses éventuels fichiers
+`memory.db-wal`/`memory.db-shm` et `dist\.current_model`. Déplacer ensuite ces
+fichiers hors de leurs chemins actifs (ensemble pour la base et ses sidecars),
+puis relancer `lancer.bat`. Une base neuve recrée `superadmin` et affiche un
+nouveau mot de passe dans la console. Cette réinitialisation fait perdre de la
+base active tous les comptes, sessions, conversations, préférences, métriques
+et réglages; conserver la sauvegarde. Restaurer l'ancienne base rétablit aussi
+l'ancien hash et ne révèle pas le mot de passe oublié.
+
+### Port 8080 ou 8081 déjà utilisé
+
+Identifier le processus avant d'agir; ne pas terminer un PID inconnu :
+
+```powershell
+Get-NetTCPConnection -State Listen -LocalPort 8080,8081
+```
+
+Arrêter proprement l'instance La Citadelle concernée, puis relancer
+`lancer.bat`.
+
 ## Statut et prérequis bloquants
 
 Ce runbook prépare une exploitation Windows; aucun DNS, pare-feu, certificat,
