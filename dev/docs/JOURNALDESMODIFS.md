@@ -1266,7 +1266,7 @@ source-only.
 
 ## [2026-10-30] Phase 12-POLISH-INSTALL-DOC — Parcours poste neuf
 
-**Commit** : référence à ajouter après création du commit.
+**Commit** : `9bc6c55`.
 
 **Fichiers modifiés** : `dev/docs/RUNBOOK-PROD.md`,
 `dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`.
@@ -1279,3 +1279,14 @@ dépannage correspondant.
 **Impact** : documentation seulement; aucun code, test, base ou service
 modifié. Les tests de référence restent à 194; l'archive release n'est pas
 régénérée dans ce GO.
+
+## [2026-10-30] Référence du commit INSTALL-DOC
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : ajouter après création le hash final du commit de documentation
+INSTALL-DOC.
+
+**Impact** : le commit principal INSTALL-DOC est référencé par `9bc6c55`.
