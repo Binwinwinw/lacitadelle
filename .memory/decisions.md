@@ -1630,6 +1630,23 @@ aucune URL distincte par OS n'est publiée.
    avant diffusion.
 
 **Conséquences** : l'installation et le lancement prennent en charge Windows,
-Linux et macOS avec le même asset upstream vérifié. La suite compte 202 tests.
-La validation manuelle sur les trois systèmes et la publication de l'archive
-restent à la charge du Décideur.
+Linux et macOS avec le même asset upstream vérifié. Le portage initial a
+ajouté huit tests; voir l'amendement ci-dessous pour les correctifs Linux.
+La validation manuelle restante et la publication de l'archive sont à la
+charge du Décideur.
+
+### Amendement 2026-10-31
+
+Le test réel sur Linux a révélé trois défauts dans le portage initial :
+
+- Les wrappers `.sh` et `.command` pouvaient arriver avec des fins de ligne
+  CRLF; `.gitattributes` impose LF et le générateur normalise leur contenu.
+- L'exécution directe du binaire APE llamafile échouait avec `Exec format
+  error`; `lancer.py` passe désormais la commande par `sh -c` avec
+  `shlex.join`.
+- L'ordre des arguments llamafile est corrigé : `-m <GGUF>` précède
+  `--server`.
+
+Trois tests T8/T9/T10 couvrent les fins de ligne ZIP, le lancement Unix et le
+lancement direct Windows. La suite compte désormais 205 tests. Le test Linux
+réel est validé; les validations manuelles Windows et macOS restent requises.

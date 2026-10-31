@@ -1,4 +1,5 @@
 import json
+import shlex
 import sys
 import zipfile
 from pathlib import Path
@@ -6,6 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+from unittest.mock import MagicMock
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT / "dev" / "tools"))
@@ -134,3 +136,93 @@ def test_archive_includes_wrappers_and_executable_permissions(tmp_path, monkeypa
         for name in ("lancer.sh", "lancer.command", "install.sh", "install.command"):
             mode = archive.getinfo(name).external_attr >> 16 & 0o777
             assert mode == 0o755
+
+
+def test_archive_normalizes_shell_wrapper_line_endings(tmp_path, monkeypatch):
+    wrapper_names = (
+        "install.sh",
+        "lancer.sh",
+        "install.command",
+        "lancer.command",
+    )
+    for name in creer_archive.ROOT_WRAPPERS:
+        content = (
+            b"#!/usr/bin/env bash\r\necho ready\r\n"
+            if name in wrapper_names
+            else b"@echo off\r\necho ready\r\n"
+        )
+        (tmp_path / name).write_bytes(content)
+
+    archive_path = tmp_path / "distribution.zip"
+    monkeypatch.setattr(creer_archive, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(creer_archive, "ARCHIVE_PATH", archive_path)
+
+    assert creer_archive.main() == 0
+    with zipfile.ZipFile(archive_path) as archive:
+        for name in wrapper_names:
+            content = archive.read(name)
+            assert b"\r\n" not in content
+            assert b"\n" in content
+            assert content.startswith(b"#!/usr/bin/env bash\n")
+            mode = archive.getinfo(name).external_attr >> 16 & 0o777
+            assert mode == 0o755
+
+
+def test_lancer_uses_sh_c_on_unix(tmp_path):
+    binary = tmp_path / "runtime binary"
+    gguf = tmp_path / "model file.gguf"
+    popen = MagicMock()
+    expected_args = [
+        str(binary),
+        "-m",
+        str(gguf),
+        "--server",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8080",
+        *lancer.RUNTIME_OPTIONS,
+    ]
+    with (
+        patch("lancer.platform.system", return_value="Linux"),
+        patch("lancer.subprocess.Popen", popen),
+    ):
+        lancer.start_llamafile(binary, gguf, "127.0.0.1", 8080)
+
+    command = popen.call_args.args[0]
+    assert command[:2] == ["sh", "-c"]
+    assert shlex.split(command[2]) == expected_args
+    assert expected_args.index("-m") < expected_args.index("--server")
+
+
+def test_lancer_windows_uses_direct_popen(tmp_path):
+    binary = tmp_path / "llamafile.exe"
+    gguf = tmp_path / "model.gguf"
+    expected_args = [
+        str(binary),
+        "-m",
+        str(gguf),
+        "--server",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8080",
+        *lancer.RUNTIME_OPTIONS,
+    ]
+    with (
+        patch("lancer.platform.system", return_value="Windows"),
+        patch("lancer.subprocess.Popen") as popen,
+    ):
+        lancer.start_llamafile(
+            binary,
+            gguf,
+            "127.0.0.1",
+            8080,
+            creationflags=123,
+        )
+
+    popen.assert_called_once_with(
+        expected_args,
+        cwd=PROJECT_ROOT,
+        creationflags=123,
+    )

@@ -1306,3 +1306,16 @@ décision #66.
 **Impact** : huit tests multiplateformes ajoutés, suite complète à 202 tests;
 archive source-only régénérée. Validation manuelle Linux/macOS et diffusion
 restent en attente du Décideur.
+
+## [2026-10-31] Phase 13-CROSS-PLATFORM-BIS — Correctifs Linux APE et wrappers
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `.gitattributes`, générateur d'archive, lanceur,
+tests multiplateformes, amendement de la décision #71, journaux et BACKLOG.
+
+**Raison** : corriger les fins CRLF des wrappers ZIP, l'exécution du runtime APE
+sur Linux et l'ordre des arguments llamafile révélés par le test réel.
+
+**Impact** : trois tests T8/T9/T10 ajoutés; la suite compte 205 tests. Archive
+source-only régénérée; Linux validé, tests manuels Windows/macOS en attente.

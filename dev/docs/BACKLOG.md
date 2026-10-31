@@ -513,15 +513,19 @@ automatique sans modèle précédent.
 
 ## Phase 13-CROSS-PLATFORM — Windows, Linux et macOS
 
-**Statut** : implémentation terminée le 2026-10-31 (décision #71); 202 tests
-verts. La validation manuelle Linux/macOS reste à effectuer avant diffusion.
+**Statut** : implémentation et correctifs Linux terminés le 2026-10-31
+(décision #71 amendée); 205 tests verts. Le test réel Linux est validé;
+Windows/macOS restent à valider avant diffusion.
 **Dépendances** : décision #66 (archive source-only) préservée; runtime
 llamafile thin universel 0.10.6.
 **Périmètre livré** : lanceur et installateur Python multiplateformes,
 wrappers `.bat`/`.sh`/`.command`, destinations runtime par OS, archive source-only
 et documentation mise à jour.
-**Tests** : huit tests multiplateformes ajoutés; les 194 tests existants passent.
-**Questions ouvertes** : compatibilité réelle à valider sur Linux et macOS;
-Windows à retester manuellement par le Décideur.
-**Prochaine étape** : exécuter la checklist manuelle sur les trois OS, puis
+**Tests** : huit tests multiplateformes initiaux et trois tests correctifs;
+les 194 tests préexistants passent.
+**Correctifs BIS** : normalisation LF des wrappers dans l'archive, exécution
+APE Unix via `sh -c` avec `shlex.join`, arguments `-m` avant `--server`.
+**Questions ouvertes** : compatibilité réelle à valider sur Windows et macOS
+par le Décideur.
+**Prochaine étape** : exécuter les tests manuels Windows/macOS, puis
 diffuser l'archive sur décision du Décideur.

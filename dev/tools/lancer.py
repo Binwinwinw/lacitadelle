@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 import platform
+import shlex
 import subprocess
 import sys
 import threading
@@ -19,11 +20,6 @@ from queue import Empty, Queue
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TOOLS_DIR = PROJECT_ROOT / "dev" / "tools"
 RUNTIME_OPTIONS = (
-    "--server",
-    "--host",
-    "127.0.0.1",
-    "--port",
-    "8080",
     "--nologo",
     "--log-timestamps",
     "--cors-origins",
@@ -61,6 +57,33 @@ def get_runtime_binary() -> Path:
     if system == "Darwin":
         return PROJECT_ROOT / "dist" / "llamafile-macos"
     raise RuntimeError(f"OS non supporté : {system}")
+
+
+def start_llamafile(
+    binary: Path,
+    gguf: Path,
+    host: str,
+    port: int,
+    *,
+    creationflags: int = 0,
+) -> subprocess.Popen:
+    args = [
+        str(binary),
+        "-m",
+        str(gguf),
+        "--server",
+        "--host",
+        host,
+        "--port",
+        str(port),
+        *RUNTIME_OPTIONS,
+    ]
+    if platform.system() == "Windows":
+        return subprocess.Popen(args, cwd=PROJECT_ROOT, creationflags=creationflags)
+    return subprocess.Popen(
+        ["sh", "-c", shlex.join(args)],
+        cwd=PROJECT_ROOT,
+    )
 
 
 def _run_model_health(args: list[str], proxy_log: Path | None = None) -> int:
@@ -236,14 +259,11 @@ def main() -> int:
             if system == "Windows"
             else 0
         )
-        runtime_process = subprocess.Popen(
-            [
-                str(binary),
-                "-m",
-                str(model_path),
-                *RUNTIME_OPTIONS,
-            ],
-            cwd=PROJECT_ROOT,
+        runtime_process = start_llamafile(
+            binary,
+            model_path,
+            "127.0.0.1",
+            8080,
             creationflags=creationflags,
         )
         _wait_for_service(runtime_process, RUNTIME_URL, "llamafile", 120)

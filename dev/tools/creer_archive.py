@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import os
-import shutil
 import stat
 import zipfile
 from pathlib import Path
@@ -116,8 +115,8 @@ def add_file(archive: zipfile.ZipFile, path: Path, archive_name: str) -> None:
     info = zipfile.ZipInfo.from_file(path, archive_name)
     info.create_system = 3
     info.external_attr = (stat.S_IFREG | 0o755) << 16
-    with path.open("rb") as source, archive.open(info, "w") as destination:
-        shutil.copyfileobj(source, destination)
+    content = path.read_bytes().replace(b"\r\n", b"\n")
+    archive.writestr(info, content)
 
 
 def main() -> int:
