@@ -1,7 +1,7 @@
 # La Citadelle — Release v3
 
 Date : 2026-10-30
-Commit source : `cc6594d`
+Commit source : `0f7bf68`
 Archive : `lacitadelle-distribution.zip` (source-only)
 SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 éviter une empreinte auto-référente.
@@ -13,6 +13,9 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 - **Phase 12-FIX-WHITELIST** : initialisation de première installation avec
   vérification SHA-256 du GGUF intégré et refus explicite d'un rollback sans
   modèle précédent.
+- **Phase 12-POLISH-INSTALL-DOC** : RUNBOOK-PROD documente le parcours de
+  première installation Windows, la sortie one-time du mot de passe admin,
+  la redirection des erreurs et le dépannage.
 - **Phase 12-POLISH-TODO-GIT** : TODO.md versionné comme registre partagé des
   seules tâches actives; Règle 10 ajoutée à AGENTS.md.
 
