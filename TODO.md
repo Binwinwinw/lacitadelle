@@ -14,19 +14,11 @@ tâche terminée est supprimée ici; sa trace reste dans
   et macOS avant la diffusion de l'archive multi-OS. — Propriétaire : Décideur.
 - [ ] Vérifier sur le serveur cible les ports TCP 80/443 et confirmer que
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
-- [ ] Planifier le GO CONCURRENCE après la mise en production; mesurer et
-  accepter la capacité du serveur mono-thread avant d'élargir l'usage. —
-  Propriétaire : Décideur.
-- [ ] Planifier Playwright E2E et définir les scénarios à certifier. —
-  Propriétaire : à planifier.
 - [ ] Exécuter le test manuel 10C sur une base jetable, jamais sur la base
   réelle. — Propriétaire : Décideur.
 
 ### Priorité P3
 
-- [ ] Prévoir un journal `[security]` dédié aux refus de rate limiting; les
-  429 actuels apparaissent seulement dans le log d'accès `[proxy]`. —
-  Propriétaire : IDE.
 - [ ] Cadrer puis implémenter l'upload GGUF (stockage et taille maximale à
   définir). — Propriétaire : à planifier.
 - [ ] Surveiller le port 9931 de llamafile et confirmer qu'il reste fermé
@@ -48,3 +40,14 @@ tâche terminée est supprimée ici; sa trace reste dans
 - [ ] Décider si le déploiement utilisera l'archive `v3-distribution`;
   si oui, régénérer et publier l'archive avec les changements Phase 12 avant
   de l'utiliser. — Propriétaire : Décideur.
+
+## Prochains GO planifiés (post-v3.0.0)
+
+- [ ] **14-CONCURRENCE** : définir la charge cible, mesurer la capacité et
+  choisir une stratégie serveur. — Propriétaire : à planifier.
+- [ ] **14-PLAYWRIGHT-E2E** : implémenter et certifier les scénarios E2E
+  documentés après publication de v3.0.0. — Propriétaire : à planifier.
+- [ ] **14-SECURITY-LOG** : cadrer et ajouter un journal de sécurité dédié
+  après publication de v3.0.0. — Propriétaire : IDE.
+- [ ] **14-INSTALL-DOC-BIS** : documenter les notes macOS après validation
+  manuelle par le Décideur. — Propriétaire : Décideur.

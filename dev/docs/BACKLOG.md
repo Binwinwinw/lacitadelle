@@ -443,7 +443,9 @@ ensuite été appliquée par #65 avec l'origine unique
 **Périmètre provisoire** : permettre à l'admin de sélectionner un GGUF local
 avec un bouton « Parcourir ». Le stockage, la taille maximale et la validation
 complémentaire restent à cadrer.
-**Playwright E2E** : reporté à 11-POLISH-BIS; dépendance non installée.
+**Playwright E2E** : plan documenté dans RUNBOOK-PROD.md; implémentation
+reportée au GO dédié 14-PLAYWRIGHT-E2E après validation macOS et publication
+de v3.0.0.
 **Dépendances** : whitelist configurable 11e.
 
 ---
@@ -462,7 +464,10 @@ bloque les suivantes et le nombre d'utilisateurs simultanés n'est pas testé.
 **Périmètre** : `ThreadingHTTPServer`, SQLite WAL, sessions thread-safe et
 tests de charge concurrents.
 **Questions ouvertes** : capacité simultanée cible et limites à certifier.
-**Moment de traitement** : après production, selon les retours utilisateurs.
+**Documentation** : limitation, risques et absence de seuil validé décrits
+dans RUNBOOK-PROD.md et SECURITY.md.
+**Moment de traitement** : GO 14-CONCURRENCE après définition de la charge
+cible; ne pas annoncer de seuil avant mesure.
 
 ## Phase RELEASE-UPDATE — Asset utilisateur v3-distribution
 
@@ -539,3 +544,15 @@ dix règles structurelles.
 **Tests** : aucun exécuté ni modifié; référence conservée à 205.
 **Prochaine étape** : le Décideur met à jour la description GitHub de
 `v3.0.0-rc1`; l'asset ZIP reste inchangé.
+
+## Phase 14 — Documentation des dettes P2/P3
+
+**Statut** : procédure documentée le 2026-10-31; aucun code ni test modifié.
+**Playwright E2E** : plan dans RUNBOOK-PROD.md; implémentation à planifier
+dans le GO 14-PLAYWRIGHT-E2E après publication de v3.0.0.
+**Concurrence mono-thread (P2)** : limitation et absence de capacité mesurée
+documentées; GO 14-CONCURRENCE à planifier après définition de la charge cible.
+**Ports 80/443 (P2)** : vérification multi-OS documentée; le Décideur doit
+l'exécuter sur l'hôte cible avant déploiement public.
+**Log `[security]` dédié (P3)** : état actuel et données à protéger documentés;
+GO 14-SECURITY-LOG à planifier après publication de v3.0.0.

@@ -61,6 +61,9 @@ La Citadelle ne protège pas contre :
   verrouiller la session de l'OS hôte en l'absence;
 - un déni de service ou une surcharge concurrente; l'usage mono-utilisateur
   est la cible actuelle;
+- la saturation du proxy mono-thread : une inférence lente bloque les requêtes
+  suivantes et la capacité multi-utilisateur n'est pas certifiée. Voir
+  [RUNBOOK-PROD.md](./dev/docs/RUNBOOK-PROD.md) avant tout usage collectif;
 - une compromission du système d'exploitation ou du compte Windows hôte.
 
 Maintenir Windows, Linux ou macOS à jour, garder les protections de sécurité

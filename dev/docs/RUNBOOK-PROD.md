@@ -187,7 +187,7 @@ limitent pas l'inscription; ils ne constituent pas une protection DDoS.
 - [ ] Valider derrière Caddy le cookie `Secure`, le rejet/acceptation CSRF et
       les réponses 429 avant l'ouverture à Internet.
 - [ ] Décider si la capacité mono-thread est acceptable ou lancer le GO
-      CONCURRENCE avant la mise en service.
+      14-CONCURRENCE avant la mise en service.
 - [ ] Installer Caddy depuis le site officiel sur l'hôte Windows; choisir un
       compte de service stable et persistant.
 - [ ] Remplacer `citadelle.example.com` dans le Caddyfile; créer son dossier
@@ -490,3 +490,175 @@ l'aide puis quitter sans charger le modèle.
 Les 205 tests unitaires simulent certains OS et mockent les processus; ils ne
 garantissent pas le lancement réel sous Linux ou macOS. Valider manuellement
 l'installation et le chat sur chaque OS avant une release majeure.
+
+## Tests E2E (Playwright) — Plan
+
+Les tests Playwright ne sont pas encore implémentés; ils sont reportés et
+l'implémentation est à planifier dans un GO dédié 14-PLAYWRIGHT-E2E.
+
+### Objectif
+
+Couvrir les parcours utilisateur critiques (login, chat, réglages et
+administration) dans un navigateur réel, en complément des 205 tests unitaires.
+
+### Scénarios à tester
+
+1. **Login réussi** : compte de test valide, cookie posé et redirection vers
+   le chat.
+2. **Login échoué** : cinq échecs invalides, puis la sixième tentative reçoit
+   HTTP 429.
+3. **Chat simple** : envoyer un message et recevoir une réponse du modèle.
+4. **CSRF** : POST authentifié sans jeton CSRF refusé avec HTTP 403.
+5. **Cookie Secure** : connexion en HTTPS et présence de l'attribut `Secure`.
+6. **Changement du mot de passe admin** : parcours complet avec un compte et
+   une base de test.
+
+### Prérequis
+
+- Node.js 18+.
+- Installer Playwright dans le projet de test avec
+  `npm install -D @playwright/test`.
+- Installer Chromium avec `npx playwright install chromium`.
+- Serveur de test joignable sur `127.0.0.1:8081`; démarrer aussi llamafile
+  pour le scénario de chat.
+- Pour le scénario HTTPS/cookie `Secure`, environnement de test HTTPS dédié.
+- Base et comptes jetables; ne jamais utiliser la base ni les identifiants
+  de production.
+
+### Commandes
+
+```bash
+npx playwright test
+npx playwright test --headed
+npx playwright show-report
+```
+
+### Fichiers attendus
+
+```text
+dev/tests/e2e/
+├── playwright.config.ts
+├── login.spec.ts
+├── chat.spec.ts
+├── csrf.spec.ts
+└── admin.spec.ts
+```
+
+### Quand activer
+
+Planifier le GO `14-PLAYWRIGHT-E2E` après validation macOS et publication de
+la version stable v3.0.0.
+
+## Limitation — Concurrence mono-thread
+
+Le proxy utilise `HTTPServer` et traite les requêtes séquentiellement, dans un
+seul thread.
+
+### Impact
+
+- Une requête lente, notamment une longue inférence LLM, bloque les requêtes
+  suivantes jusqu'à sa fin.
+- Les utilisateurs simultanés attendent leur tour; aucun débit multi-utilisateur
+  n'est certifié.
+
+### Cas d'usage et limites connues
+
+- L'usage visé est local et mono-utilisateur.
+- Aucune charge simultanée ni aucun seuil, y compris « moins de trois
+  utilisateurs », n'a été validé. Ne pas annoncer de capacité collective sans
+  mesure.
+- Éviter les charges de production critiques, les API publiques et l'exposition
+  directe du proxy.
+
+### Suite possible — GO 14-CONCURRENCE
+
+Un GO futur devra d'abord fixer la charge cible et la mesurer, puis évaluer
+`ThreadingHTTPServer` ou une autre stratégie, la sûreté des états de session,
+SQLite WAL et les tests de charge concurrents. Aucun choix d'architecture ni
+estimation d'effort n'est acté ici.
+
+## Pré-déploiement — Vérification des ports serveur
+
+Avant de démarrer Caddy sur un serveur public, vérifier que les ports TCP 80
+(HTTP) et 443 (HTTPS) sont disponibles. Après déploiement, seuls ces ports
+doivent être accessibles de l'extérieur; 8080, 8081 et 2019 doivent rester
+fermés depuis Internet.
+
+### Risques courants
+
+- IIS ou un autre service web Windows.
+- Un service déjà installé, comme nginx ou Apache sous Linux.
+- Un conteneur Docker publiant les ports 80 ou 443.
+- Tout autre service lié explicitement à ces ports.
+
+### Vérification Windows
+
+```powershell
+Get-NetTCPConnection -State Listen -LocalPort 80,443 |
+  Select-Object LocalPort, OwningProcess
+Get-Process -Id <PID>
+```
+
+### Vérification Linux
+
+```bash
+sudo ss -ltnp '( sport = :80 or sport = :443 )'
+sudo lsof -nP -iTCP:80 -sTCP:LISTEN
+sudo lsof -nP -iTCP:443 -sTCP:LISTEN
+```
+
+### Vérification macOS
+
+```bash
+sudo lsof -nP -iTCP:80 -sTCP:LISTEN
+sudo lsof -nP -iTCP:443 -sTCP:LISTEN
+```
+
+### Si un port est occupé
+
+Identifier le processus et son service avant toute action. Arrêter uniquement
+un service identifié et si son arrêt est autorisé; ne pas terminer un PID
+inconnu. Sous Linux, utiliser le gestionnaire de services de la distribution
+après avoir identifié le service. Sous macOS, arrêter le service via son
+gestionnaire prévu; ne pas exécuter une commande `launchctl` générique.
+
+### Vérification après libération
+
+Relancer la commande de vérification propre à l'OS : aucune écoute locale ne
+doit rester sur 80/443 avant le démarrage de Caddy. Vérifier également les
+règles du pare-feu de l'hôte et du fournisseur; un port libre localement ne
+prouve pas que le pare-feu externe est configuré correctement.
+
+## Logs de sécurité
+
+### État actuel
+
+Il n'existe pas de fichier dédié `dist/security.log`.
+
+- Les réponses de refus CSRF (403) et rate limiting (429) apparaissent dans le
+  journal d'accès du proxy, préfixé `[proxy]`.
+- Le refus de rollback sans modèle antérieur émet un message `[security]` sur
+  stderr; le lanceur redirige stderr du proxy vers `dist/proxy.log`.
+
+### Recherche des événements
+
+Sous Linux/macOS :
+
+```bash
+grep -E '429|CSRF|rollback|\[security\]' dist/proxy.log
+```
+
+Sous Windows PowerShell :
+
+```powershell
+Select-String -Path .\dist\proxy.log -Pattern '429|CSRF|rollback|\[security\]'
+```
+
+### Amélioration future — GO 14-SECURITY-LOG
+
+Un GO P3 séparé pourrait ajouter un logger dédié qui écrit dans
+`dist/security.log`, avec horodatage ISO 8601, IP source, catégorie
+d'événement et route concernée. Limiter les détails au besoin opérationnel :
+ne jamais journaliser mots de passe, cookies, jetons de session ou corps de
+requête. La portée et la rétention des IP et identifiants éventuels restent à
+cadrer. À planifier après la publication de v3.0.0.

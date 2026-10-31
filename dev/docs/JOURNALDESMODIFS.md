@@ -1333,3 +1333,18 @@ utilisateurs, mainteneurs et futures sessions IDE après le test Linux réel.
 
 **Impact** : documentation uniquement; aucune modification de code ni de test.
 La suite reste à 205 tests; l'asset GitHub n'est pas modifié.
+
+## [2026-10-31] Phase 14-DETTES-DOC — Procédures P2/P3
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/docs/RUNBOOK-PROD.md`, `SECURITY.md`,
+`dev/docs/BACKLOG.md`, `TODO.md`, `dev/docs/JOURNALDESMODIFS.md` et
+`dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : clarifier les plans Playwright, concurrence mono-thread,
+vérification des ports 80/443 et journalisation de sécurité; convertir les
+dettes correspondantes en prochaines étapes explicites.
+
+**Impact** : documentation uniquement; 205 tests inchangés, aucun déploiement
+ni mise à jour de release.
