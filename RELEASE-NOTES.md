@@ -84,3 +84,21 @@ est hors ligne seulement après leur téléchargement ou leur prépositionnement
 La version `v3.0.0-rc1` est publiée pour permettre les tests
 Windows/Linux en attendant la validation macOS.
 La version `v3.0.0` finale suivra après confirmation macOS.
+
+## Corrections post-test (Phase 13-CROSS-PLATFORM-BIS)
+
+Trois bugs ont été révélés par le test réel sur Linux et corrigés :
+- **Wrappers Unix en CRLF** : les fichiers `.sh` et `.command` étaient
+  livrés avec des fins de ligne Windows. Corrigé par `.gitattributes`
+  (LF forcé) et normalisation dans `creer_archive.py`.
+- **Exec format error sur llamafile** : `llamafile` est un APE qui
+  doit être lancé via `sh -c` sur Unix.
+- **Ordre des arguments llamafile** : `-m <GGUF>` doit précéder
+  `--server`.
+
+Corrigé par 3 tests supplémentaires (T8/T9/T10) → 205 tests verts.
+
+## Vérification d'intégrité
+
+SHA-256 de `lacitadelle-distribution.zip` :
+`2581d1aa8804cb129ce3d23e2bc475d6ac071b487c69e5abd0934804a53f38c2`
