@@ -28,7 +28,7 @@ validation, download, and repair behavior.
 python -m pytest
 ```
 
-The test suite currently contains 202 tests. The focused HTTP helper checks can also be run with:
+The test suite currently contains 218 tests. The focused HTTP helper checks can also be run with:
 
 ```powershell
 python dev/tests/test_http_helpers.py
@@ -59,7 +59,7 @@ This creates `lacitadelle-distribution.zip` in the repository root. The archive 
 ## Repository structure
 
 - `dev/tools/` — Python application and distribution tools.
-- `dev/tests/` — pytest suite (202 tests).
+- `dev/tests/` — pytest suite (218 tests).
 - `dev/docs/` — architecture, contracts, product scope, and project journals.
 - `.memory/` — project decisions and agent instructions.
 - `AGENTS.md` — agent workflow and repository rules.

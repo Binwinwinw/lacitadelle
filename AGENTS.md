@@ -12,7 +12,7 @@ mozilla-ai/llamafile.
 V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Elle télécharge le runtime llamafile-thin universel et le GGUF à l'installation.
-La suite compte 215 tests permanents et `.memory/decisions.md` 72 décisions.
+La suite compte 218 tests permanents et `.memory/decisions.md` 72 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
 <!-- Compteurs vérifiés le 2026-10-31.

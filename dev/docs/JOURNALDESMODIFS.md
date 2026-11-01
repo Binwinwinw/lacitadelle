@@ -1375,3 +1375,16 @@ recommander un professionnel et décrire l'API llamafile locale.
 
 **Impact** : trois assertions ajoutées; la suite passe à 218 tests. Aucun code
 métier ni outil de lecture de fichiers ajouté.
+
+## [2026-10-31] Phase 14-POLISH-COMPTEURS — Synchronisation documentaire
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `AGENTS.md`, `CONTRIBUTING.md`,
+`CONTRIBUTING.fr.md`, `RELEASE-NOTES.md`, `dev/docs/RUNBOOK-PROD.md`,
+`dev/docs/ROADMAP.md` et les journaux.
+
+**Raison** : aligner les compteurs actuels sur 218 tests, 72 décisions et dix
+règles, sans modifier les chiffres des entrées historiques.
+
+**Impact** : documentation seulement; les 218 tests ne sont pas modifiés.

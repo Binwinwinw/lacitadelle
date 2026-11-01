@@ -183,9 +183,10 @@ Linux et macOS avant la diffusion de l'archive.
 
 - Distribution : archive ZIP source-only pour Windows, Linux et macOS; aucun
   binaire n'est intégré.
-- Tests : 202.
-- Décisions : 71 actées.
+- Tests : 218.
+- Décisions : 72 actées.
 - Phase 11 : complète; Phase 13 implémentée, validation manuelle restante.
+- Phase 14-PERSONA-NEXXUS V1.1 : implémentée, validation manuelle restante.
 - Règles : dix règles structurelles dans `AGENTS.md`.
 - Tâches à venir : voir `TODO.md` (local, gitignoré).
 

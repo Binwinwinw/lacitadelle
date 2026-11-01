@@ -487,7 +487,7 @@ l'aide puis quitter sans charger le modèle.
 
 ### Validation multi-OS
 
-Les 205 tests unitaires simulent certains OS et mockent les processus; ils ne
+Les 218 tests unitaires simulent certains OS et mockent les processus; ils ne
 garantissent pas le lancement réel sous Linux ou macOS. Valider manuellement
 l'installation et le chat sur chaque OS avant une release majeure.
 
@@ -499,7 +499,7 @@ l'implémentation est à planifier dans un GO dédié 14-PLAYWRIGHT-E2E.
 ### Objectif
 
 Couvrir les parcours utilisateur critiques (login, chat, réglages et
-administration) dans un navigateur réel, en complément des 205 tests unitaires.
+administration) dans un navigateur réel, en complément des 218 tests unitaires.
 
 ### Scénarios à tester
 

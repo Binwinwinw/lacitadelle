@@ -27,8 +27,8 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 
 ## Tests
 
-- 215 tests verts : 205 tests de référence et dix nouveaux tests pour le
-  persona Nexxus et la politique préparatoire de fichiers.
+- 218 tests verts : 205 tests de référence, dix nouveaux tests pour le
+  persona Nexxus V1 et trois assertions V1.1.
 
 ## Persona Nexxus (Phase 14-PERSONA-NEXXUS-V1)
 
