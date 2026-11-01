@@ -14,6 +14,10 @@ tâche terminée est supprimée ici; sa trace reste dans
   et macOS avant la diffusion de l'archive multi-OS. — Propriétaire : Décideur.
 - [ ] Vérifier sur le serveur cible les ports TCP 80/443 et confirmer que
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
+- [ ] Tester login et chat dans un navigateur avec un compte réel de test. —
+  Propriétaire : Décideur.
+- [ ] Re-tester manuellement le persona Nexxus V1.1 après les ajustements
+  (anti-flagornerie, conseils pros, llamafile). — Propriétaire : Décideur.
 - [ ] Exécuter le test manuel 10C sur une base jetable, jamais sur la base
   réelle. — Propriétaire : Décideur.
 
@@ -26,8 +30,8 @@ tâche terminée est supprimée ici; sa trace reste dans
   définir). — Propriétaire : à planifier.
 - [ ] Surveiller le port 9931 de llamafile et confirmer qu'il reste fermé
   depuis l'extérieur. — Propriétaire : Décideur.
-- [ ] Tester login et chat dans un navigateur avec un compte réel de test. —
-  Propriétaire : Décideur.
+- [ ] Aligner le REPL (client CLI séparé) sur le persona Nexxus; son prompt
+  actuel est distinct du persona web. — Propriétaire : à planifier.
 - [ ] Avant tout nettoyage de la base de production, vérifier une sauvegarde
   restaurable et confirmer les données à conserver; clarifier aussi
   l'ancienne alerte de sessions/POST avant toute suppression. —
@@ -54,3 +58,6 @@ tâche terminée est supprimée ici; sa trace reste dans
   après publication de v3.0.0. — Propriétaire : IDE.
 - [ ] **14-INSTALL-DOC-BIS** : documenter les notes macOS après validation
   manuelle par le Décideur. — Propriétaire : Décideur.
+- [ ] **14-PERSONA-NEXXUS-V2** : implémenter les outils de lecture de fichiers
+  avec la politique `security_files.py` (V1 = classification uniquement). —
+  Propriétaire : à planifier.
