@@ -66,7 +66,7 @@ from citadelle_memory import (
     set_setting,
     verify_password,
 )
-from model_health import CURRENT_MODEL_FILE
+from model_health import CURRENT_MODEL_FILE, DEFAULT_MODEL_PATH
 
 PROXY_HOST = "127.0.0.1"
 PROXY_PORT = 8081
@@ -74,8 +74,14 @@ LLAMAFILE_URL = "http://127.0.0.1:8080/v1/chat/completions"
 LLAMAFILE_MODELS_URL = "http://127.0.0.1:8080/v1/models"
 LLAMAFILE_PROXY_TIMEOUT = 60
 WEB_DIR = Path(__file__).resolve().parent / "web"
+PROMPT_FILE = Path(__file__).resolve().parent / "prompts" / "system.txt"
 MAX_CONTEXT_MESSAGES = 15
-SYSTEM_PROMPT = "Tu es Lacitadelle, un assistant IA local. Réponds en français."
+FALLBACK_SYSTEM_PROMPT = (
+    "Tu es Nexxus, l'assistant IA de La Citadelle. "
+    "Réponds en français de façon claire et concise. "
+    "Le modèle actif est {model_name}. Date : {date}. "
+    "Utilisateur : {username}. Session : {session_id}."
+)
 SESSION_COOKIE_NAME = "lacitadelle_session"
 SESSION_TTL_SECONDS = 86400
 HTTP_TIMEOUT = 120
@@ -270,6 +276,53 @@ def get_authenticated_user_id(handler: BaseHTTPRequestHandler) -> int | None:
     """Retourne le user_id si le cookie est valide, sinon None."""
     token = read_cookie_token(handler)
     return get_user_from_token(token)
+
+
+def get_active_username(user_id: int) -> str | None:
+    """Retourne le nom du compte actif associé à une session authentifiée."""
+    conn = _get_db_connection()
+    try:
+        user = conn.execute(
+            "SELECT username FROM users WHERE id = ? AND is_active = 1",
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    return user["username"] if user is not None else None
+
+
+def extract_model_name() -> str:
+    """Retourne le nom de fichier du modèle actif ou du modèle intégré."""
+    try:
+        current_model = get_setting(
+            "current_model_path",
+            db_path=MEMORY_DB_PATH,
+        )
+    except sqlite3.OperationalError as exc:
+        if "no such table: settings" not in str(exc).lower():
+            raise
+        current_model = None
+    if not isinstance(current_model, str) or not current_model.strip():
+        return Path(DEFAULT_MODEL_PATH).name
+    return Path(current_model).name
+
+
+def load_system_prompt(
+    model_name: str,
+    username: str,
+    session_id: int | str,
+) -> str:
+    """Charge le prompt Nexxus et injecte le contexte de cette requête."""
+    try:
+        template = PROMPT_FILE.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        template = FALLBACK_SYSTEM_PROMPT
+    return template.format(
+        date=datetime.now().strftime("%Y-%m-%d %H:%M"),
+        username=username,
+        model_name=model_name,
+        session_id=session_id,
+    )
 
 
 def require_admin(handler: BaseHTTPRequestHandler) -> int | None:
@@ -2007,6 +2060,10 @@ def handle_post_message(
     if get_session_for_user(user_id, session_id) is None:
         error_response(handler, "Session introuvable", HTTPStatus.NOT_FOUND)
         return
+    username = get_active_username(user_id)
+    if username is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
     try:
         content_length = int(handler.headers.get("Content-Length", "0"))
     except (TypeError, ValueError):
@@ -2048,8 +2105,25 @@ def handle_post_message(
         rate_limit_response(handler, retry_after)
         return
 
+    try:
+        model_name = extract_model_name()
+    except sqlite3.Error as exc:
+        sys.stderr.write(
+            "[model] Active model name could not be read "
+            f"({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Impossible de lire la configuration du modèle",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+
     history = get_messages_for_user(user_id, session_id, limit=MAX_CONTEXT_MESSAGES)
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    messages = [{
+        "role": "system",
+        "content": load_system_prompt(model_name, username, session_id),
+    }]
     messages.extend(
         {"role": message["role"], "content": message["content"]}
         for message in history

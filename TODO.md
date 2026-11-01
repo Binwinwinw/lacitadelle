@@ -19,6 +19,9 @@ tâche terminée est supprimée ici; sa trace reste dans
 
 ### Priorité P3
 
+- [ ] Valider manuellement le persona Nexxus dans le chat : modèle actif,
+  contexte utilisateur et cohérence tutoiement/vouvoiement. — Propriétaire :
+  Décideur.
 - [ ] Cadrer puis implémenter l'upload GGUF (stockage et taille maximale à
   définir). — Propriétaire : à planifier.
 - [ ] Surveiller le port 9931 de llamafile et confirmer qu'il reste fermé

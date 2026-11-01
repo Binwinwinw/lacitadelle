@@ -1650,3 +1650,38 @@ Le test réel sur Linux a révélé trois défauts dans le portage initial :
 Trois tests T8/T9/T10 couvrent les fins de ligne ZIP, le lancement Unix et le
 lancement direct Windows. La suite compte désormais 205 tests. Le test Linux
 réel est validé; les validations manuelles Windows et macOS restent requises.
+
+## [2026-10-31] Persona Nexxus et sécurité des fichiers
+
+**Contexte** : le proxy n'avait pas de persona système défini ni de contexte
+dynamique cohérent par requête. La V1 doit donner une identité explicite à
+l'assistant et préparer une politique de sécurité pour une éventuelle lecture
+de fichiers, sans implémenter cette capacité.
+
+**Décision(s)** :
+
+1. Définir le persona Nexxus dans `dev/tools/prompts/system.txt` et conserver
+   son historique dans `dev/tools/prompts/CHANGELOG.md`.
+2. À chaque requête de chat, injecter le nom du modèle actif, la date et
+   l'heure, le nom du compte authentifié et l'identifiant de session.
+   Utiliser le GGUF intégré si aucun modèle n'est configuré; si le fichier de
+   prompt manque, utiliser un repli minimal.
+3. Le prompt adopte le vouvoiement par défaut et s'aligne sur le tutoiement
+   uniquement si l'utilisateur le demande explicitement; il ne promet pas
+   d'outils qui ne sont pas activés.
+4. Préparer `dev/tools/security_files.py` avec trois niveaux : public
+   (accès autorisé), sensible (admin uniquement et journalisé), critique
+   (refus même pour admin). Classer selon l'extension et les signatures de
+   contenu prises en charge; traiter les fichiers inconnus ou illisibles
+   comme sensibles.
+5. Ne pas implémenter d'outil ou de route de lecture de fichiers dans cette
+   V1. Avant une ouverture réelle, un GO futur devra définir le confinement
+   des chemins, la protection des liens symboliques et les courses entre
+   vérification et lecture.
+6. Ajouter dix tests dédiés et maintenir la suite à 215 tests; adapter
+   l'assertion d'intégration du prompt pour vérifier le nouveau contenu.
+
+**Conséquences** : Nexxus reçoit un contexte par session et une identité
+distincte du modèle sous-jacent. La classification de fichiers est une
+politique préparatoire uniquement; aucun contenu de fichier n'est exposé au
+modèle. La validation manuelle du persona reste à effectuer par le Décideur.

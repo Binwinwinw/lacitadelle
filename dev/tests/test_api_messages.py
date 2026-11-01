@@ -68,10 +68,11 @@ def test_post_message_ok():
             "content": "Bonjour!",
         }
         sent_messages = call.call_args.args[0]
-        assert sent_messages[0] == {
-            "role": "system",
-            "content": login_server.SYSTEM_PROMPT,
-        }
+        assert sent_messages[0]["role"] == "system"
+        assert "Tu es Nexxus" in sent_messages[0]["content"]
+        assert "alice" in sent_messages[0]["content"]
+        assert "Qwen3-1.7B-Q4_K_M.gguf" in sent_messages[0]["content"]
+        assert f"Session : {session_id}" in sent_messages[0]["content"]
         assert sent_messages[-1] == {"role": "user", "content": "Salut"}
 
         user_id = login_server.SESSIONS[token]

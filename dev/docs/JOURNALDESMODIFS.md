@@ -1348,3 +1348,17 @@ dettes correspondantes en prochaines étapes explicites.
 
 **Impact** : documentation uniquement; 205 tests inchangés, aucun déploiement
 ni mise à jour de release.
+
+## [2026-10-31] Phase 14-PERSONA-NEXXUS-V1 — Persona et politique fichiers
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : prompt système et CHANGELOG des prompts, politique de
+classification des fichiers, proxy, tests, documentation, décision #72,
+BACKLOG, TODO et journaux.
+
+**Raison** : définir l'identité de Nexxus et injecter son contexte par requête,
+tout en préparant une politique d'accès aux fichiers sans activer leur lecture.
+
+**Impact** : dix tests dédiés; la suite compte 215 tests. Un test d'intégration
+du chat vérifie le nouveau prompt; aucun outil ou endpoint de lecture ajouté.

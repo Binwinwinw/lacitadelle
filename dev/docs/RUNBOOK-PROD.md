@@ -662,3 +662,33 @@ d'événement et route concernée. Limiter les détails au besoin opérationnel 
 ne jamais journaliser mots de passe, cookies, jetons de session ou corps de
 requête. La portée et la rétention des IP et identifiants éventuels restent à
 cadrer. À planifier après la publication de v3.0.0.
+
+## Persona Nexxus
+
+L'assistant de La Citadelle s'appelle Nexxus. Son prompt système se trouve
+dans `dev/tools/prompts/system.txt`; son historique de versions est dans
+`dev/tools/prompts/CHANGELOG.md`.
+
+À chaque requête de chat, `login_server.py` injecte dans le prompt :
+
+- `{date}` : date et heure locales au format `AAAA-MM-JJ HH:MM`;
+- `{username}` : nom du compte authentifié;
+- `{model_name}` : nom de fichier du modèle actif, ou du GGUF intégré par défaut;
+- `{session_id}` : identifiant de session conversationnelle.
+
+Pour modifier le persona, éditer `system.txt` puis ajouter une entrée au
+`CHANGELOG.md` des prompts. Si le prompt manque, le proxy utilise un repli
+minimal pour éviter de bloquer le chat.
+
+## Politique préparatoire de sécurité des fichiers
+
+`dev/tools/security_files.py` classe les fichiers en trois niveaux : public,
+sensible (admin uniquement, journalisé) et critique (refusé, même à l'admin).
+La classification combine extension et signatures de contenu pour reconnaître
+notamment les exécutables, bases SQLite et archives; les fichiers inconnus ou
+illisibles sont sensibles.
+
+Cette V1 n'implémente aucun outil de lecture et ne transmet aucun contenu de
+fichier à Nexxus. Avant toute ouverture future, il faudra aussi confiner les
+chemins à une racine autorisée et protéger contre les liens symboliques et les
+changements de fichier entre validation et lecture.

@@ -11,6 +11,9 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 - **Phase 13-CROSS-PLATFORM** : exécution Windows, Linux et macOS avec un
   runtime llamafile thin universel, des destinations adaptées à l'OS et des
   wrappers natifs `.bat`, `.sh` et `.command`.
+- **Phase 14-PERSONA-NEXXUS-V1** : persona système versionné, injection du
+  contexte utilisateur et du modèle actif, et politique préparatoire de
+  classification des fichiers. Aucun outil de lecture de fichiers n'est inclus.
 - **V3.1 sécurité** : cookie `Secure` en HTTPS, protection CSRF des POST
   authentifiés et rate limiting du login, du chat et des routes admin.
 - **Phase 12-FIX-WHITELIST** : initialisation de première installation avec
@@ -24,8 +27,17 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 
 ## Tests
 
-- 205 tests verts : 194 tests préexistants, huit tests Phase 13 et trois tests
-  correctifs T8/T9/T10.
+- 215 tests verts : 205 tests de référence et dix nouveaux tests pour le
+  persona Nexxus et la politique préparatoire de fichiers.
+
+## Persona Nexxus (Phase 14-PERSONA-NEXXUS-V1)
+
+- Le chat utilise un prompt système versionné dans
+  `dev/tools/prompts/system.txt`, avec identité Nexxus et contexte dynamique
+  (date, utilisateur, modèle actif et session).
+- La politique préparatoire de classification des fichiers comporte trois
+  niveaux (public, sensible, critique). Aucun outil de lecture de fichiers
+  n'est inclus dans cette version.
 
 ## Corrections post-test (Phase 13-CROSS-PLATFORM-BIS)
 

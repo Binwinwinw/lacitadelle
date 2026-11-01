@@ -556,3 +556,17 @@ documentées; GO 14-CONCURRENCE à planifier après définition de la charge cib
 l'exécuter sur l'hôte cible avant déploiement public.
 **Log `[security]` dédié (P3)** : état actuel et données à protéger documentés;
 GO 14-SECURITY-LOG à planifier après publication de v3.0.0.
+
+## Phase 14-PERSONA-NEXXUS-V1 — Persona et politique fichiers
+
+**Statut** : V1 implémentée le 2026-10-31 (décision #72); 215 tests verts.
+**Périmètre livré** : prompt système versionné, injection dynamique du modèle,
+de la date, de l'utilisateur et de la session; classification de sécurité
+préparatoire en trois niveaux.
+**Tests** : dix tests dédiés; un test d'intégration existant actualisé pour
+vérifier le prompt dynamique.
+**Non livré** : aucun outil ni endpoint de lecture de fichiers. L'ouverture
+future devra ajouter confinement de chemins, protection des liens symboliques
+et gestion des courses de validation/lecture.
+**Prochaine étape** : validation manuelle du persona par le Décideur; V2
+nécessite un GO séparé avant tout outil de lecture.

@@ -40,6 +40,25 @@
 - Le rate limiting est en mémoire et ne protège pas contre un déni de service
   distribué.
 
+### Sécurité des fichiers
+
+La lecture de fichiers par Nexxus n'est pas activée. La politique de
+classification préparatoire est définie dans `dev/tools/security_files.py` :
+
+- **Public** : extensions textuelles, documents, images et code source pris en
+  charge (par exemple `.txt`, `.md`, `.csv`, `.json`, `.pdf`, `.docx`, `.png`,
+  `.jpg`, `.py`).
+- **Sensible** : configuration, secrets, bases locales et archives; accès
+  administrateur uniquement, avec journalisation.
+- **Critique** : exécutables, scripts et clés privées; refus même pour un
+  administrateur.
+
+La classification vérifie l'extension et les signatures du contenu (exécutables,
+bases SQLite et archives); les fichiers inconnus ou illisibles sont traités
+comme sensibles. Cette politique ne constitue pas un outil de lecture : tout
+futur outil devra aussi confiner les chemins autorisés et empêcher les
+contournements par liens symboliques avant d'ouvrir un fichier.
+
 ### Mises à jour
 
 - Télécharger l'archive depuis la source officielle et vérifier son SHA-256
