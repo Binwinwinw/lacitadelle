@@ -1362,3 +1362,16 @@ tout en préparant une politique d'accès aux fichiers sans activer leur lecture
 
 **Impact** : dix tests dédiés; la suite compte 215 tests. Un test d'intégration
 du chat vérifie le nouveau prompt; aucun outil ou endpoint de lecture ajouté.
+
+## [2026-10-31] Phase 14-PERSONA-NEXXUS-BIS — Ajustements après tests manuels
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : prompt et changelog système, tests du persona, décision
+#72 amendée, BACKLOG et journaux.
+
+**Raison** : interdire plus explicitement la flagornerie, préciser quand
+recommander un professionnel et décrire l'API llamafile locale.
+
+**Impact** : trois assertions ajoutées; la suite passe à 218 tests. Aucun code
+métier ni outil de lecture de fichiers ajouté.

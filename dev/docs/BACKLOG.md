@@ -559,12 +559,15 @@ GO 14-SECURITY-LOG à planifier après publication de v3.0.0.
 
 ## Phase 14-PERSONA-NEXXUS-V1 — Persona et politique fichiers
 
-**Statut** : V1 implémentée le 2026-10-31 (décision #72); 215 tests verts.
+**Statut** : V1.1 implémentée le 2026-10-31 (décision #72 amendée); 218 tests
+verts.
 **Périmètre livré** : prompt système versionné, injection dynamique du modèle,
 de la date, de l'utilisateur et de la session; classification de sécurité
 préparatoire en trois niveaux.
-**Tests** : dix tests dédiés; un test d'intégration existant actualisé pour
-vérifier le prompt dynamique.
+**Tests** : dix tests dédiés pour V1; trois tests ajoutés pour les corrections
+V1.1; un test d'intégration existant actualisé pour le prompt dynamique.
+**Amendement V1.1** : ton sans flagornerie, recommandations professionnelles
+cadrées et environnement API llamafile documenté.
 **Non livré** : aucun outil ni endpoint de lecture de fichiers. L'ouverture
 future devra ajouter confinement de chemins, protection des liens symboliques
 et gestion des courses de validation/lecture.

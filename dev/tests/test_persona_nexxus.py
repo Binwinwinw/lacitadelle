@@ -12,6 +12,9 @@ import login_server
 import security_files
 
 
+PROMPT_FILE = Path(login_server.PROMPT_FILE)
+
+
 def test_system_prompt_loaded_and_missing_file_fallback(tmp_path, monkeypatch):
     prompt = login_server.load_system_prompt("model.gguf", "alice", 12)
     assert prompt
@@ -128,3 +131,24 @@ def test_can_never_read_critical_file(tmp_path):
         allowed, reason = security_files.can_read(path, role)
         assert not allowed
         assert "interdite" in reason
+
+
+def test_prompt_forbids_flattery():
+    prompt = PROMPT_FILE.read_text(encoding="utf-8")
+    assert "INTERDIT" in prompt
+    assert "Je suis ravi de vous aider" in prompt
+    assert "Quelle excellente question" in prompt
+    assert "Commence directement par la réponse" in prompt
+
+
+def test_prompt_distinguishes_philosophy():
+    prompt = PROMPT_FILE.read_text(encoding="utf-8")
+    assert "philosophiques, existentielles ou générales" in prompt
+    assert "Quel est le sens de la vie ?" in prompt
+
+
+def test_prompt_mentions_local_llamafile_api():
+    prompt = PROMPT_FILE.read_text(encoding="utf-8")
+    assert "llamafile" in prompt
+    assert "http://127.0.0.1:8080" in prompt
+    assert "/v1/models" in prompt

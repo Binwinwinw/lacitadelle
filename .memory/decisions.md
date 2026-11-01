@@ -1685,3 +1685,18 @@ de fichiers, sans implémenter cette capacité.
 distincte du modèle sous-jacent. La classification de fichiers est une
 politique préparatoire uniquement; aucun contenu de fichier n'est exposé au
 modèle. La validation manuelle du persona reste à effectuer par le Décideur.
+
+### Amendement 2026-10-31 (tests manuels)
+
+Les tests manuels du persona ont révélé trois dérives mineures corrigées :
+
+1. La flagornerie (« Je suis ravi de vous aider ») est explicitement interdite.
+2. Les recommandations professionnelles sont limitées aux demandes
+   explicites d'avis médical, juridique ou financier; elles ne s'appliquent pas
+   aux questions philosophiques générales.
+3. Le prompt décrit l'API llamafile locale pour reconnaître les commandes qui
+   interrogent le moteur sans confondre celui-ci avec l'identité de Nexxus.
+
+Le CHANGELOG des prompts documente V1.1. Trois assertions dédiées couvrent ces
+points; la suite compte désormais 218 tests. Aucun outil de lecture de fichiers
+n'est activé.
