@@ -4,13 +4,18 @@
 
 ### Configuration recommandée
 
-- Windows, Linux et macOS sont pris en charge par les wrappers natifs
-  (`.bat`, `.sh`, `.command`); Python 3.10+ est requis.
+- Windows, Linux et macOS sont pris en charge par l'archive source et ses
+  wrappers natifs (`.bat`, `.sh`, `.command`), avec Python 3.10+. L'exécutable
+  Windows PyInstaller ne requiert pas Python sur le poste utilisateur.
 - Garder les ports 8080 et 8081 sur loopback et activer le pare-feu de l'OS.
 - Vérifier le SHA-256 de l'archive et laisser l'installateur vérifier ceux du
   runtime et du GGUF avant leur utilisation.
 - Sous macOS, n'autoriser un fichier `.command` bloqué par Gatekeeper qu'après
   avoir vérifié l'origine de l'archive.
+- Sous Windows, ne contourner SmartScreen pour `LaCitadelle.exe` qu'après
+  téléchargement depuis la source officielle et vérification du SHA-256.
+  Le build n'étant pas signé, **Exécuter quand même** n'est pas une garantie
+  d'authenticité.
 
 ### Mot de passe administrateur
 

@@ -588,3 +588,16 @@ future devra ajouter confinement de chemins, protection des liens symboliques
 et gestion des courses de validation/lecture.
 **Prochaine étape** : validation manuelle du persona par le Décideur; V2
 nécessite un GO séparé avant tout outil de lecture.
+
+## Phase 15-PACKAGING-PYINSTALLER-V1 — Exécutable Windows autonome
+
+**Statut** : build local produit le 2026-11-05 (décision #74); 226 tests verts.
+L'EXE reste un artefact local ignoré par Git; aucune release n'est publiée.
+**Périmètre livré** : PyInstaller one-file, premier lancement avec bootstrap
+runtime/GGUF, données persistantes dans `%APPDATA%\LaCitadelle\`, ressources
+embarquées et script de build non destructif.
+**Tests** : cinq tests unitaires de chemins; les 221 tests préexistants passent.
+**Questions ouvertes** : validation sur un Windows sans Python, comportement
+SmartScreen et éventuelle signature numérique.
+**Prochaine étape** : test manuel du binaire par le Décideur; ne pas diffuser
+avant vérification du SHA-256 et arbitrage sur la signature.

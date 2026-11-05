@@ -6,7 +6,25 @@ La Citadelle is a local AI chat application. Your conversations are processed on
 
 ## Installation
 
-### Prerequisites
+### Standalone executable (Windows)
+
+1. When an official release includes the standalone executable, download
+   `LaCitadelle.exe` and verify the published SHA-256 before running it.
+2. Double-click the executable. Python is not required.
+3. On first launch, an internet connection is required to download the
+   llamafile runtime and Qwen3 model (about 1.33 GB total).
+4. The runtime, model, database, and logs are stored under
+   `%APPDATA%\LaCitadelle\`; the executable does not need write access to its
+   installation folder.
+
+Windows SmartScreen may show **Windows protected your PC** because this
+build is not digitally signed. Only for a binary downloaded from the official
+release and after verifying its SHA-256, select **More info** → **Run anyway**.
+Do not bypass the warning for an unverified copy.
+
+### Source archive
+
+#### Prerequisites
 
 - Windows 10 or later, Linux, or macOS.
 - Python 3.10 or later (`python` on Windows; `python3` on Linux/macOS).
@@ -14,7 +32,7 @@ La Citadelle is a local AI chat application. Your conversations are processed on
 - An internet connection for the first launch.
 - Git is not required.
 
-### Steps
+#### Steps
 
 1. Download the latest archive from [GitHub Releases](https://github.com/Binwinwinw/lacitadelle/releases/latest) — the file is `lacitadelle-distribution.zip`.
 2. Unzip it into a folder where you have write access.

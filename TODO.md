@@ -14,6 +14,9 @@ tâche terminée est supprimée ici; sa trace reste dans
   et macOS avant la diffusion de l'archive multi-OS. Le correctif macOS
   `exec` + `start_new_session` est préparé; revalider trois messages
   consécutifs sur Mac. — Propriétaire : Décideur.
+- [ ] Valider `dist/release/LaCitadelle.exe` sur un poste Windows sans Python;
+  vérifier premier téléchargement, chat et parcours SmartScreen. — Propriétaire :
+  Décideur.
 - [ ] Vérifier sur le serveur cible les ports TCP 80/443 et confirmer que
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
 - [ ] Tester login et chat dans un navigateur avec un compte réel de test. —

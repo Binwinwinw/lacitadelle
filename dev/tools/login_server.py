@@ -67,14 +67,16 @@ from citadelle_memory import (
     verify_password,
 )
 from model_health import CURRENT_MODEL_FILE, DEFAULT_MODEL_PATH
+from paths import get_bundle_dir
 
 PROXY_HOST = "127.0.0.1"
 PROXY_PORT = 8081
 LLAMAFILE_URL = "http://127.0.0.1:8080/v1/chat/completions"
 LLAMAFILE_MODELS_URL = "http://127.0.0.1:8080/v1/models"
 LLAMAFILE_PROXY_TIMEOUT = 60
-WEB_DIR = Path(__file__).resolve().parent / "web"
-PROMPT_FILE = Path(__file__).resolve().parent / "prompts" / "system.txt"
+TOOLS_BUNDLE_DIR = get_bundle_dir() / "dev" / "tools"
+WEB_DIR = TOOLS_BUNDLE_DIR / "web"
+PROMPT_FILE = TOOLS_BUNDLE_DIR / "prompts" / "system.txt"
 MAX_CONTEXT_MESSAGES = 15
 FALLBACK_SYSTEM_PROMPT = (
     "Tu es Nexxus, l'assistant IA de La Citadelle. "

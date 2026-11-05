@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """citadelle_memory : couche SQLite pour la mémoire des conversations.
 
-Une seule base : citadelle_data/memory.db (à la racine du projet).
+En développement, la base est `citadelle_data/memory.db` à la racine.
+En mode PyInstaller, elle est dans le dossier utilisateur de La Citadelle.
 Tables principales : users, sessions, messages, preferences et
 inference_metrics.
 
@@ -26,18 +27,25 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
-# Chemin de la base (à la racine du projet, à côté de dist/)
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-CITADELLE_DATA_DIR = PROJECT_ROOT / "citadelle_data"
-DB_PATH = CITADELLE_DATA_DIR / "memory.db"
-INTEGRATED_MODEL_GGUF = (
-    PROJECT_ROOT
-    / "dev"
-    / "tools"
-    / "vendor"
-    / "llamafile"
-    / "Qwen3-1.7B-Q4_K_M.gguf"
+from paths import get_assets_dir, get_bundle_dir, get_data_dir, is_frozen
+
+PROJECT_ROOT = get_bundle_dir()
+CITADELLE_DATA_DIR = (
+    get_data_dir() / "citadelle_data" if is_frozen()
+    else PROJECT_ROOT / "citadelle_data"
 )
+DB_PATH = CITADELLE_DATA_DIR / "memory.db"
+if is_frozen():
+    INTEGRATED_MODEL_GGUF = get_assets_dir() / "Qwen3-1.7B-Q4_K_M.gguf"
+else:
+    INTEGRATED_MODEL_GGUF = (
+        PROJECT_ROOT
+        / "dev"
+        / "tools"
+        / "vendor"
+        / "llamafile"
+        / "Qwen3-1.7B-Q4_K_M.gguf"
+    )
 SHA256_INTEGRATED_MODEL_GGUF = (
     "16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207"
 )

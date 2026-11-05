@@ -705,3 +705,42 @@ Cette V1 n'implémente aucun outil de lecture et ne transmet aucun contenu de
 fichier à Nexxus. Avant toute ouverture future, il faudra aussi confiner les
 chemins à une racine autorisée et protéger contre les liens symboliques et les
 changements de fichier entre validation et lecture.
+
+## Packaging one-click (PyInstaller)
+
+### Build Windows local
+
+Le build produit `dist/release/LaCitadelle.exe` en mode one-file avec console.
+PyInstaller est une dépendance de build; depuis la racine du dépôt :
+
+```powershell
+python -m pip install -r dev/tools/packaging/requirements.txt
+python dev/tools/packaging/build.py
+```
+
+Le script écrit ses fichiers de travail dans un répertoire temporaire dédié.
+Il n'efface ni `dist/` ni les autres builds. L'exécutable est produit pour
+l'OS du build; PyInstaller ne réalise pas de cross-compilation.
+
+### Premier lancement
+
+L'exécutable n'embarque ni runtime ni GGUF. Au premier lancement, La Citadelle
+télécharge ces deux composants depuis leurs sources configurées et vérifie
+leurs SHA-256. Internet est requis pendant ce premier téléchargement; Python
+n'a pas à être installé sur le poste utilisateur.
+
+Sous Windows, runtime et modèle sont conservés dans
+`%APPDATA%\LaCitadelle\assets\`; la base SQLite est dans
+`%APPDATA%\LaCitadelle\citadelle_data\` et le log proxy dans
+`%APPDATA%\LaCitadelle\proxy.log`. Les ressources en lecture seule de
+l'application sont extraites par PyInstaller dans son répertoire temporaire
+privé.
+
+### SmartScreen
+
+L'exécutable de développement n'est pas signé numériquement. SmartScreen peut
+donc avertir l'utilisateur. Ne conseiller **Informations complémentaires** →
+**Exécuter quand même** qu'après téléchargement depuis la release officielle
+et vérification du SHA-256 publié. Une signature de code est nécessaire pour
+supprimer durablement cet avertissement de confiance; ne pas prétendre que le
+contournement équivaut à une signature.

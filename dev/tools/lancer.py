@@ -17,8 +17,16 @@ from contextlib import redirect_stderr
 from pathlib import Path
 from queue import Empty, Queue
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+from paths import get_assets_dir, get_bundle_dir, get_data_dir, is_frozen
+
+IS_FROZEN = is_frozen()
+PROJECT_ROOT = get_bundle_dir()
 TOOLS_DIR = PROJECT_ROOT / "dev" / "tools"
+ASSETS_DIR = (
+    get_assets_dir()
+    if IS_FROZEN
+    else PROJECT_ROOT / "dist"
+)
 RUNTIME_OPTIONS = (
     "--nologo",
     "--log-timestamps",
@@ -27,20 +35,22 @@ RUNTIME_OPTIONS = (
 )
 MODEL_HEALTH_SCRIPT = TOOLS_DIR / "model_health.py"
 PROXY_SCRIPT = TOOLS_DIR / "login_server.py"
-CURRENT_MODEL_FILE = PROJECT_ROOT / "dist" / ".current_model"
-PROXY_LOG = PROJECT_ROOT / "dist" / "proxy.log"
-DEFAULT_MODEL = (
-    Path("dev")
-    / "tools"
-    / "vendor"
-    / "llamafile"
-    / "Qwen3-1.7B-Q4_K_M.gguf"
+CURRENT_MODEL_FILE = ASSETS_DIR / ".current_model"
+PROXY_LOG = (
+    get_data_dir() / "proxy.log"
+    if IS_FROZEN
+    else PROJECT_ROOT / "dist" / "proxy.log"
+)
+DEFAULT_MODEL_FILENAME = "Qwen3-1.7B-Q4_K_M.gguf"
+DEFAULT_MODEL = ASSETS_DIR / DEFAULT_MODEL_FILENAME if IS_FROZEN else (
+    Path("dev") / "tools" / "vendor" / "llamafile" / DEFAULT_MODEL_FILENAME
 )
 RUNTIME_URL = "http://127.0.0.1:8080/v1/models"
 PROXY_URL = "http://127.0.0.1:8081/login"
 APP_URL = "http://localhost:8081"
 
 sys.path.insert(0, str(TOOLS_DIR))
+import bootstrap
 import model_health
 
 
@@ -51,11 +61,11 @@ class LauncherError(Exception):
 def get_runtime_binary() -> Path:
     system = platform.system()
     if system == "Windows":
-        return PROJECT_ROOT / "dist" / "llamafile.exe"
+        return ASSETS_DIR / "llamafile.exe"
     if system == "Linux":
-        return PROJECT_ROOT / "dist" / "llamafile-linux"
+        return ASSETS_DIR / "llamafile-linux"
     if system == "Darwin":
-        return PROJECT_ROOT / "dist" / "llamafile-macos"
+        return ASSETS_DIR / "llamafile-macos"
     raise RuntimeError(f"OS non supporté : {system}")
 
 
@@ -103,11 +113,17 @@ def _read_current_model() -> Path | None:
     if not value:
         return None
     path = Path(value).expanduser()
-    return path if path.is_absolute() else PROJECT_ROOT / path
+    if path.is_absolute():
+        return path
+    return (ASSETS_DIR if IS_FROZEN else PROJECT_ROOT) / path
 
 
 def _default_model(*, check_whitelist: bool, proxy_log: Path) -> Path:
-    model_path = PROJECT_ROOT / DEFAULT_MODEL
+    model_path = (
+        DEFAULT_MODEL
+        if DEFAULT_MODEL.is_absolute()
+        else PROJECT_ROOT / DEFAULT_MODEL
+    )
     if not model_path.is_file():
         raise LauncherError(f"Le modèle par défaut est introuvable : {model_path}")
     if check_whitelist and _run_model_health(
@@ -227,16 +243,29 @@ def main() -> int:
     proxy_log_file = None
     proxy_thread = None
     output_queue: Queue[str | None] = Queue()
+    if IS_FROZEN and sys.argv[1:] == ["--citadelle-proxy"]:
+        import login_server
+        return login_server.main()
+
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")
     try:
         system = platform.system()
         binary = get_runtime_binary()
+        if IS_FROZEN and (
+            not binary.is_file()
+            or not DEFAULT_MODEL.is_file()
+        ):
+            print("Première installation : téléchargement des composants requis...")
+            result = bootstrap.main(system=system)
+            if result != 0:
+                raise LauncherError(
+                    "Le téléchargement ou la vérification des composants a échoué."
+                )
         if not binary.is_file():
             raise LauncherError(
-                f"{binary} introuvable. Lancez install.bat, install.sh "
-                "ou install.command."
+                f"{binary} introuvable. Lancez l'installateur de La Citadelle."
             )
         if system != "Windows" and not os.access(binary, os.X_OK):
             raise LauncherError(
@@ -277,8 +306,13 @@ def main() -> int:
 
         print("Démarrage du proxy de login (port 8081)...")
         proxy_log_file = PROXY_LOG.open("ab")
+        proxy_command = (
+            [sys.executable, "--citadelle-proxy"]
+            if IS_FROZEN
+            else [sys.executable, "-u", str(PROXY_SCRIPT)]
+        )
         proxy_process = subprocess.Popen(
-            [sys.executable, "-u", str(PROXY_SCRIPT)],
+            proxy_command,
             cwd=PROJECT_ROOT,
             stdout=subprocess.PIPE,
             stderr=proxy_log_file,

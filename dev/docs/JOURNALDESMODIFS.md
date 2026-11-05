@@ -1389,6 +1389,22 @@ règles, sans modifier les chiffres des entrées historiques.
 
 **Impact** : documentation seulement; les 218 tests ne sont pas modifiés.
 
+## [2026-11-05] Phase 15-PACKAGING-PYINSTALLER-V1 — Exécutable Windows autonome
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : outils de chemins et packaging PyInstaller, lanceur,
+bootstrap, chemins mémoire/modèle/proxy, tests de packaging, documentation,
+décision #74, BACKLOG, TODO et journaux.
+
+**Raison** : permettre le lancement de La Citadelle sous Windows sans Python
+installé, avec téléchargement vérifié des assets au premier lancement et
+stockage persistant dans le profil utilisateur.
+
+**Impact** : build local `dist/release/LaCitadelle.exe` (10,3 Mo), cinq tests
+nouveaux, suite complète à 226 tests. L'EXE reste ignoré par Git; aucune
+release n'est créée et validation sur poste vierge reste en attente.
+
 ## [2026-11-05] Phase 14-FIX-MACOS-LAUNCH — Runtime llamafile persistant
 
 **Commit** : identifiant consultable dans l'historique Git.

@@ -2,12 +2,12 @@
 
 ## Vue d'ensemble
 
-La Citadelle est distribuée sous forme d'une archive ZIP autonome, sans Git.
-Après extraction, `install.py` télécharge et vérifie le runtime llamafile-thin
-universel et le modèle GGUF; `lancer.py` démarre le serveur local, le proxy
-Python et le webchat authentifié. Les wrappers natifs sont `install.bat` /
-`lancer.bat` (Windows), `.sh` (Linux) et `.command` (macOS). Le runtime et le
-modèle restent séparés.
+La Citadelle est distribuée sous forme d'une archive ZIP autonome, sans Git,
+et d'un exécutable autonome Windows produit localement avec PyInstaller.
+L'archive source utilise `install.py`/`lancer.py` et les wrappers natifs;
+l'exécutable one-file fonctionne sans Python installé. Dans les deux modes,
+runtime et modèle GGUF sont téléchargés et vérifiés séparément au premier
+lancement.
 
 ## Composants
 
@@ -28,6 +28,16 @@ modèle restent séparés.
 
 ### 3. Bootstrap et packaging
 
+- `dev/tools/packaging/build.spec` et `build.py` produisent
+  `dist/release/LaCitadelle.exe` sous Windows. Les fichiers de travail sont
+  temporaires; le build ne nettoie pas `dist/`.
+- En mode gelé, les ressources en lecture seule sont chargées depuis le bundle
+  PyInstaller; runtime et GGUF vont dans
+  `%APPDATA%\LaCitadelle\assets\`, la base dans
+  `%APPDATA%\LaCitadelle\citadelle_data\` et le log proxy dans
+  `%APPDATA%\LaCitadelle\proxy.log`.
+- L'exécutable relance son propre binaire avec un mode proxy interne; il ne
+  dépend pas d'un interpréteur Python système.
 - `dev/tools/llamafile_config.json` décrit un seul asset runtime universel,
   ses destinations par OS et le GGUF requis.
 - `dev/tools/bootstrap.py` choisit la destination selon l'OS, télécharge le

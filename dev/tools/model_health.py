@@ -13,16 +13,24 @@ import urllib.request
 from pathlib import Path
 
 from citadelle_memory import get_setting, migrate_to_v7, set_setting
+from paths import get_assets_dir, get_bundle_dir, is_frozen
 
-DEFAULT_MODEL_PATH = str(
-    Path("dev")
-    / "tools"
-    / "vendor"
-    / "llamafile"
-    / "Qwen3-1.7B-Q4_K_M.gguf"
-)
+PROJECT_ROOT = get_bundle_dir()
+DEFAULT_MODEL_FILENAME = "Qwen3-1.7B-Q4_K_M.gguf"
+if is_frozen():
+    DEFAULT_MODEL_PATH = str(get_assets_dir() / DEFAULT_MODEL_FILENAME)
+else:
+    DEFAULT_MODEL_PATH = str(
+        Path("dev")
+        / "tools"
+        / "vendor"
+        / "llamafile"
+        / DEFAULT_MODEL_FILENAME
+    )
 CURRENT_MODEL_FILE = (
-    Path(__file__).resolve().parents[2] / "dist" / ".current_model"
+    get_assets_dir() / ".current_model"
+    if is_frozen()
+    else PROJECT_ROOT / "dist" / ".current_model"
 )
 DEFAULT_BASE_URL = "http://127.0.0.1:8080"
 

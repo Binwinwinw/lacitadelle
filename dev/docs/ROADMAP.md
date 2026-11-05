@@ -179,16 +179,34 @@ cohérente. Huit tests ajoutés; 202 tests passent.
 **Validation restante** : le Décideur doit tester les wrappers sur Windows,
 Linux et macOS avant la diffusion de l'archive.
 
-## État actuel (2026-10-31)
+## État actuel (2026-11-05)
 
 - Distribution : archive ZIP source-only pour Windows, Linux et macOS; aucun
   binaire n'est intégré.
-- Tests : 218.
-- Décisions : 72 actées.
+- Tests : 226.
+- Décisions : 74 actées.
 - Phase 11 : complète; Phase 13 implémentée, validation manuelle restante.
 - Phase 14-PERSONA-NEXXUS V1.1 : implémentée, validation manuelle restante.
+- Phase 15-PACKAGING-PYINSTALLER-V1 : exécutable Windows buildé localement;
+  test sans Python et diffusion manuelle restants.
 - Règles : dix règles structurelles dans `AGENTS.md`.
 - Tâches à venir : voir `TODO.md` (local, gitignoré).
+
+## [Phase 15] Packaging autonome Windows (2026-11-05)
+
+**Décision** : #74.
+
+**Objectif** : fournir un exécutable Windows PyInstaller one-file qui démarre
+sans Python système et télécharge runtime et GGUF au premier lancement.
+
+**Livrable** : build local `dist/release/LaCitadelle.exe`; ressources de code
+embarquées et données persistantes sous `%APPDATA%\LaCitadelle\`. Le build
+n'efface pas `dist/`; SmartScreen et absence de signature documentés.
+
+**Tests** : cinq tests de chemins; 226 tests passent.
+
+**Validation restante** : lancer l'EXE sur un poste Windows sans Python, puis
+publier le binaire seulement après décision et vérification de signature/hash.
 
 ## Prochaines phases possibles (non clôturées)
 

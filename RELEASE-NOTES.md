@@ -27,8 +27,7 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 
 ## Tests
 
-- 218 tests verts : 205 tests de référence, dix nouveaux tests pour le
-  persona Nexxus V1 et trois assertions V1.1.
+- 226 tests verts : 221 tests de référence et cinq tests dédiés au packaging.
 
 ## Persona Nexxus (Phase 14-PERSONA-NEXXUS-V1)
 
@@ -38,6 +37,16 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 - La politique préparatoire de classification des fichiers comporte trois
   niveaux (public, sensible, critique). Aucun outil de lecture de fichiers
   n'est inclus dans cette version.
+
+## Packaging autonome Windows (Phase 15-PACKAGING-PYINSTALLER-V1)
+
+- Un build PyInstaller one-file produit `LaCitadelle.exe`; Python n'est pas
+  requis sur le poste utilisateur.
+- Au premier lancement, runtime et GGUF sont téléchargés et vérifiés.
+- La base, les assets et les logs persistent dans `%APPDATA%\LaCitadelle\`.
+- L'exécutable n'est pas signé; vérifier son SHA-256 avant tout contournement
+  de SmartScreen. Le ZIP source-only du projet reste disponible pour Linux et
+  macOS.
 
 ## Corrections post-test (Phase 13-CROSS-PLATFORM-BIS)
 

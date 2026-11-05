@@ -28,7 +28,7 @@ configuration, la validation, le téléchargement et la réparation.
 python -m pytest
 ```
 
-La suite contient actuellement 218 tests. Les tests ciblés des helpers HTTP peuvent aussi être lancés avec :
+La suite contient actuellement 226 tests. Les tests ciblés des helpers HTTP peuvent aussi être lancés avec :
 
 ```powershell
 python dev/tests/test_http_helpers.py
@@ -60,7 +60,7 @@ Cette commande crée `lacitadelle-distribution.zip` à la racine du dépôt. L�
 ## Structure du dépôt
 
 - `dev/tools/` — application Python et outils de distribution.
-- `dev/tests/` — suite pytest (218 tests).
+- `dev/tests/` — suite pytest (226 tests).
 - `dev/docs/` — architecture, contrats, périmètre produit et journaux du projet.
 - `.memory/` — décisions du projet et instructions des agents.
 - `AGENTS.md` — règles de travail des agents et du dépôt.

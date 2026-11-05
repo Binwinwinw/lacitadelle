@@ -47,6 +47,9 @@ Toute violation lève `BootstrapError` avec un message indiquant :
   nom configuré pour Windows, Linux ou macOS. Sous Linux/macOS, il reçoit les
   droits d'exécution.
 - `VENDOR_DIR` = `dev/tools/vendor/llamafile/`, destination du GGUF.
+- Dans le build PyInstaller one-file Windows, runtime et GGUF sont persistés
+  dans `%APPDATA%\LaCitadelle\assets\`; les chemins source `dist/` et
+  `vendor/` restent inchangés en développement.
 - Les répertoires de destination sont créés si absents (avec
   `mkdir(parents=True, exist_ok=True)`).
 - Le dossier `dev/tools/vendor/` est gitignoré.

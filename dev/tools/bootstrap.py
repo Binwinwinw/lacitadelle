@@ -2,8 +2,8 @@
 """Bootstrap : télécharge et vérifie llamafile-thin et le modèle.
 
 Lit dev/tools/llamafile_config.json, télécharge les assets marqués
-required=true et vérifie leur SHA-256. llamafile-thin va dans dist/ ;
-le modèle GGUF va dans dev/tools/vendor/llamafile/.
+required=true et vérifie leur SHA-256. En développement, runtime et GGUF vont
+dans dist/ et vendor/; en mode PyInstaller, ils vont dans le dossier utilisateur.
 Échoue proprement en cas d'erreur.
 
 Voir dev/tools/BOOTSTRAP_CONTRACT.md pour le contrat complet.
@@ -31,11 +31,21 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from paths import get_assets_dir, get_bundle_dir, is_frozen
+
 # Chemins (relatifs au fichier, pas au cwd)
-TOOLS_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = TOOLS_DIR.parent.parent
+PROJECT_ROOT = get_bundle_dir()
+TOOLS_DIR = (
+    PROJECT_ROOT / "dev" / "tools"
+    if is_frozen()
+    else Path(__file__).resolve().parent
+)
 CONFIG_PATH = TOOLS_DIR / "llamafile_config.json"
-VENDOR_DIR = TOOLS_DIR / "vendor" / "llamafile"
+VENDOR_DIR = (
+    get_assets_dir()
+    if is_frozen()
+    else TOOLS_DIR / "vendor" / "llamafile"
+)
 
 # Paramètres
 CHUNK_SIZE = 64 * 1024
@@ -493,8 +503,10 @@ def main(system: str | None = None) -> int:
             destinations[system] if destinations is not None
             else meta["destination"]
         )
-        destination_path = PROJECT_ROOT.joinpath(
-            *PurePosixPath(relative_path).parts
+        destination_path = (
+            get_assets_dir() / PurePosixPath(relative_path).name
+            if is_frozen()
+            else PROJECT_ROOT.joinpath(*PurePosixPath(relative_path).parts)
         )
         actions = meta.get("post_download", {}).get(system, [])
         required.append(

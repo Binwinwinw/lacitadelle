@@ -1715,6 +1715,7 @@ signaux du terminal; le scénario « réponse au premier message seulement » es
 couvert unitairement. La validation réelle macOS reste requise. La suite compte
 221 tests.
 
+
 ### Amendement 2026-10-31 (tests manuels)
 
 Les tests manuels du persona ont révélé trois dérives mineures corrigées :
@@ -1729,3 +1730,37 @@ Les tests manuels du persona ont révélé trois dérives mineures corrigées :
 Le CHANGELOG des prompts documente V1.1. Trois assertions dédiées couvrent ces
 points; la suite compte désormais 218 tests. Aucun outil de lecture de fichiers
 n'est activé.
+
+## [2026-11-05] Packaging autonome Windows via PyInstaller
+
+**Contexte** : le parcours source-only exige Python installé pour lancer le
+proxy. Le Décideur souhaite fournir un exécutable Windows one-file qui démarre
+sans Python système, tout en conservant le téléchargement séparé des assets
+et l'archive source-only existante.
+
+**Décision(s)** :
+
+1. Utiliser PyInstaller one-file avec console pour produire
+   `dist/release/LaCitadelle.exe`; le build est natif à l'OS et n'embarque ni
+   runtime llamafile ni GGUF.
+2. Au premier lancement gelé, télécharger et vérifier runtime et GGUF via le
+   bootstrap existant. Les exécutions depuis le dépôt conservent leurs chemins
+   actuels.
+3. En mode gelé, placer les assets dans `%APPDATA%\LaCitadelle\assets\`, la
+   base dans `%APPDATA%\LaCitadelle\citadelle_data\` et les logs dans le
+   dossier utilisateur `%APPDATA%\LaCitadelle\`.
+4. Charger les ressources en lecture seule depuis le bundle PyInstaller et
+   relancer le proxy avec le même EXE en mode interne.
+5. Isoler les temporaires de build dans un dossier dédié; ne jamais supprimer
+   `dist/` au complet.
+6. Documenter l'avertissement SmartScreen : le build n'est pas signé, le
+   contournement n'est acceptable qu'après téléchargement officiel et
+   vérification du SHA-256.
+7. Ajouter cinq tests de chemins sans modifier les 221 tests préexistants;
+   documenter le build et valider sa génération locale.
+
+**Conséquences** : le build local `LaCitadelle.exe` fonctionne sans Python
+installé et stocke données et téléchargements dans le profil utilisateur.
+L'EXE reste un artefact gitignoré; aucune release ou signature n'est créée.
+Une validation manuelle sur un poste Windows sans Python reste requise avant
+toute diffusion.

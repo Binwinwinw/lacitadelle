@@ -6,7 +6,26 @@ La Citadelle est une application locale de chat avec une IA. Vos conversations s
 
 ## Installation
 
-### Prérequis
+### Exécutable autonome (Windows)
+
+1. Lorsqu'une release officielle fournit l'exécutable autonome, téléchargez
+   `LaCitadelle.exe` et vérifiez le SHA-256 publié avant de l'exécuter.
+2. Double-cliquez sur l'exécutable. Python n'est pas requis.
+3. Au premier lancement, une connexion Internet est nécessaire pour télécharger
+   llamafile et le modèle Qwen3 (environ 1,33 Go au total).
+4. Le runtime, le modèle, la base et les journaux sont stockés dans
+   `%APPDATA%\LaCitadelle\`; le dossier de l'exécutable n'a pas besoin d'être
+   accessible en écriture.
+
+Windows SmartScreen peut afficher **Windows a protégé votre ordinateur** car
+cet exécutable n'est pas signé numériquement. Uniquement pour un fichier
+téléchargé depuis la release officielle et après vérification de son SHA-256,
+choisissez **Informations complémentaires** → **Exécuter quand même**.
+Ne contournez pas l'avertissement pour une copie non vérifiée.
+
+### Archive source
+
+#### Prérequis
 
 - Windows 10 ou version ultérieure, Linux ou macOS.
 - Python 3.10 ou version ultérieure (`python` sous Windows; `python3` sous Linux/macOS).
@@ -14,7 +33,7 @@ La Citadelle est une application locale de chat avec une IA. Vos conversations s
 - Une connexion Internet pour le premier lancement.
 - Git n’est pas requis.
 
-### Étapes
+#### Étapes
 
 1. Téléchargez la dernière archive depuis les [releases GitHub](https://github.com/Binwinwinw/lacitadelle/releases/latest) : le fichier s’appelle `lacitadelle-distribution.zip`.
 2. Décompressez-la dans un dossier où vous avez le droit d’écrire.
