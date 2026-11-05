@@ -591,13 +591,18 @@ nécessite un GO séparé avant tout outil de lecture.
 
 ## Phase 15-PACKAGING-PYINSTALLER-V1 — Exécutable Windows autonome
 
-**Statut** : build local produit le 2026-11-05 (décision #74); 226 tests verts.
-L'EXE reste un artefact local ignoré par Git; aucune release n'est publiée.
+**Statut** : build local produit le 2026-11-05 (décisions #74 et #75);
+228 tests verts. L'EXE reste un artefact local ignoré par Git; aucune release
+n'est publiée.
 **Périmètre livré** : PyInstaller one-file, premier lancement avec bootstrap
 runtime/GGUF, données persistantes dans `%APPDATA%\LaCitadelle\`, ressources
 embarquées et script de build non destructif.
-**Tests** : cinq tests unitaires de chemins; les 221 tests préexistants passent.
+**Tests** : cinq tests unitaires de chemins et deux tests BIS pour le log et
+la persistance du runtime Windows; les 226 tests de référence passent.
+**Correctif BIS** : llamafile reste actif après l'arrêt du proxy; ses sorties
+sont écrites dans `dist/llamafile.log` en source et dans le dossier assets en
+mode gelé.
 **Questions ouvertes** : validation sur un Windows sans Python, comportement
-SmartScreen et éventuelle signature numérique.
+SmartScreen, arrêt manuel du runtime et éventuelle signature numérique.
 **Prochaine étape** : test manuel du binaire par le Décideur; ne pas diffuser
 avant vérification du SHA-256 et arbitrage sur la signature.

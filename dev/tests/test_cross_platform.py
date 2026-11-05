@@ -228,25 +228,98 @@ def test_lancer_uses_start_new_session_on_macos(tmp_path):
     assert popen.call_args.kwargs["start_new_session"] is True
 
 
-def test_lancer_windows_remains_direct_without_new_session(tmp_path):
+def test_lancer_windows_remains_direct_without_new_session(tmp_path, monkeypatch):
     binary = tmp_path / "llamafile.exe"
     gguf = tmp_path / "model.gguf"
+    monkeypatch.setattr(lancer, "ASSETS_DIR", tmp_path / "dist")
     with (
         patch("lancer.platform.system", return_value="Windows"),
         patch("lancer.subprocess.Popen") as popen,
     ):
         lancer.start_llamafile(binary, gguf, "127.0.0.1", 8080)
 
-    command = popen.call_args.args[0]
-    assert command[0] == str(binary)
-    assert command[1:3] == ["-m", str(gguf)]
-    assert "sh" not in command
-    assert "start_new_session" not in popen.call_args.kwargs
+    log_file = popen.call_args.kwargs["stdout"]
+    try:
+        command = popen.call_args.args[0]
+        assert command[0] == str(binary)
+        assert command[1:3] == ["-m", str(gguf)]
+        assert "sh" not in command
+        assert "start_new_session" not in popen.call_args.kwargs
+    finally:
+        log_file.close()
 
 
-def test_lancer_windows_uses_direct_popen(tmp_path):
+def test_lancer_windows_redirects_llamafile_logs(tmp_path, monkeypatch):
+    assets_dir = tmp_path / "dist"
+    monkeypatch.setattr(lancer, "ASSETS_DIR", assets_dir)
+    with (
+        patch("lancer.platform.system", return_value="Windows"),
+        patch("lancer.subprocess.Popen") as popen,
+    ):
+        process = lancer.start_llamafile(
+            tmp_path / "llamafile.exe",
+            tmp_path / "model.gguf",
+            "127.0.0.1",
+            8080,
+            creationflags=123,
+        )
+
+    log_file = popen.call_args.kwargs["stdout"]
+    try:
+        assert hasattr(log_file, "fileno")
+        assert log_file.name == str(assets_dir / "llamafile.log")
+        assert not log_file.closed
+        assert popen.call_args.kwargs["stderr"] == lancer.subprocess.STDOUT
+        assert popen.call_args.kwargs["creationflags"] == 123
+        assert process._log_handle is log_file
+    finally:
+        log_file.close()
+
+
+def test_launcher_finally_stops_proxy_but_not_llamafile(tmp_path, monkeypatch):
+    binary = tmp_path / "llamafile.exe"
+    model = tmp_path / "model.gguf"
+    binary.write_bytes(b"runtime")
+    model.write_bytes(b"model")
+    runtime_process = MagicMock()
+    runtime_process.poll.return_value = None
+    proxy_process = MagicMock()
+    proxy_process.poll.return_value = 1
+    proxy_process.stdout = MagicMock()
+    stop_process = MagicMock()
+
+    monkeypatch.setattr(lancer, "IS_FROZEN", False)
+    monkeypatch.setattr(lancer, "PROXY_LOG", tmp_path / "dist" / "proxy.log")
+    monkeypatch.setattr(lancer, "get_runtime_binary", lambda: binary)
+    monkeypatch.setattr(lancer, "select_model_path", lambda: model)
+
+    with (
+        patch("lancer.platform.system", return_value="Windows"),
+        patch.object(lancer, "_run_model_health", return_value=0),
+        patch.object(
+            lancer, "start_llamafile", return_value=runtime_process
+        ) as start_llamafile,
+        patch.object(lancer, "_wait_for_service"),
+        patch.object(lancer.subprocess, "Popen", return_value=proxy_process),
+        patch.object(lancer.threading, "Thread") as thread,
+        patch.object(lancer, "_stop_process", stop_process),
+        patch.object(lancer.webbrowser, "open", return_value=True),
+        patch.object(lancer.time, "sleep"),
+    ):
+        thread.return_value.start.return_value = None
+        assert lancer.main() == 1
+
+    stop_process.assert_called_once_with(proxy_process)
+    runtime_process.terminate.assert_not_called()
+    assert start_llamafile.call_args.kwargs["creationflags"] == getattr(
+        lancer.subprocess, "CREATE_NEW_CONSOLE", 0
+    )
+
+
+def test_lancer_windows_uses_direct_popen(tmp_path, monkeypatch):
     binary = tmp_path / "llamafile.exe"
     gguf = tmp_path / "model.gguf"
+    monkeypatch.setattr(lancer, "ASSETS_DIR", tmp_path / "dist")
     expected_args = [
         str(binary),
         "-m",
@@ -270,8 +343,12 @@ def test_lancer_windows_uses_direct_popen(tmp_path):
             creationflags=123,
         )
 
-    popen.assert_called_once_with(
-        expected_args,
-        cwd=PROJECT_ROOT,
-        creationflags=123,
-    )
+    assert popen.call_args.args[0] == expected_args
+    assert popen.call_args.kwargs["cwd"] == PROJECT_ROOT
+    assert popen.call_args.kwargs["creationflags"] == 123
+    log_file = popen.call_args.kwargs["stdout"]
+    try:
+        assert log_file.name == str(tmp_path / "dist" / "llamafile.log")
+        assert popen.call_args.kwargs["stderr"] == lancer.subprocess.STDOUT
+    finally:
+        log_file.close()

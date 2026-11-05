@@ -493,6 +493,19 @@ proxy. Sans session isolée, un SIGHUP du terminal peut tuer le runtime.
 Symptôme observé : le premier message fonctionne, puis le chat signale que le
 modèle est indisponible. Ces deux protections sont non négociables.
 
+### Windows : isolation llamafile sous PyInstaller
+
+Sous Windows, llamafile est lancé avec `CREATE_NEW_CONSOLE`; sa sortie standard
+et sa sortie d'erreur sont redirigées vers `dist/llamafile.log` en développement
+ou `%APPDATA%\LaCitadelle\assets\llamafile.log` avec l'EXE PyInstaller.
+
+Le nettoyage du lanceur arrête le proxy, mais ne termine pas llamafile. Le
+runtime survit à la fermeture du proxy et garde sa console dédiée ouverte;
+l'utilisateur peut la fermer manuellement après usage. Sous Unix, identifier
+le processus llamafile avant de l'arrêter. Le port 8080 reste occupé tant que
+le runtime tourne. Ne pas réintroduire `_stop_process(runtime_process)` dans
+le bloc `finally`.
+
 ### Ordre des arguments llamafile
 
 Toujours passer `-m <GGUF>` avant `--server`; l'ordre inverse peut afficher

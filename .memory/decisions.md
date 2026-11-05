@@ -1764,3 +1764,25 @@ installé et stocke données et téléchargements dans le profil utilisateur.
 L'EXE reste un artefact gitignoré; aucune release ou signature n'est créée.
 Une validation manuelle sur un poste Windows sans Python reste requise avant
 toute diffusion.
+
+## [2026-11-05] Runtime llamafile indépendant du proxy sous Windows
+(Phase 15-PACKAGING-PYINSTALLER-BIS)
+
+**Contexte** : le test du binaire PyInstaller a montré que le runtime devait
+survivre à l'arrêt du proxy. Ses sorties devaient aussi rester consultables
+sans partager le terminal du proxy.
+
+**Décision(s)** :
+
+1. Conserver `CREATE_NEW_CONSOLE` pour isoler llamafile sous Windows; ne pas le
+   combiner avec `DETACHED_PROCESS`.
+2. Rediriger stdout et stderr vers `llamafile.log` dans le dossier des assets
+   (`dist/` en mode source, `%APPDATA%\LaCitadelle\assets\` en mode gelé).
+3. Le `finally` du lanceur arrête le proxy, mais pas llamafile; l'utilisateur
+   ferme la console du runtime après usage.
+4. Ajouter deux tests couvrant la redirection des logs et la persistance du
+   runtime; documenter l'arrêt manuel et le port 8080.
+
+**Conséquences** : llamafile reste disponible après l'arrêt du proxy et son
+journal est conservé. Le runtime doit être arrêté manuellement; sa validation
+sur un poste Windows sans Python reste à effectuer.

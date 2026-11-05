@@ -13,7 +13,7 @@ V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Un build PyInstaller Windows autonome est disponible; il télécharge runtime et
 GGUF au premier lancement et conserve les données sous `%APPDATA%\LaCitadelle\`.
-La suite compte 226 tests permanents et `.memory/decisions.md` 74 décisions.
+La suite compte 228 tests permanents et `.memory/decisions.md` 75 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
 <!-- Compteurs vérifiés le 2026-11-05.
@@ -51,7 +51,7 @@ Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
 3. **AGENTS.md** : comprendre les règles de collaboration (10 règles structurelles).
 4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 15).
 5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
-6. **.memory/decisions.md** : comprendre les décisions actées (74 décisions datées).
+6. **.memory/decisions.md** : comprendre les décisions actées (75 décisions datées).
 7. **dev/docs/JOURNALDEBORD.md / dev/docs/JOURNALDESMODIFS.md** : consulter la chronologie des sessions et la synthèse par commit.
 8. **TODO.md** : consulter la liste partagée des actions encore à mener.
 9. **CHANGELOG.md** : suivre ses pointeurs vers les documents d'historique.
@@ -90,11 +90,16 @@ En cas de changement d'une règle, mettre à jour les deux.
   `sh -c "exec llamafile ..."` avec `start_new_session=True`. Ne jamais
   retirer l'`exec` ni l'isolation de session; voir la section macOS du
   RUNBOOK-PROD.md.
+- **Windows + PyInstaller : isolation llamafile** : conserver
+  `CREATE_NEW_CONSOLE` et rediriger la sortie vers `llamafile.log`. Ne pas tuer
+  llamafile dans le `finally`; il reste actif après l'arrêt du proxy.
 - **Ordre des arguments** : `-m <GGUF>` doit toujours précéder `--server`.
 - **Validation réelle** : les mocks OS des tests ne remplacent pas une
   validation manuelle sur chaque OS avant release. Les tests T8 (LF), T9
   (`sh -c`) et T10 (appel direct Windows) sont dans
   `dev/tests/test_cross_platform.py`.
+- Les tests T14/T15 vérifient la redirection du log Windows et que le nettoyage
+  final du lanceur n'arrête pas llamafile.
 
 ### Persona Nexxus et sécurité des fichiers
 
@@ -325,7 +330,7 @@ Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à
 
 | Fichier | Contenu | À lire quand |
 | --- | --- | --- |
-| `.memory/decisions.md` | Décisions actées (74) | Avant toute action structurante |
+| `.memory/decisions.md` | Décisions actées (75) | Avant toute action structurante |
 | `.memory/instructions.md` | Rappel et pointeurs | En début de session |
 | `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
 | `.memory/quirks.md` | Pièges et particularités | Avant de coder |

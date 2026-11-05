@@ -89,7 +89,22 @@ def start_llamafile(
         *RUNTIME_OPTIONS,
     ]
     if platform.system() == "Windows":
-        return subprocess.Popen(args, cwd=PROJECT_ROOT, creationflags=creationflags)
+        llamafile_log = ASSETS_DIR / "llamafile.log"
+        llamafile_log.parent.mkdir(parents=True, exist_ok=True)
+        log_file = llamafile_log.open("a", encoding="utf-8")
+        try:
+            process = subprocess.Popen(
+                args,
+                cwd=PROJECT_ROOT,
+                creationflags=creationflags,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+            )
+        except (OSError, ValueError):
+            log_file.close()
+            raise
+        process._log_handle = log_file  # type: ignore[attr-defined]
+        return process
     return subprocess.Popen(
         ["sh", "-c", "exec " + shlex.join(args)],
         cwd=PROJECT_ROOT,
@@ -340,7 +355,10 @@ def main() -> int:
             opened = False
         if not opened:
             print(f"Ouvrez manuellement {APP_URL}.")
-        print("La Citadelle est prête. Gardez cette fenêtre ouverte; Ctrl+C arrête les services.")
+        print(
+            "La Citadelle est prête. Gardez cette fenêtre ouverte; "
+            "Ctrl+C arrête le proxy."
+        )
 
         while True:
             _drain_proxy_output(output_queue)
@@ -350,14 +368,17 @@ def main() -> int:
                 raise LauncherError("Le proxy s'est arrêté.")
             time.sleep(0.2)
     except KeyboardInterrupt:
-        print("\nArrêt des services...")
+        print("\nArrêt du proxy...")
+        print(
+            "Le serveur llamafile reste actif sur le port 8080. "
+            "Fermez sa console manuellement si nécessaire."
+        )
         return 0
     except (LauncherError, OSError, RuntimeError) as exc:
         print(f"ERREUR : {exc}", file=sys.stderr)
         return 1
     finally:
         _stop_process(proxy_process)
-        _stop_process(runtime_process)
         if proxy_thread is not None:
             proxy_thread.join(timeout=1)
         if proxy_process is not None and proxy_process.stdout is not None:

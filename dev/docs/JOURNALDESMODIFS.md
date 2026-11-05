@@ -1405,6 +1405,21 @@ stockage persistant dans le profil utilisateur.
 nouveaux, suite complète à 226 tests. L'EXE reste ignoré par Git; aucune
 release n'est créée et validation sur poste vierge reste en attente.
 
+## [2026-11-05] Phase 15-PACKAGING-PYINSTALLER-BIS — Runtime Windows persistant
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/tools/lancer.py`,
+`dev/tests/test_cross_platform.py`, README bilingue, RUNBOOK-PROD.md,
+AGENTS.md, RELEASE-NOTES.md, décision #75, BACKLOG, TODO et journaux.
+
+**Raison** : maintenir llamafile actif après l'arrêt du proxy PyInstaller et
+conserver ses sorties dans un journal dédié.
+
+**Impact** : deux tests ajoutés (228 tests au total); le proxy s'arrête sans
+terminer le runtime. Build PyInstaller régénéré localement, EXE ignoré par Git
+et non publié; validation manuelle Windows en attente.
+
 ## [2026-11-05] Phase 14-FIX-MACOS-LAUNCH — Runtime llamafile persistant
 
 **Commit** : identifiant consultable dans l'historique Git.

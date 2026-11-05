@@ -83,10 +83,12 @@ HTTPS et les protections supplémentaires prévues par le projet.
 
 ## Arrêter La Citadelle
 
-Appuyez sur Ctrl+C dans la fenêtre du lanceur pour arrêter les deux services.
-Sous Windows, le runtime llamafile a sa propre console; la sortie du proxy,
-dont le mot de passe admin initial affiché une seule fois, apparaît dans la
-console du lanceur.
+Appuyez sur Ctrl+C dans la fenêtre du lanceur pour arrêter le proxy. Le runtime
+llamafile reste volontairement actif. Sous Windows, fermez sa console séparée
+après utilisation; sous Unix, arrêtez le processus llamafile après l'avoir
+identifié. Le port 8080 reste occupé jusqu'à l'arrêt du runtime. Sous Windows,
+la console du lanceur affiche la sortie du proxy, dont le mot de passe admin
+initial visible une seule fois.
 
 ## Dépannage
 

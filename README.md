@@ -81,7 +81,10 @@ protections described in the project security plan.
 
 ## Stopping La Citadelle
 
-Press Ctrl+C in the launcher window to stop both local services.
+Press Ctrl+C in the launcher window to stop the proxy. The llamafile runtime
+intentionally remains active. On Windows, close its separate console when you
+are finished; on Unix, stop the llamafile process after identifying it.
+Port 8080 remains occupied until llamafile is stopped.
 
 On Windows, the llamafile runtime has its own console; the launcher console
 shows proxy output, including the one-time administrator password.

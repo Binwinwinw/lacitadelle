@@ -4,7 +4,7 @@
 tâche terminée est supprimée ici; sa trace reste dans
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 
-**Dernière mise à jour** : 2026-10-31.
+**Dernière mise à jour** : 2026-11-05.
 
 ## Actif
 
@@ -15,8 +15,9 @@ tâche terminée est supprimée ici; sa trace reste dans
   `exec` + `start_new_session` est préparé; revalider trois messages
   consécutifs sur Mac. — Propriétaire : Décideur.
 - [ ] Valider `dist/release/LaCitadelle.exe` sur un poste Windows sans Python;
-  vérifier premier téléchargement, chat et parcours SmartScreen. — Propriétaire :
-  Décideur.
+  vérifier premier téléchargement, chat, parcours SmartScreen et que llamafile
+  reste actif après Ctrl+C dans le proxy; contrôler `llamafile.log`. —
+  Propriétaire : Décideur.
 - [ ] Vérifier sur le serveur cible les ports TCP 80/443 et confirmer que
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
 - [ ] Tester login et chat dans un navigateur avec un compte réel de test. —

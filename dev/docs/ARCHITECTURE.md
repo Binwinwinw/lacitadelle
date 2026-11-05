@@ -38,6 +38,8 @@ lancement.
   `%APPDATA%\LaCitadelle\proxy.log`.
 - L'exécutable relance son propre binaire avec un mode proxy interne; il ne
   dépend pas d'un interpréteur Python système.
+- Sous Windows, llamafile utilise une console dédiée et écrit ses logs dans
+  `assets/llamafile.log`; l'arrêt du proxy ne termine pas le runtime.
 - `dev/tools/llamafile_config.json` décrit un seul asset runtime universel,
   ses destinations par OS et le GGUF requis.
 - `dev/tools/bootstrap.py` choisit la destination selon l'OS, télécharge le
