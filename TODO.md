@@ -11,7 +11,9 @@ tâche terminée est supprimée ici; sa trace reste dans
 ### Priorité P2
 
 - [ ] Valider manuellement les wrappers et l'installation sur Windows, Linux
-  et macOS avant la diffusion de l'archive multi-OS. — Propriétaire : Décideur.
+  et macOS avant la diffusion de l'archive multi-OS. Le correctif macOS
+  `exec` + `start_new_session` est préparé; revalider trois messages
+  consécutifs sur Mac. — Propriétaire : Décideur.
 - [ ] Vérifier sur le serveur cible les ports TCP 80/443 et confirmer que
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
 - [ ] Tester login et chat dans un navigateur avec un compte réel de test. —

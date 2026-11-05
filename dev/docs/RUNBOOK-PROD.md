@@ -480,6 +480,19 @@ par `shlex.join`; un `subprocess.Popen([binary, ...])` direct peut échouer
 avec `Exec format error`. Sous Windows, le lanceur appelle le binaire
 directement.
 
+### macOS/Linux : exécution APE via exec et isolation
+
+Sur macOS et Linux, llamafile doit être démarré par `sh -c "exec …"` avec
+`start_new_session=True` (voir `dev/tools/lancer.py::start_llamafile`).
+`exec` remplace le shell par llamafile; la nouvelle session isole le runtime
+du groupe de processus du terminal et de ses signaux.
+
+Sans `exec`, le shell peut se terminer après le fork interne de llamafile;
+le superviseur peut alors considérer le runtime arrêté et arrêter aussi le
+proxy. Sans session isolée, un SIGHUP du terminal peut tuer le runtime.
+Symptôme observé : le premier message fonctionne, puis le chat signale que le
+modèle est indisponible. Ces deux protections sont non négociables.
+
 ### Ordre des arguments llamafile
 
 Toujours passer `-m <GGUF>` avant `--server`; l'ordre inverse peut afficher

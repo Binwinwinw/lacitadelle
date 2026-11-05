@@ -1686,6 +1686,35 @@ distincte du modèle sous-jacent. La classification de fichiers est une
 politique préparatoire uniquement; aucun contenu de fichier n'est exposé au
 modèle. La validation manuelle du persona reste à effectuer par le Décideur.
 
+## [2026-11-05] Fix macOS : lancement llamafile via exec et session isolée
+
+**Contexte** : sur macOS, le chat répondait au premier message puis échouait
+au suivant avec « modèle indisponible ». Le test réel sur iMac Intel a révélé
+que llamafile mourait après le premier échange; le lancement Windows restait
+fonctionnel avec sa console dédiée.
+
+**Cause racine** : le shell lancé par `sh -c` pouvait se terminer après le fork
+interne de llamafile. Le superviseur interprétait la fin du shell comme l'arrêt
+du runtime; le nettoyage arrêtait ensuite les services. Le terminal pouvait
+également transmettre SIGHUP au runtime.
+
+**Décision(s)** :
+
+1. Sur Linux/macOS, lancer `sh -c "exec …"` avec les arguments échappés par
+   `shlex.join`, afin que le shell soit remplacé par llamafile.
+2. Ajouter `start_new_session=True` à l'appel Unix pour isoler llamafile du
+   groupe de processus du terminal.
+3. Conserver le lancement direct Windows avec `creationflags` inchangé.
+4. Ajouter trois tests pour `exec`, la session isolée et l'appel direct
+   Windows; conserver les 218 tests de référence.
+5. Documenter le piège dans RUNBOOK-PROD.md et AGENTS.md; attendre une nouvelle
+   validation manuelle macOS par le Décideur avant diffusion.
+
+**Conséquences** : le processus llamafile Unix remplace le shell et survit aux
+signaux du terminal; le scénario « réponse au premier message seulement » est
+couvert unitairement. La validation réelle macOS reste requise. La suite compte
+221 tests.
+
 ### Amendement 2026-10-31 (tests manuels)
 
 Les tests manuels du persona ont révélé trois dérives mineures corrigées :

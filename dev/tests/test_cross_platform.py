@@ -191,8 +191,57 @@ def test_lancer_uses_sh_c_on_unix(tmp_path):
 
     command = popen.call_args.args[0]
     assert command[:2] == ["sh", "-c"]
-    assert shlex.split(command[2]) == expected_args
+    assert command[2].startswith("exec ")
+    assert shlex.split(command[2][len("exec "):]) == expected_args
+    assert popen.call_args.kwargs["start_new_session"] is True
     assert expected_args.index("-m") < expected_args.index("--server")
+
+
+def test_lancer_uses_exec_on_unix(tmp_path):
+    binary = tmp_path / "runtime binary"
+    gguf = tmp_path / "model file.gguf"
+    with (
+        patch("lancer.platform.system", return_value="Linux"),
+        patch("lancer.subprocess.Popen") as popen,
+    ):
+        lancer.start_llamafile(binary, gguf, "127.0.0.1", 8080)
+
+    command = popen.call_args.args[0]
+    assert command[:2] == ["sh", "-c"]
+    assert command[2].startswith("exec ")
+    assert str(binary) in shlex.split(command[2])
+
+
+def test_lancer_uses_start_new_session_on_macos(tmp_path):
+    with (
+        patch("lancer.platform.system", return_value="Darwin"),
+        patch("lancer.subprocess.Popen") as popen,
+    ):
+        lancer.start_llamafile(
+            tmp_path / "llamafile",
+            tmp_path / "model.gguf",
+            "127.0.0.1",
+            8080,
+        )
+
+    assert popen.call_args.args[0][:2] == ["sh", "-c"]
+    assert popen.call_args.kwargs["start_new_session"] is True
+
+
+def test_lancer_windows_remains_direct_without_new_session(tmp_path):
+    binary = tmp_path / "llamafile.exe"
+    gguf = tmp_path / "model.gguf"
+    with (
+        patch("lancer.platform.system", return_value="Windows"),
+        patch("lancer.subprocess.Popen") as popen,
+    ):
+        lancer.start_llamafile(binary, gguf, "127.0.0.1", 8080)
+
+    command = popen.call_args.args[0]
+    assert command[0] == str(binary)
+    assert command[1:3] == ["-m", str(gguf)]
+    assert "sh" not in command
+    assert "start_new_session" not in popen.call_args.kwargs
 
 
 def test_lancer_windows_uses_direct_popen(tmp_path):

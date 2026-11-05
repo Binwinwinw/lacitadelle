@@ -1388,3 +1388,18 @@ métier ni outil de lecture de fichiers ajouté.
 règles, sans modifier les chiffres des entrées historiques.
 
 **Impact** : documentation seulement; les 218 tests ne sont pas modifiés.
+
+## [2026-11-05] Phase 14-FIX-MACOS-LAUNCH — Runtime llamafile persistant
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/tools/lancer.py`,
+`dev/tests/test_cross_platform.py`, RUNBOOK-PROD.md, AGENTS.md, décision #73,
+BACKLOG, TODO et journaux.
+
+**Raison** : corriger l'arrêt de llamafile après le premier message sur macOS
+en remplaçant le shell avec `exec` et en isolant le runtime du terminal.
+
+**Impact** : trois tests couvrent le lancement Unix et Windows; la suite
+complète compte 221 tests. Archive régénérée, source-only et non publiée;
+validation manuelle macOS en attente.

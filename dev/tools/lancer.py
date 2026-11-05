@@ -81,8 +81,9 @@ def start_llamafile(
     if platform.system() == "Windows":
         return subprocess.Popen(args, cwd=PROJECT_ROOT, creationflags=creationflags)
     return subprocess.Popen(
-        ["sh", "-c", shlex.join(args)],
+        ["sh", "-c", "exec " + shlex.join(args)],
         cwd=PROJECT_ROOT,
+        start_new_session=True,
     )
 
 

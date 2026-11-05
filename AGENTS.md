@@ -12,7 +12,7 @@ mozilla-ai/llamafile.
 V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Elle télécharge le runtime llamafile-thin universel et le GGUF à l'installation.
-La suite compte 218 tests permanents et `.memory/decisions.md` 72 décisions.
+La suite compte 221 tests permanents et `.memory/decisions.md` 73 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
 <!-- Compteurs vérifiés le 2026-10-31.
@@ -50,7 +50,7 @@ Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
 3. **AGENTS.md** : comprendre les règles de collaboration (10 règles structurelles).
 4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 13).
 5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
-6. **.memory/decisions.md** : comprendre les décisions actées (72 décisions datées).
+6. **.memory/decisions.md** : comprendre les décisions actées (73 décisions datées).
 7. **dev/docs/JOURNALDEBORD.md / dev/docs/JOURNALDESMODIFS.md** : consulter la chronologie des sessions et la synthèse par commit.
 8. **TODO.md** : consulter la liste partagée des actions encore à mener.
 9. **CHANGELOG.md** : suivre ses pointeurs vers les documents d'historique.
@@ -85,6 +85,10 @@ En cas de changement d'une règle, mettre à jour les deux.
 - **Llamafile = APE** : sur Linux/macOS, lancer le runtime via `sh -c` avec
   les arguments construits par `shlex.join`, jamais par un `Popen` direct.
   Voir `dev/tools/lancer.py`, fonction `start_llamafile`.
+- **macOS/Linux : lancement llamafile** : toujours utiliser
+  `sh -c "exec llamafile ..."` avec `start_new_session=True`. Ne jamais
+  retirer l'`exec` ni l'isolation de session; voir la section macOS du
+  RUNBOOK-PROD.md.
 - **Ordre des arguments** : `-m <GGUF>` doit toujours précéder `--server`.
 - **Validation réelle** : les mocks OS des tests ne remplacent pas une
   validation manuelle sur chaque OS avant release. Les tests T8 (LF), T9
@@ -306,7 +310,7 @@ Le dossier `.memory/` contient la mémoire longue des agents, complémentaire à
 
 | Fichier | Contenu | À lire quand |
 | --- | --- | --- |
-| `.memory/decisions.md` | Décisions actées (72) | Avant toute action structurante |
+| `.memory/decisions.md` | Décisions actées (73) | Avant toute action structurante |
 | `.memory/instructions.md` | Rappel et pointeurs | En début de session |
 | `.memory/preferences.md` | Préférences du décideur | Avant de proposer une solution |
 | `.memory/quirks.md` | Pièges et particularités | Avant de coder |

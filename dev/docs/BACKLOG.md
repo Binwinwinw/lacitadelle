@@ -520,7 +520,9 @@ automatique sans modèle précédent.
 
 **Statut** : implémentation et correctifs Linux terminés le 2026-10-31
 (décision #71 amendée); 205 tests verts. Le test réel Linux est validé;
-Windows/macOS restent à valider avant diffusion.
+Windows reste à valider avant diffusion. Le test réel macOS a révélé que
+llamafile s'arrêtait après le premier échange; voir le correctif Phase
+14-FIX-MACOS-LAUNCH ci-dessous.
 **Dépendances** : décision #66 (archive source-only) préservée; runtime
 llamafile thin universel 0.10.6.
 **Périmètre livré** : lanceur et installateur Python multiplateformes,
@@ -534,6 +536,19 @@ APE Unix via `sh -c` avec `shlex.join`, arguments `-m` avant `--server`.
 par le Décideur.
 **Prochaine étape** : exécuter les tests manuels Windows/macOS, puis
 diffuser l'archive sur décision du Décideur.
+
+### Phase 14-FIX-MACOS-LAUNCH — Processus llamafile persistant
+
+**Statut** : correctif implémenté le 2026-11-05 (décision #73); 221 tests
+verts. La validation manuelle sur Mac reste à effectuer.
+**Cause** : fin du shell `sh -c` après le fork APE, suivie de l'arrêt par le
+superviseur; le runtime n'était pas isolé des signaux du terminal.
+**Correctif** : `exec` dans la commande shell Unix et
+`start_new_session=True`; lancement direct Windows inchangé.
+**Tests** : T11 vérifie `exec`, T12 la session isolée sur Darwin et T13 le
+lancement Windows direct.
+**Prochaine étape** : Décideur, tester trois messages consécutifs sur macOS
+avec l'archive courante; ne pas publier avant validation.
 
 ### 13-CROSS-PLATFORM-TER — Documentation des leçons post-test Linux
 
