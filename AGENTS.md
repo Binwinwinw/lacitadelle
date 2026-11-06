@@ -13,10 +13,10 @@ V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Un build PyInstaller Windows autonome est disponible; il télécharge runtime et
 GGUF au premier lancement et conserve les données sous `%APPDATA%\LaCitadelle\`.
-La suite compte 230 tests permanents et `.memory/decisions.md` 77 décisions.
+La suite compte 232 tests permanents et `.memory/decisions.md` 77 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
-<!-- Compteurs vérifiés le 2026-11-05.
+<!-- Compteurs vérifiés le 2026-11-06.
 Vérité : .memory/decisions.md + pytest -q. -->
 
 ## Références projet
@@ -97,13 +97,17 @@ En cas de changement d'une règle, mettre à jour les deux.
 - **Mot de passe admin sous PyInstaller** : lancer le proxy avec `stdout=None`
   pour afficher son mot de passe initial dans la console de l'EXE; conserver
   `stdout=PIPE` et le thread de forwarding en mode développement.
+- **Markdown du chat : XSS** : parser les réponses avec Marked puis toujours
+  les assainir avec DOMPurify et une liste autorisée de balises/attributs avant
+  leur insertion. Ne jamais injecter directement le HTML produit par Marked.
 - **Ordre des arguments** : `-m <GGUF>` doit toujours précéder `--server`.
 - **Validation réelle** : les mocks OS des tests ne remplacent pas une
   validation manuelle sur chaque OS avant release. Les tests T8 (LF), T9
   (`sh -c`) et T10 (appel direct Windows) sont dans
   `dev/tests/test_cross_platform.py`.
 - Le test T16 vérifie `CREATE_NEW_CONSOLE` sans redirection Windows; T17
-  vérifie l'affichage du proxy en mode EXE.
+  vérifie l'affichage du proxy en mode EXE. Les tests de rendu Markdown sont
+  dans `dev/tests/test_chat_markdown.py`.
 
 ### Persona Nexxus et sécurité des fichiers
 

@@ -610,3 +610,11 @@ SmartScreen, affichage réel des logs, arrêt manuel du runtime et éventuelle
 signature numérique.
 **Prochaine étape** : test manuel du binaire par le Décideur; ne pas diffuser
 avant vérification du SHA-256 et arbitrage sur la signature.
+
+## Phase 16-CHAT-MARKDOWN-V1 — Rendu Markdown des réponses
+
+**Statut** : Marked et DOMPurify chargés depuis jsDelivr avec versions et SRI
+épinglées; deux tests statiques ajoutés; tests visuels manuels à effectuer.
+**Sécurité** : le HTML généré est assaini avec une allowlist avant insertion;
+si les dépendances ne chargent pas, le chat affiche le texte brut.
+**Limite** : le rendu Markdown requiert une connexion au CDN.

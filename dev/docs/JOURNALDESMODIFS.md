@@ -2,6 +2,21 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-06] Phase 16-CHAT-MARKDOWN-V1 — Rendu Markdown assaini
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/tools/web/chat.html`, `chat.js`, `style.css`,
+`dev/tests/test_chat_markdown.py`, RUNBOOK-PROD.md, AGENTS.md, BACKLOG, TODO
+et journaux.
+
+**Raison** : afficher les réponses de l'assistant avec une mise en forme
+Markdown tout en empêchant l'injection de HTML non fiable.
+
+**Impact** : Marked et DOMPurify sont chargés avec versions et empreintes SRI
+épinglées; deux tests statiques ajoutés; sans CDN, rendu en texte brut.
+Validation visuelle par le Décideur en attente.
+
 ## [2026-11-06] Phase 15-RELEASE-WINDOWS-V1 — Préparation v3.1.0
 
 **Commit** : identifiant consultable dans l'historique Git.

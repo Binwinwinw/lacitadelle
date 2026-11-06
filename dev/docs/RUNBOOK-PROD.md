@@ -520,9 +520,20 @@ redirection de `stderr` vers `proxy.log`.
 Toujours passer `-m <GGUF>` avant `--server`; l'ordre inverse peut afficher
 l'aide puis quitter sans charger le modèle.
 
+### Rendu Markdown du chat
+
+Les réponses de l'assistant sont rendues avec Marked 18.1.2, puis assainies
+avec DOMPurify 3.4.17 avant insertion dans le DOM. Les scripts sont chargés
+depuis jsDelivr avec versions et empreintes SRI épinglées. L'assainisseur
+n'autorise que les balises de formatage, listes, liens, blocs de code et
+tableaux nécessaires; les attributs sont limités à `href` et `title`.
+N'ajoutez jamais d'insertion directe du HTML non assaini produit par Marked.
+Si les scripts CDN ne sont pas disponibles, les réponses restent affichées en
+texte brut; une connexion Internet est donc nécessaire pour le rendu Markdown.
+
 ### Validation multi-OS
 
-Les 230 tests unitaires simulent certains OS et mockent les processus; ils ne
+Les tests unitaires simulent certains OS et mockent les processus; ils ne
 garantissent pas le lancement réel sous Linux ou macOS. Valider manuellement
 l'installation et le chat sur chaque OS avant une release majeure.
 
@@ -534,7 +545,7 @@ l'implémentation est à planifier dans un GO dédié 14-PLAYWRIGHT-E2E.
 ### Objectif
 
 Couvrir les parcours utilisateur critiques (login, chat, réglages et
-administration) dans un navigateur réel, en complément des 230 tests unitaires.
+administration) dans un navigateur réel, en complément des tests unitaires.
 
 ### Scénarios à tester
 

@@ -24,6 +24,9 @@ tâche terminée est supprimée ici; sa trace reste dans
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
 - [ ] Tester login et chat dans un navigateur avec un compte réel de test. —
   Propriétaire : Décideur.
+- [ ] Vérifier visuellement le rendu Markdown du chat (gras, titres, listes,
+  code et tableau) et confirmer qu'un contenu HTML/XSS est neutralisé. —
+  Propriétaire : Décideur.
 - [ ] Re-tester manuellement le persona Nexxus V1.1 après les ajustements
   (anti-flagornerie, conseils pros, llamafile). — Propriétaire : Décideur.
 - [ ] Exécuter le test manuel 10C sur une base jetable, jamais sur la base

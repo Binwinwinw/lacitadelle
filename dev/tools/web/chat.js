@@ -17,6 +17,24 @@ const newSessionBtn = document.getElementById("new-session");
 const statusDiv = document.getElementById("status");
 const adminLink = document.getElementById("admin-link");
 
+function renderMarkdown(content) {
+	if (!window.marked || !window.DOMPurify) {
+		return null;
+	}
+
+	const html = window.marked.parse(content, { breaks: true });
+	return window.DOMPurify.sanitize(html, {
+		ALLOWED_TAGS: [
+			"a", "blockquote", "br", "code", "del", "em", "h1", "h2",
+			"h3", "h4", "h5", "h6", "hr", "li", "ol", "p", "pre",
+			"strong", "table", "tbody", "td", "th", "thead", "tr", "ul",
+		],
+		ALLOWED_ATTR: ["href", "title"],
+		ALLOW_DATA_ATTR: false,
+		RETURN_DOM_FRAGMENT: true,
+	});
+}
+
 function showStatus(message, isError = false) {
 	statusDiv.textContent = message;
 	statusDiv.className = isError ? "status error" : "status";
@@ -25,7 +43,16 @@ function showStatus(message, isError = false) {
 function createMessage(role, content) {
 	const message = document.createElement("div");
 	message.className = `message ${role}`;
-	message.textContent = content;
+	if (role === "assistant") {
+		const rendered = renderMarkdown(content);
+		if (rendered) {
+			message.appendChild(rendered);
+		} else {
+			message.textContent = content;
+		}
+	} else {
+		message.textContent = content;
+	}
 	return message;
 }
 

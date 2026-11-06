@@ -207,6 +207,82 @@ body {
   font-style: italic;
 }
 
+.message.assistant > * + * {
+  margin-top: 0.75rem;
+}
+
+.message.assistant h1,
+.message.assistant h2,
+.message.assistant h3,
+.message.assistant h4,
+.message.assistant h5,
+.message.assistant h6 {
+  color: #fff;
+  line-height: 1.25;
+}
+
+.message.assistant h1 { font-size: 1.5rem; }
+.message.assistant h2 { font-size: 1.3rem; }
+.message.assistant h3 { font-size: 1.15rem; }
+.message.assistant h4,
+.message.assistant h5,
+.message.assistant h6 { font-size: 1rem; }
+
+.message.assistant ul,
+.message.assistant ol {
+  padding-left: 1.5rem;
+}
+
+.message.assistant li + li {
+  margin-top: 0.25rem;
+}
+
+.message.assistant blockquote {
+  padding-left: 0.75rem;
+  border-left: 3px solid #666;
+  color: #bbb;
+}
+
+.message.assistant code {
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  background: #222;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.message.assistant pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: #222;
+}
+
+.message.assistant pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 0.85rem;
+}
+
+.message.assistant table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.message.assistant th,
+.message.assistant td {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #555;
+  text-align: left;
+}
+
+.message.assistant a {
+  color: #9ccaff;
+}
+
 .chat-form {
   display: flex;
   gap: 0.5rem;
@@ -640,6 +716,34 @@ html[data-theme="light"] .settings-section p,
 html[data-theme="light"] .status,
 html[data-theme="light"] .placeholder {
   color: #555;
+}
+
+html[data-theme="light"] .message.assistant h1,
+html[data-theme="light"] .message.assistant h2,
+html[data-theme="light"] .message.assistant h3,
+html[data-theme="light"] .message.assistant h4,
+html[data-theme="light"] .message.assistant h5,
+html[data-theme="light"] .message.assistant h6 {
+  color: #222;
+}
+
+html[data-theme="light"] .message.assistant blockquote {
+  border-color: #aaa;
+  color: #555;
+}
+
+html[data-theme="light"] .message.assistant code,
+html[data-theme="light"] .message.assistant pre {
+  background: #eee;
+}
+
+html[data-theme="light"] .message.assistant th,
+html[data-theme="light"] .message.assistant td {
+  border-color: #ccc;
+}
+
+html[data-theme="light"] .message.assistant a {
+  color: #0759a5;
 }
 
 html[data-theme="light"] .settings-form select,
