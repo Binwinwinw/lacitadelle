@@ -13,7 +13,7 @@ V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Un build PyInstaller Windows autonome est disponible; il télécharge runtime et
 GGUF au premier lancement et conserve les données sous `%APPDATA%\LaCitadelle\`.
-La suite compte 229 tests permanents et `.memory/decisions.md` 76 décisions.
+La suite compte 230 tests permanents et `.memory/decisions.md` 77 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
 <!-- Compteurs vérifiés le 2026-11-05.
@@ -51,7 +51,7 @@ Pour comprendre le projet et savoir quoi faire, lire dans cet ordre :
 3. **AGENTS.md** : comprendre les règles de collaboration (10 règles structurelles).
 4. **dev/docs/ROADMAP.md** : comprendre l'histoire du projet par phase (V1 → Phase 15).
 5. **dev/docs/BACKLOG.md** : comprendre les tâches futures validées (B-1, B-2).
-6. **.memory/decisions.md** : comprendre les décisions actées (75 décisions datées).
+6. **.memory/decisions.md** : comprendre les décisions actées (77 décisions datées).
 7. **dev/docs/JOURNALDEBORD.md / dev/docs/JOURNALDESMODIFS.md** : consulter la chronologie des sessions et la synthèse par commit.
 8. **TODO.md** : consulter la liste partagée des actions encore à mener.
 9. **CHANGELOG.md** : suivre ses pointeurs vers les documents d'historique.
@@ -94,13 +94,16 @@ En cas de changement d'une règle, mettre à jour les deux.
   `CREATE_NEW_CONSOLE` sans rediriger stdout/stderr; llamafile écrit dans sa
   propre console. Ne pas le tuer dans le `finally`; il reste actif après
   l'arrêt du proxy.
+- **Mot de passe admin sous PyInstaller** : lancer le proxy avec `stdout=None`
+  pour afficher son mot de passe initial dans la console de l'EXE; conserver
+  `stdout=PIPE` et le thread de forwarding en mode développement.
 - **Ordre des arguments** : `-m <GGUF>` doit toujours précéder `--server`.
 - **Validation réelle** : les mocks OS des tests ne remplacent pas une
   validation manuelle sur chaque OS avant release. Les tests T8 (LF), T9
   (`sh -c`) et T10 (appel direct Windows) sont dans
   `dev/tests/test_cross_platform.py`.
-- Le test T16 vérifie `CREATE_NEW_CONSOLE` sans redirection Windows; le test
-  de nettoyage vérifie que le lanceur n'arrête pas llamafile.
+- Le test T16 vérifie `CREATE_NEW_CONSOLE` sans redirection Windows; T17
+  vérifie l'affichage du proxy en mode EXE.
 
 ### Persona Nexxus et sécurité des fichiers
 

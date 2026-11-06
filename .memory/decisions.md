@@ -1806,3 +1806,23 @@ provoquait le conflit.
 **Conséquences** : llamafile démarre avec une console visible sous Windows
 PyInstaller et reste actif après l'arrêt du proxy. La suite compte 229 tests;
 la validation réelle par le Décideur reste nécessaire.
+
+## [2026-11-06] Afficher le mot de passe admin dans l'EXE PyInstaller
+(Phase 15-TER-V3)
+
+**Contexte** : le proxy PyInstaller envoyait sa sortie standard dans un pipe
+dont le thread de forwarding n'était pas adapté à l'EXE; le mot de passe admin
+initial pouvait rester invisible.
+
+**Décision(s)** :
+
+1. En mode gelé (`sys.frozen`), lancer le proxy avec `stdout=None` afin que sa
+   sortie soit visible dans la console de l'EXE; garder stderr dans `proxy.log`.
+2. En mode développement, conserver `stdout=PIPE`, le thread de forwarding et
+   `stderr=proxy.log`.
+3. Ajouter T17 sans modifier les 229 tests existants; documenter le contraste
+   des deux modes dans RUNBOOK-PROD.md et AGENTS.md.
+
+**Conséquences** : le mot de passe admin initial devient visible sous
+PyInstaller, tandis que le mode développement reste inchangé. La suite compte
+230 tests; validation manuelle de l'EXE en attente.

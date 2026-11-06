@@ -307,28 +307,37 @@ def main() -> int:
             if IS_FROZEN
             else [sys.executable, "-u", str(PROXY_SCRIPT)]
         )
-        proxy_process = subprocess.Popen(
-            proxy_command,
-            cwd=PROJECT_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=proxy_log_file,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            bufsize=1,
-        )
-        proxy_thread = threading.Thread(
-            target=_forward_proxy_output,
-            args=(proxy_process.stdout, output_queue),
-            daemon=True,
-        )
-        proxy_thread.start()
+        frozen = getattr(sys, "frozen", False)
+        if frozen:
+            proxy_process = subprocess.Popen(
+                proxy_command,
+                cwd=PROJECT_ROOT,
+                stdout=None,
+                stderr=proxy_log_file,
+            )
+        else:
+            proxy_process = subprocess.Popen(
+                proxy_command,
+                cwd=PROJECT_ROOT,
+                stdout=subprocess.PIPE,
+                stderr=proxy_log_file,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                bufsize=1,
+            )
+            proxy_thread = threading.Thread(
+                target=_forward_proxy_output,
+                args=(proxy_process.stdout, output_queue),
+                daemon=True,
+            )
+            proxy_thread.start()
         _wait_for_service(
             proxy_process,
             PROXY_URL,
             "Proxy",
             60,
-            output_queue,
+            None if frozen else output_queue,
         )
         try:
             opened = webbrowser.open(APP_URL)
@@ -342,7 +351,8 @@ def main() -> int:
         )
 
         while True:
-            _drain_proxy_output(output_queue)
+            if proxy_thread is not None:
+                _drain_proxy_output(output_queue)
             if runtime_process.poll() is not None:
                 raise LauncherError("Le serveur llamafile s'est arrêté.")
             if proxy_process.poll() is not None:

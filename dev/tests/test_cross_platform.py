@@ -306,6 +306,46 @@ def test_launcher_finally_stops_proxy_but_not_llamafile(tmp_path, monkeypatch):
     assert "creationflags" not in start_llamafile.call_args.kwargs
 
 
+def test_lancer_exe_mode_does_not_pipe_proxy(tmp_path, monkeypatch):
+    binary = tmp_path / "llamafile.exe"
+    model = tmp_path / "model.gguf"
+    binary.write_bytes(b"runtime")
+    model.write_bytes(b"model")
+    runtime_process = MagicMock()
+    runtime_process.poll.return_value = None
+    proxy_process = MagicMock()
+    proxy_process.poll.return_value = None
+    proxy_process.stdout = None
+    stop_process = MagicMock()
+
+    monkeypatch.setattr(lancer, "IS_FROZEN", False)
+    monkeypatch.setattr(lancer, "PROXY_LOG", tmp_path / "dist" / "proxy.log")
+    monkeypatch.setattr(lancer, "get_runtime_binary", lambda: binary)
+    monkeypatch.setattr(lancer, "select_model_path", lambda: model)
+
+    with (
+        patch.object(lancer.sys, "frozen", True, create=True),
+        patch("lancer.platform.system", return_value="Windows"),
+        patch.object(lancer, "_run_model_health", return_value=0),
+        patch.object(lancer, "start_llamafile", return_value=runtime_process),
+        patch.object(lancer, "_wait_for_service") as wait_for_service,
+        patch.object(lancer.subprocess, "Popen", return_value=proxy_process) as popen,
+        patch.object(lancer.threading, "Thread") as thread,
+        patch.object(lancer, "_stop_process", stop_process),
+        patch.object(lancer.webbrowser, "open", return_value=True),
+        patch.object(lancer.time, "sleep", side_effect=KeyboardInterrupt),
+    ):
+        assert lancer.main() == 0
+
+    assert popen.call_args.kwargs["stdout"] is None
+    assert popen.call_args.kwargs["stderr"].name == str(
+        tmp_path / "dist" / "proxy.log"
+    )
+    assert wait_for_service.call_args_list[1].args[-1] is None
+    thread.assert_not_called()
+    stop_process.assert_called_once_with(proxy_process)
+
+
 def test_lancer_windows_uses_direct_popen(tmp_path):
     binary = tmp_path / "llamafile.exe"
     gguf = tmp_path / "model.gguf"

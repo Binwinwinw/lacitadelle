@@ -507,6 +507,14 @@ le processus llamafile avant de l'arrêter. Le port 8080 reste occupé tant que
 le runtime tourne. Ne pas réintroduire `_stop_process(runtime_process)` dans
 le bloc `finally`.
 
+### Windows + PyInstaller : affichage mot de passe admin
+
+En mode EXE, lancer le proxy avec `stdout=None` pour que sa sortie (dont le
+mot de passe admin initial) soit visible dans la console héritée de l'EXE.
+Rediriger son `stderr` vers `proxy.log`, sans thread de forwarding.
+En mode développement, garder `stdout=PIPE`, le thread de forwarding et la
+redirection de `stderr` vers `proxy.log`.
+
 ### Ordre des arguments llamafile
 
 Toujours passer `-m <GGUF>` avant `--server`; l'ordre inverse peut afficher
@@ -514,7 +522,7 @@ l'aide puis quitter sans charger le modèle.
 
 ### Validation multi-OS
 
-Les 218 tests unitaires simulent certains OS et mockent les processus; ils ne
+Les 230 tests unitaires simulent certains OS et mockent les processus; ils ne
 garantissent pas le lancement réel sous Linux ou macOS. Valider manuellement
 l'installation et le chat sur chaque OS avant une release majeure.
 
@@ -526,7 +534,7 @@ l'implémentation est à planifier dans un GO dédié 14-PLAYWRIGHT-E2E.
 ### Objectif
 
 Couvrir les parcours utilisateur critiques (login, chat, réglages et
-administration) dans un navigateur réel, en complément des 218 tests unitaires.
+administration) dans un navigateur réel, en complément des 230 tests unitaires.
 
 ### Scénarios à tester
 

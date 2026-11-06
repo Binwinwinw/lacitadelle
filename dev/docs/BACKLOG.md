@@ -591,17 +591,20 @@ nécessite un GO séparé avant tout outil de lecture.
 
 ## Phase 15-PACKAGING-PYINSTALLER-V1 — Exécutable Windows autonome
 
-**Statut** : build local produit le 2026-11-05 (décisions #74–#76);
-229 tests verts. L'EXE reste un artefact local ignoré par Git; aucune release
+**Statut** : build local produit le 2026-11-06 (décisions #74–#77);
+230 tests verts. L'EXE reste un artefact local ignoré par Git; aucune release
 n'est publiée.
 **Périmètre livré** : PyInstaller one-file, premier lancement avec bootstrap
 runtime/GGUF, données persistantes dans `%APPDATA%\LaCitadelle\`, ressources
 embarquées et script de build non destructif.
-**Tests** : cinq tests unitaires de chemins, deux tests BIS et un test TER;
-les 228 tests antérieurs sont conservés.
+**Tests** : cinq tests unitaires de chemins, deux tests BIS, un test TER et un
+test TER-V3; les 229 tests antérieurs sont conservés.
 **Correctif TER** : `CREATE_NEW_CONSOLE` est utilisé sans redirection stdout
 ou stderr; llamafile affiche ses logs dans sa console dédiée et reste actif
 après l'arrêt du proxy.
+**Correctif TER-V3** : en mode EXE, stdout du proxy hérite de la console afin
+d'y afficher le mot de passe admin initial; en mode développement, le pipe et
+le thread de forwarding restent actifs.
 **Questions ouvertes** : validation sur un Windows sans Python, comportement
 SmartScreen, affichage réel des logs, arrêt manuel du runtime et éventuelle
 signature numérique.

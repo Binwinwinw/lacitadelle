@@ -1436,6 +1436,21 @@ stdout/stderr qui rendait le terminal vide et faisait échouer llamafile.
 EXE PyInstaller régénéré localement, ignoré par Git et non publié; validation
 manuelle sur Windows en attente.
 
+## [2026-11-06] Phase 15-PACKAGING-TER-V3 — Sortie proxy visible dans l'EXE
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/tools/lancer.py`,
+`dev/tests/test_cross_platform.py`, RUNBOOK-PROD.md, AGENTS.md, décision #77,
+BACKLOG, TODO et journaux.
+
+**Raison** : afficher dans la console PyInstaller le mot de passe admin émis
+sur stdout par le proxy, sans modifier le forwarding du mode développement.
+
+**Impact** : T17 ajouté sans modifier les 229 tests existants; 230 tests
+passent. EXE régénéré localement, ignoré par Git et non publié; validation
+manuelle par le Décideur en attente.
+
 ## [2026-11-05] Phase 14-FIX-MACOS-LAUNCH — Runtime llamafile persistant
 
 **Commit** : identifiant consultable dans l'historique Git.
