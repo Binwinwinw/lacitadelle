@@ -16,7 +16,9 @@ tâche terminée est supprimée ici; sa trace reste dans
   consécutifs sur Mac. — Propriétaire : Décideur.
 - [ ] Valider `dist/release/LaCitadelle.exe` sur un poste Windows sans Python;
   vérifier premier téléchargement, chat, parcours SmartScreen et que llamafile
-  reste actif après Ctrl+C dans le proxy; contrôler `llamafile.log`. —
+  affiche ses logs dans sa console dédiée sans redirection, puis reste actif
+  après Ctrl+C dans le proxy. Utiliser un profil de test ou sauvegarder les
+  données avant tout nettoyage. —
   Propriétaire : Décideur.
 - [ ] Vérifier sur le serveur cible les ports TCP 80/443 et confirmer que
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.

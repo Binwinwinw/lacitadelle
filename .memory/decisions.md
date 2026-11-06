@@ -1786,3 +1786,23 @@ sans partager le terminal du proxy.
 **Conséquences** : llamafile reste disponible après l'arrêt du proxy et son
 journal est conservé. Le runtime doit être arrêté manuellement; sa validation
 sur un poste Windows sans Python reste à effectuer.
+
+## [2026-11-05] Fix terminal vide Windows/PyInstaller (Phase 15-TER)
+
+**Contexte** : le terminal de llamafile s'ouvrait vide et le runtime crashait.
+La combinaison de `CREATE_NEW_CONSOLE` et de la redirection stdout/stderr
+provoquait le conflit.
+
+**Décision(s)** :
+
+1. Utiliser `CREATE_NEW_CONSOLE` sans rediriger stdout ni stderr; llamafile
+   écrit directement dans sa console dédiée.
+2. Retirer le paramètre `creationflags` de `start_llamafile()` et fixer le
+   flag dans sa branche Windows.
+3. Adapter les trois tests Windows concernés sans en supprimer, puis ajouter
+   T16 pour vérifier la console dédiée sans redirection.
+4. Documenter le comportement dans RUNBOOK-PROD.md et AGENTS.md.
+
+**Conséquences** : llamafile démarre avec une console visible sous Windows
+PyInstaller et reste actif après l'arrêt du proxy. La suite compte 229 tests;
+la validation réelle par le Décideur reste nécessaire.

@@ -27,8 +27,8 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 
 ## Tests
 
-- 228 tests verts : 226 tests de référence et deux nouveaux tests de
-  persistance du runtime Windows.
+- 229 tests verts : 228 tests avant le correctif TER et un nouveau test du
+  lancement Windows sans redirection.
 
 ## Persona Nexxus (Phase 14-PERSONA-NEXXUS-V1)
 
@@ -45,8 +45,8 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
   requis sur le poste utilisateur.
 - Au premier lancement, runtime et GGUF sont téléchargés et vérifiés.
 - La base, les assets et les logs persistent dans `%APPDATA%\LaCitadelle\`.
-- Sur Windows, llamafile garde sa console dédiée, écrit dans
-  `assets/llamafile.log` et reste actif après l'arrêt du proxy.
+- Sur Windows, llamafile garde sa console dédiée sans redirection stdout;
+  il reste actif après l'arrêt du proxy.
 - Ctrl+C arrête le proxy, pas llamafile; fermer sa console quand il n'est plus
   utilisé (le port 8080 reste occupé tant que le runtime tourne).
 - L'exécutable n'est pas signé; vérifier son SHA-256 avant tout contournement

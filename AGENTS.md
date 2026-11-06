@@ -13,7 +13,7 @@ V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Un build PyInstaller Windows autonome est disponible; il télécharge runtime et
 GGUF au premier lancement et conserve les données sous `%APPDATA%\LaCitadelle\`.
-La suite compte 228 tests permanents et `.memory/decisions.md` 75 décisions.
+La suite compte 229 tests permanents et `.memory/decisions.md` 76 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
 <!-- Compteurs vérifiés le 2026-11-05.
@@ -90,16 +90,17 @@ En cas de changement d'une règle, mettre à jour les deux.
   `sh -c "exec llamafile ..."` avec `start_new_session=True`. Ne jamais
   retirer l'`exec` ni l'isolation de session; voir la section macOS du
   RUNBOOK-PROD.md.
-- **Windows + PyInstaller : isolation llamafile** : conserver
-  `CREATE_NEW_CONSOLE` et rediriger la sortie vers `llamafile.log`. Ne pas tuer
-  llamafile dans le `finally`; il reste actif après l'arrêt du proxy.
+- **Windows + PyInstaller : terminal llamafile** : conserver
+  `CREATE_NEW_CONSOLE` sans rediriger stdout/stderr; llamafile écrit dans sa
+  propre console. Ne pas le tuer dans le `finally`; il reste actif après
+  l'arrêt du proxy.
 - **Ordre des arguments** : `-m <GGUF>` doit toujours précéder `--server`.
 - **Validation réelle** : les mocks OS des tests ne remplacent pas une
   validation manuelle sur chaque OS avant release. Les tests T8 (LF), T9
   (`sh -c`) et T10 (appel direct Windows) sont dans
   `dev/tests/test_cross_platform.py`.
-- Les tests T14/T15 vérifient la redirection du log Windows et que le nettoyage
-  final du lanceur n'arrête pas llamafile.
+- Le test T16 vérifie `CREATE_NEW_CONSOLE` sans redirection Windows; le test
+  de nettoyage vérifie que le lanceur n'arrête pas llamafile.
 
 ### Persona Nexxus et sécurité des fichiers
 

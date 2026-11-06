@@ -183,8 +183,8 @@ Linux et macOS avant la diffusion de l'archive.
 
 - Distribution : archive ZIP source-only pour Windows, Linux et macOS; aucun
   binaire n'est intégré.
-- Tests : 228.
-- Décisions : 75 actées.
+- Tests : 229.
+- Décisions : 76 actées.
 - Phase 11 : complète; Phase 13 implémentée, validation manuelle restante.
 - Phase 14-PERSONA-NEXXUS V1.1 : implémentée, validation manuelle restante.
 - Phase 15-PACKAGING-PYINSTALLER-V1 : exécutable Windows buildé localement;
@@ -203,12 +203,12 @@ sans Python système et télécharge runtime et GGUF au premier lancement.
 embarquées et données persistantes sous `%APPDATA%\LaCitadelle\`. Le build
 n'efface pas `dist/`; SmartScreen et absence de signature documentés.
 
-**Tests** : cinq tests de chemins initiaux; 228 tests passent après deux tests
-BIS sur les logs et la persistance du runtime Windows.
+**Tests** : cinq tests de chemins initiaux, deux tests BIS et un test TER;
+229 tests passent.
 
-**Correctif BIS** : llamafile utilise une console dédiée Windows, ses sorties
-sont enregistrées dans `llamafile.log` et le lanceur ne l'arrête pas avec le
-proxy. Validation manuelle sur un poste Windows sans Python en attente.
+**Correctif BIS/TER** : llamafile utilise une console dédiée Windows sans
+redirection stdout/stderr; le lanceur ne l'arrête pas avec le proxy.
+Validation manuelle sur un poste Windows sans Python en attente.
 
 **Validation restante** : lancer l'EXE sur un poste Windows sans Python, puis
 publier le binaire seulement après décision et vérification de signature/hash.

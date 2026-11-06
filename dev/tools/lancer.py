@@ -74,8 +74,6 @@ def start_llamafile(
     gguf: Path,
     host: str,
     port: int,
-    *,
-    creationflags: int = 0,
 ) -> subprocess.Popen:
     args = [
         str(binary),
@@ -89,22 +87,11 @@ def start_llamafile(
         *RUNTIME_OPTIONS,
     ]
     if platform.system() == "Windows":
-        llamafile_log = ASSETS_DIR / "llamafile.log"
-        llamafile_log.parent.mkdir(parents=True, exist_ok=True)
-        log_file = llamafile_log.open("a", encoding="utf-8")
-        try:
-            process = subprocess.Popen(
-                args,
-                cwd=PROJECT_ROOT,
-                creationflags=creationflags,
-                stdout=log_file,
-                stderr=subprocess.STDOUT,
-            )
-        except (OSError, ValueError):
-            log_file.close()
-            raise
-        process._log_handle = log_file  # type: ignore[attr-defined]
-        return process
+        return subprocess.Popen(
+            args,
+            cwd=PROJECT_ROOT,
+            creationflags=subprocess.CREATE_NEW_CONSOLE,
+        )
     return subprocess.Popen(
         ["sh", "-c", "exec " + shlex.join(args)],
         cwd=PROJECT_ROOT,
@@ -299,17 +286,11 @@ def main() -> int:
         model_path = select_model_path()
 
         print("Démarrage du serveur llamafile (port 8080)...")
-        creationflags = (
-            getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
-            if system == "Windows"
-            else 0
-        )
         runtime_process = start_llamafile(
             binary,
             model_path,
             "127.0.0.1",
             8080,
-            creationflags=creationflags,
         )
         _wait_for_service(runtime_process, RUNTIME_URL, "llamafile", 120)
         if _run_model_health(["--check", str(model_path)]) != 0:

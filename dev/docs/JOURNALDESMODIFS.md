@@ -1420,6 +1420,22 @@ conserver ses sorties dans un journal dédié.
 terminer le runtime. Build PyInstaller régénéré localement, EXE ignoré par Git
 et non publié; validation manuelle Windows en attente.
 
+## [2026-11-05] Phase 15-PACKAGING-TER — Console llamafile visible sous Windows
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/tools/lancer.py`,
+`dev/tests/test_cross_platform.py`, RUNBOOK-PROD.md, AGENTS.md,
+ARCHITECTURE.md, README et notes de release, décision #76, BACKLOG, TODO et
+journaux.
+
+**Raison** : supprimer le conflit entre `CREATE_NEW_CONSOLE` et la redirection
+stdout/stderr qui rendait le terminal vide et faisait échouer llamafile.
+
+**Impact** : trois tests Windows adaptés et T16 ajouté; 229 tests passent.
+EXE PyInstaller régénéré localement, ignoré par Git et non publié; validation
+manuelle sur Windows en attente.
+
 ## [2026-11-05] Phase 14-FIX-MACOS-LAUNCH — Runtime llamafile persistant
 
 **Commit** : identifiant consultable dans l'historique Git.
