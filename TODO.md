@@ -52,9 +52,9 @@ tâche terminée est supprimée ici; sa trace reste dans
   le réseau si ces assets manquent. — Propriétaire : Décideur.
 - [ ] Lancer MEP-TER après validation de la VM et de la checklist de l'hôte. —
   Propriétaire : Décideur.
-- [ ] Décider si le déploiement utilisera l'archive `v3-distribution`;
-  si oui, régénérer et publier l'archive avec les changements Phase 12 avant
-  de l'utiliser. — Propriétaire : Décideur.
+- [ ] Publier manuellement la release GitHub `v3.1.0` avec l'EXE Windows et
+  l'archive source-only après validation du Décideur. — Propriétaire :
+  Décideur.
 
 ## Prochains GO planifiés (post-v3.0.0)
 

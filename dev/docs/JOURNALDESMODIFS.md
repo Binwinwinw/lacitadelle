@@ -2,6 +2,19 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-06] Phase 15-RELEASE-WINDOWS-V1 — Préparation v3.1.0
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `RELEASE-NOTES.md`, `TODO.md`, JOURNALDEBORD.md et
+JOURNALDESMODIFS.md; archive source-only régénérée localement.
+
+**Raison** : documenter l'EXE Windows one-click avec son SHA-256 et préparer
+la distribution source-only pour la publication manuelle de v3.1.0.
+
+**Impact** : le ZIP ne contient ni `.git`, ni `node_modules`, ni binaires;
+l'EXE reste un fichier séparé. Aucune release GitHub n'est publiée.
+
 ## Phases 1-5 — Distribution actuelle
 
 - **Phase 1** : le bootstrap télécharge llamafile-thin 0.10.6 dans `dist/` et le GGUF séparément dans `dev/tools/vendor/llamafile/`; les deux assets sont vérifiés par checksum.

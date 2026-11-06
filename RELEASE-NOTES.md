@@ -39,10 +39,12 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
   niveaux (public, sensible, critique). Aucun outil de lecture de fichiers
   n'est inclus dans cette version.
 
-## Packaging autonome Windows (Phase 15-PACKAGING-PYINSTALLER-V1)
+## Windows one-click (Phase 15-PACKAGING)
 
-- Un build PyInstaller one-file produit `LaCitadelle.exe`; Python n'est pas
-  requis sur le poste utilisateur.
+- Le build PyInstaller one-file fournit `LaCitadelle.exe` pour Windows;
+  Python n'est pas requis sur le poste utilisateur.
+- SHA-256 de `LaCitadelle.exe` :
+  `1e608b4ece62822a657bc9c7b4486ce8cd24bfe6d26c3ba8afd45fce74b14246`.
 - Au premier lancement, runtime et GGUF sont téléchargés et vérifiés.
 - La base, les assets et les logs persistent dans `%APPDATA%\LaCitadelle\`.
 - Sur Windows, llamafile garde sa console dédiée sans redirection stdout;
@@ -50,8 +52,8 @@ SHA-256 : communiqué séparément avec l'archive; non intégré aux notes pour
 - Ctrl+C arrête le proxy, pas llamafile; fermer sa console quand il n'est plus
   utilisé (le port 8080 reste occupé tant que le runtime tourne).
 - L'exécutable n'est pas signé; vérifier son SHA-256 avant tout contournement
-  de SmartScreen. Le ZIP source-only du projet reste disponible pour Linux et
-  macOS.
+  de SmartScreen. Le ZIP source-only `lacitadelle-distribution.zip` reste
+  disponible pour les développeurs; l'EXE est distribué séparément.
 
 ## Corrections post-test (Phase 13-CROSS-PLATFORM-BIS)
 
