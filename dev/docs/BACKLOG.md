@@ -618,3 +618,10 @@ avant vérification du SHA-256 et arbitrage sur la signature.
 **Sécurité** : le HTML généré est assaini avec une allowlist avant insertion;
 si les dépendances ne chargent pas, le chat affiche le texte brut.
 **Limite** : le rendu Markdown requiert une connexion au CDN.
+
+## Phase 16-CHAT-MARKDOWN-V2 — Vendorisation offline (backlog)
+
+**Objectif** : supprimer la dépendance CDN en copiant Marked et DOMPurify dans
+`dev/tools/web/vendor/`, avec intégrité locale.
+**Moment de traitement** : quand la dépendance CDN devient un problème,
+notamment pour une distribution EXE hors ligne.

@@ -2,6 +2,20 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-06] Phase 16-CHAT-MARKDOWN-V1-FIX — Vérification SRI et backlog V2
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`, JOURNALDEBORD.md et
+JOURNALDESMODIFS.md.
+
+**Raison** : confirmer les empreintes des scripts CDN Markdown et tracer
+l'option future de vendorisation offline, à traiter si la dépendance CDN
+devient un problème.
+
+**Impact** : les SRI configurés sont exacts pour les deux bundles vérifiés;
+aucun changement de code ni release n'est requis.
+
 ## [2026-11-06] Phase 16-CHAT-MARKDOWN-V1 — Rendu Markdown assaini
 
 **Commit** : identifiant consultable dans l'historique Git.
