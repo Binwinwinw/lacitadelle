@@ -36,7 +36,7 @@ from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -1950,10 +1950,22 @@ def handle_get_messages(
     json_response(handler, {"messages": messages})
 
 
+def _send_sse_event(
+    handler: BaseHTTPRequestHandler,
+    event: dict[str, Any],
+) -> None:
+    data = json.dumps(event, ensure_ascii=False).encode("utf-8")
+    handler.wfile.write(b"data: " + data + b"\n\n")
+    handler.wfile.flush()
+
+
 def call_llamafile(
     messages: list[dict],
     user_id: int,
     session_id: int | None,
+    *,
+    stream: bool = False,
+    on_chunk: Callable[[str], None] | None = None,
 ) -> str:
     """POST vers llamafile et retourne le contenu assistant.
 
@@ -1970,7 +1982,7 @@ def call_llamafile(
         payload = {
             "model": "qwen3-1.7b",
             "messages": messages,
-            "stream": False,
+            "stream": stream,
         }
         data = json.dumps(payload).encode("utf-8")
         request = urllib.request.Request(
@@ -1984,7 +1996,54 @@ def call_llamafile(
                 request,
                 timeout=HTTP_TIMEOUT,
             ) as response:
-                response_data = json.loads(response.read().decode("utf-8"))
+                if stream:
+                    full_response: list[str] = []
+                    stream_usage = None
+                    stream_done = False
+                    for raw_line in response:
+                        line = raw_line.decode("utf-8").strip()
+                        if not line.startswith("data:"):
+                            continue
+                        event_data = line[5:].strip()
+                        if event_data == "[DONE]":
+                            stream_done = True
+                            break
+                        try:
+                            event = json.loads(event_data)
+                        except json.JSONDecodeError as exc:
+                            raise LoginError(
+                                f"Événement SSE llamafile invalide : {exc}"
+                            ) from exc
+                        if not isinstance(event, dict):
+                            raise LoginError("Événement SSE llamafile invalide")
+                        if isinstance(event.get("usage"), dict):
+                            stream_usage = event["usage"]
+                        choices = event.get("choices")
+                        if not isinstance(choices, list) or not choices:
+                            continue
+                        choice = choices[0]
+                        if not isinstance(choice, dict):
+                            continue
+                        delta = choice.get("delta")
+                        if not isinstance(delta, dict):
+                            continue
+                        chunk = delta.get("content")
+                        if isinstance(chunk, str) and chunk:
+                            full_response.append(chunk)
+                            if on_chunk is not None:
+                                on_chunk(chunk)
+                    if not stream_done:
+                        raise LoginError("Flux SSE llamafile incomplet")
+                    content = "".join(full_response)
+                    if not content.strip():
+                        raise LoginError("Réponse llamafile vide ou invalide")
+                    if session_id is not None:
+                        add_message(session_id, "assistant", content)
+                    response_data = {"usage": stream_usage}
+                else:
+                    response_data = json.loads(
+                        response.read().decode("utf-8")
+                    )
         except urllib.error.HTTPError as exc:
             raise LoginError(f"Erreur HTTP llamafile : {exc.code}") from exc
         except urllib.error.URLError as exc:
@@ -2020,12 +2079,13 @@ def call_llamafile(
             ):
                 completion_tokens = value
 
-        try:
-            content = response_data["choices"][0]["message"]["content"]
-        except (KeyError, IndexError, TypeError) as exc:
-            raise LoginError(f"Réponse llamafile inattendue : {exc}") from exc
-        if not isinstance(content, str) or not content.strip():
-            raise LoginError("Réponse llamafile vide ou invalide")
+        if not stream:
+            try:
+                content = response_data["choices"][0]["message"]["content"]
+            except (KeyError, IndexError, TypeError) as exc:
+                raise LoginError(f"Réponse llamafile inattendue : {exc}") from exc
+            if not isinstance(content, str) or not content.strip():
+                raise LoginError("Réponse llamafile vide ou invalide")
         status = "ok"
         return content
     finally:
@@ -2089,6 +2149,10 @@ def handle_post_message(
     if not isinstance(content, str) or not content.strip():
         error_response(handler, "Contenu vide", HTTPStatus.BAD_REQUEST)
         return
+    stream = body.get("stream", False)
+    if not isinstance(stream, bool):
+        error_response(handler, "Champ stream invalide", HTTPStatus.BAD_REQUEST)
+        return
     content = content.strip()
     if len(content) > 4000:
         error_response(
@@ -2131,6 +2195,60 @@ def handle_post_message(
         for message in history
     )
     messages.append({"role": "user", "content": content})
+
+    if stream:
+        try:
+            add_message(session_id, "user", content)
+        except sqlite3.Error as exc:
+            sys.stderr.write(
+                "[messages] User message could not be saved "
+                f"({type(exc).__name__})\n"
+            )
+            error_response(
+                handler,
+                "Impossible d'enregistrer le message",
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+            return
+        handler.send_response(HTTPStatus.OK)
+        handler.send_header(
+            "Content-Type",
+            "text/event-stream; charset=utf-8",
+        )
+        handler.send_header("Cache-Control", "no-cache")
+        handler.send_header("X-Accel-Buffering", "no")
+        handler.end_headers()
+        handler.wfile.flush()
+        _send_sse_event(handler, {"status": "thinking"})
+        try:
+            response_text = call_llamafile(
+                messages,
+                user_id,
+                session_id,
+                stream=True,
+                on_chunk=lambda chunk: _send_sse_event(
+                    handler,
+                    {"delta": chunk},
+                ),
+            )
+        except LoginError as exc:
+            _send_sse_event(handler, {"error": str(exc)})
+            return
+        except sqlite3.Error as exc:
+            sys.stderr.write(
+                "[messages] Assistant message could not be saved "
+                f"({type(exc).__name__})\n"
+            )
+            _send_sse_event(
+                handler,
+                {"error": "Impossible d'enregistrer la réponse."},
+            )
+            return
+        _send_sse_event(
+            handler,
+            {"done": True, "content": response_text},
+        )
+        return
 
     try:
         response_text = call_llamafile(messages, user_id, session_id)

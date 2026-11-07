@@ -56,6 +56,15 @@ function createMessage(role, content) {
 	return message;
 }
 
+function renderAssistantMarkdown(message, content) {
+	const rendered = renderMarkdown(content);
+	if (rendered) {
+		message.replaceChildren(rendered);
+	} else {
+		message.textContent = content;
+	}
+}
+
 function showMessagesPlaceholder(text) {
 	const placeholder = document.createElement("p");
 	placeholder.className = "placeholder";
@@ -198,17 +207,20 @@ async function sendMessage(content) {
 	userInput.disabled = true;
 	sendBtn.disabled = true;
 	const loading = createMessage("assistant loading", "Réponse en cours...");
+	let assistantMessage = null;
+	let streamedContent = "";
 	messagesDiv.appendChild(loading);
 	messagesDiv.scrollTop = messagesDiv.scrollHeight;
 	showStatus("Le modèle prépare une réponse...");
 
 	try {
+		const streamRequested = typeof ReadableStream !== "undefined";
 		const response = await fetch(
 			`/api/sessions/${currentSessionId}/messages`,
 			{
 				method: "POST",
 				headers: csrfHeaders({ "Content-Type": "application/json" }),
-				body: JSON.stringify({ content }),
+				body: JSON.stringify({ content, stream: streamRequested }),
 				credentials: "same-origin",
 			}
 		);
@@ -226,16 +238,112 @@ async function sendMessage(content) {
 			return;
 		}
 
-		const data = await response.json();
+		if (!response.body || typeof response.body.getReader !== "function") {
+			const data = await response.json();
+			loading.remove();
+			messagesDiv.appendChild(createMessage("user", content));
+			messagesDiv.appendChild(
+				createMessage("assistant", data.assistant_message.content)
+			);
+			messagesDiv.scrollTop = messagesDiv.scrollHeight;
+			userInput.value = "";
+			showStatus("");
+			return;
+		}
+
+		loading.remove();
 		messagesDiv.appendChild(createMessage("user", content));
-		messagesDiv.appendChild(
-			createMessage("assistant", data.assistant_message.content)
-		);
-		messagesDiv.scrollTop = messagesDiv.scrollHeight;
+		assistantMessage = document.createElement("div");
+		assistantMessage.className = "message assistant thinking";
+		const thinkingLabel = document.createElement("p");
+		thinkingLabel.className = "thinking-label";
+		thinkingLabel.textContent = "Nexxus réfléchit…";
+		assistantMessage.appendChild(thinkingLabel);
+		messagesDiv.appendChild(assistantMessage);
 		userInput.value = "";
-		showStatus("");
+		messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+		const reader = response.body.getReader();
+		const decoder = new TextDecoder();
+		let pending = "";
+		let streamFinished = false;
+		const processEvent = (eventText) => {
+			for (const line of eventText.split(/\r?\n/)) {
+				if (!line.startsWith("data:")) continue;
+				const data = line.slice(5).trim();
+				if (!data) continue;
+
+				const event = JSON.parse(data);
+				if (event.status === "thinking") {
+					assistantMessage.classList.add("thinking");
+					continue;
+				}
+				if (typeof event.delta === "string" && event.delta) {
+					thinkingLabel.remove();
+					assistantMessage.classList.remove("thinking");
+					assistantMessage.classList.add("streaming");
+					streamedContent += event.delta;
+					renderAssistantMarkdown(assistantMessage, streamedContent);
+					messagesDiv.scrollTop = messagesDiv.scrollHeight;
+					continue;
+				}
+				if (event.done === true) {
+					if (typeof event.content === "string") {
+						streamedContent = event.content;
+						renderAssistantMarkdown(
+							assistantMessage,
+							streamedContent
+						);
+					}
+					thinkingLabel.remove();
+					assistantMessage.classList.remove("thinking", "streaming");
+					showStatus("");
+					streamFinished = true;
+					return;
+				}
+				if (typeof event.error === "string") {
+					thinkingLabel.remove();
+					assistantMessage.classList.remove("thinking", "streaming");
+					if (!streamedContent) assistantMessage.remove();
+					showStatus(event.error, true);
+					streamFinished = true;
+					return;
+				}
+			}
+		};
+
+		try {
+			while (!streamFinished) {
+				const { value, done } = await reader.read();
+				pending += decoder.decode(
+					value || new Uint8Array(),
+					{ stream: !done }
+				);
+				const events = pending.split(/\r?\n\r?\n/);
+				pending = events.pop() || "";
+				for (const eventText of events) {
+					processEvent(eventText);
+					if (streamFinished) break;
+				}
+				if (done && !streamFinished) {
+					if (pending.trim()) processEvent(pending);
+					if (!streamFinished) {
+						throw new Error("Le flux s'est terminé sans événement final.");
+					}
+				}
+			}
+			if (streamFinished) await reader.cancel();
+		} finally {
+			reader.releaseLock();
+		}
 	} catch (error) {
 		loading.remove();
+		if (assistantMessage) {
+			assistantMessage.classList.remove("thinking", "streaming");
+			const label = assistantMessage.querySelector(".thinking-label");
+			if (label) label.remove();
+			if (!streamedContent) assistantMessage.remove();
+		}
 		showStatus(`Erreur réseau : ${error.message}`, true);
 	} finally {
 		isSending = false;

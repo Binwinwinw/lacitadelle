@@ -4,7 +4,7 @@
 tâche terminée est supprimée ici; sa trace reste dans
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 
-**Dernière mise à jour** : 2026-11-06.
+**Dernière mise à jour** : 2026-11-07.
 
 ## Actif
 
@@ -22,6 +22,8 @@ tâche terminée est supprimée ici; sa trace reste dans
   Propriétaire : Décideur.
 - [ ] Vérifier sur le serveur cible les ports TCP 80/443 et confirmer que
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
+- [ ] Test manuel post-streaming : vérifier affichage progressif, arrêt du
+  stream et neutralisation XSS pendant le stream. — Propriétaire : Décideur.
 - [ ] Tester login et chat dans un navigateur avec un compte réel de test. —
   Propriétaire : Décideur.
 - [ ] Re-tester manuellement le persona Nexxus V1.1 après les ajustements
@@ -68,5 +70,3 @@ tâche terminée est supprimée ici; sa trace reste dans
   Propriétaire : à planifier.
 - [ ] **16-CHAT-CONTEXT-STRATEGY** — MAX_CONTEXT_TOKENS + troncature par
   paire user/assistant. — Propriétaire : à planifier.
-- [ ] **16-CHAT-STREAMING-V1** — streaming SSE/fetch progressif avec
-  re-rendu Markdown incrémental. — Propriétaire : à planifier.

@@ -1868,3 +1868,36 @@ Nexxus complet)** :
 **Conséquences** : Phase 16-CHAT-MARKDOWN-V1 reste validée. Prochain
 GO fonctionnel : 16-CHAT-STREAMING-V1 (priorité visible utilisateur)
 ou 16-CHAT-CONTEXT-STRATEGY (profondeur), selon arbitrage Décideur.
+
+## [2026-11-07] Streaming SSE thinking-aware (Phase 16-CHAT-STREAMING-V1)
+
+**Contexte** : le runtime Qwen3 envoie des événements SSE qui peuvent
+contenir à la fois `reasoning_content` et `content`; le chat attendait
+jusqu'à la réponse complète avant de l'afficher.
+
+**Constats** :
+
+1. Les tests isolés R4/R5 n'ont observé aucun radotage entre tours.
+2. Le test SSE runtime a reçu des événements `reasoning_content` et
+   `content`; le relais et le frontend transmettent/affichent uniquement
+   `content`.
+3. Le backend émet `thinking`, les deltas, puis `done`; les cinq tests
+   streaming vérifient le filtrage, l'accumulation, la persistance et la
+   rétrocompatibilité. Le test visuel réel dans un navigateur reste ouvert.
+
+**Décision(s)** :
+
+1. Relayer SSE de llamafile comme `text/event-stream`; ignorer
+   `delta.reasoning_content`.
+2. Afficher « Nexxus réfléchit… », puis le texte progressif et le curseur;
+   chaque rendu Markdown passe par DOMPurify.
+3. À `[DONE]`, enregistrer une seule fois la réponse assistant complète dans
+   SQLite, sans changement de schéma.
+4. Préserver `stream=false` en JSON et le fallback bloc si le navigateur ne
+   prend pas en charge le flux.
+5. Garder `MAX_CONTEXT_MESSAGES=15`; reporter la stratégie de contexte à un
+   GO distinct.
+
+**Conséquences** : le streaming backend/frontend est implémenté et les
+237 tests passent. L'affichage réel, le curseur et la neutralisation XSS
+pendant un flux restent à vérifier manuellement par le Décideur.

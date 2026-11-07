@@ -2,6 +2,22 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-07] Phase 16-CHAT-STREAMING-V1 — Réponses SSE thinking-aware
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/chat.js`, `dev/tools/web/style.css`,
+`dev/tests/test_chat_streaming.py`, `.memory/decisions.md`, `TODO.md` et
+AGENTS.md; journaux de session et de commit.
+
+**Raison** : afficher progressivement les réponses Nexxus, filtrer le flux
+de raisonnement et assainir chaque rendu Markdown.
+
+**Impact** : rétrocompatibilité JSON conservée; texte complet persisté à la
+fin du flux sans changement de schéma. Cinq tests ajoutés (237 au total).
+Validation visuelle XSS/streaming par le Décideur en attente.
+
 ## [2026-11-06] Clôture diagnostic Nexxus et persona V1.2
 
 **Commit** : identifiant consultable dans l'historique Git.

@@ -207,6 +207,22 @@ body {
   font-style: italic;
 }
 
+.message.assistant.streaming::after {
+  content: "▌";
+  animation: blink 1s infinite;
+  margin-left: 2px;
+}
+
+.message.assistant.thinking .thinking-label {
+  color: #888;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
 .message.assistant > * + * {
   margin-top: 0.75rem;
 }
@@ -744,6 +760,10 @@ html[data-theme="light"] .message.assistant td {
 
 html[data-theme="light"] .message.assistant a {
   color: #0759a5;
+}
+
+html[data-theme="light"] .message.assistant.thinking .thinking-label {
+  color: #666;
 }
 
 html[data-theme="light"] .settings-form select,
