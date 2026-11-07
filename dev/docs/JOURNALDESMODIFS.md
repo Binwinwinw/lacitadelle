@@ -2,6 +2,22 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-06] Clôture diagnostic Nexxus et persona V1.2
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/tools/prompts/system.txt`,
+`.memory/decisions.md`, `TODO.md`, `JOURNALDESMODIFS.md`,
+`JOURNALDEBORD.md`.
+
+**Raison** : clore le cycle de diagnostic R4/R5 et corriger trois défauts
+de persona observés (émojis, clôture, hallucinations factuelles).
+
+**Impact** : trois puces ajoutées au prompt système. Aucun code modifié.
+Tests R4/R5 (deux sessions de cinq tours) sans radotage entre tours;
+erreurs factuelles sur Markdown documentées comme limite acceptée du modèle
+par défaut.
+
 ## [2026-11-06] Phase 16-CHAT-MARKDOWN-V1-FIX — Vérification SRI et backlog V2
 
 **Commit** : identifiant consultable dans l'historique Git.

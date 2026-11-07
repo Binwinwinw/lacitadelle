@@ -1826,3 +1826,45 @@ initial pouvait rester invisible.
 **Conséquences** : le mot de passe admin initial devient visible sous
 PyInstaller, tandis que le mode développement reste inchangé. La suite compte
 230 tests; validation manuelle de l'EXE en attente.
+
+## [2026-11-06] Diagnostic Nexxus — conclusions R4/R5 et persona V1.2
+
+**Contexte** : recherche de la cause de réponses hors-persona observées
+en usage réel avec Qwen3-1.7B puis avec DeepSeek-Coder-6.7B.
+
+**Constats R4/R5 (2 sessions × 5 tours, prompt simplifié puis prompt
+Nexxus complet)** :
+
+1. Aucun radotage entre tours (répétition d'un tour précédent) n'a été
+   observé dans les 10 échanges testés.
+2. Le prompt système Nexxus améliore la persona sur les tours
+   conversationnels testés (R1, R2, R5) par rapport à un prompt simplifié.
+3. Sur les questions factuelles précises (ex : syntaxe Markdown), le
+   modèle Qwen3-1.7B produit des erreurs et des formulations contraires
+   au prompt (émojis, formules de clôture type "Bonne journée").
+4. Les paramètres de génération (temperature, top_p, repeat_penalty,
+   max_tokens, stop) sont acceptés par le runtime; leur effet n'a pas
+   pu être isolé (5 paramètres modifiés simultanément, un seul
+   échantillon par cas). Résultat non concluant.
+5. Le champ `"model"` du payload `/v1/chat/completions` est cosmétique :
+   le runtime llama.cpp sert le GGUF chargé par `lancer.py` via `-m`.
+   Ne pas s'y fier pour diagnostiquer un changement de modèle.
+6. DeepSeek-Coder-6.7B n'est pas adapté aux usages conversationnels
+   attendus pour Nexxus. Il n'est pas établi qu'il soit la cause racine
+   des observations initiales.
+
+**Décision(s)** :
+
+- Ajouter 3 règles au prompt : interdiction émojis sauf demande,
+  interdiction formules de clôture, exigence d'aveu d'incertitude sur
+  les questions techniques précises (persona V1.2).
+- Ne pas modifier `login_server.py` dans ce cycle.
+- MAX_CONTEXT_MESSAGES=15 reste en place; la stratégie de contexte est
+  reportée à un GO dédié (16-CHAT-CONTEXT-STRATEGY).
+- Qwen3-1.7B reste le modèle par défaut; ses limites factuelles sont
+  acceptées produit. Utilisateurs avec GPU : montée en gamme possible
+  (ex : Qwen3-4B-Thinking).
+
+**Conséquences** : Phase 16-CHAT-MARKDOWN-V1 reste validée. Prochain
+GO fonctionnel : 16-CHAT-STREAMING-V1 (priorité visible utilisateur)
+ou 16-CHAT-CONTEXT-STRATEGY (profondeur), selon arbitrage Décideur.

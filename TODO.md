@@ -24,9 +24,6 @@ tâche terminée est supprimée ici; sa trace reste dans
   8080, 8081 et 2019 ne sont pas exposés. — Propriétaire : Décideur.
 - [ ] Tester login et chat dans un navigateur avec un compte réel de test. —
   Propriétaire : Décideur.
-- [ ] Vérifier visuellement le rendu Markdown du chat (gras, titres, listes,
-  code et tableau) et confirmer qu'un contenu HTML/XSS est neutralisé. —
-  Propriétaire : Décideur.
 - [ ] Re-tester manuellement le persona Nexxus V1.1 après les ajustements
   (anti-flagornerie, conseils pros, llamafile). — Propriétaire : Décideur.
 - [ ] Exécuter le test manuel 10C sur une base jetable, jamais sur la base
@@ -34,9 +31,6 @@ tâche terminée est supprimée ici; sa trace reste dans
 
 ### Priorité P3
 
-- [ ] Valider manuellement le persona Nexxus dans le chat : modèle actif,
-  contexte utilisateur et cohérence tutoiement/vouvoiement. — Propriétaire :
-  Décideur.
 - [ ] Cadrer puis implémenter l'upload GGUF (stockage et taille maximale à
   définir). — Propriétaire : à planifier.
 - [ ] Surveiller le port 9931 de llamafile et confirmer qu'il reste fermé
@@ -72,3 +66,7 @@ tâche terminée est supprimée ici; sa trace reste dans
 - [ ] **14-PERSONA-NEXXUS-V2** : implémenter les outils de lecture de fichiers
   avec la politique `security_files.py` (V1 = classification uniquement). —
   Propriétaire : à planifier.
+- [ ] **16-CHAT-CONTEXT-STRATEGY** — MAX_CONTEXT_TOKENS + troncature par
+  paire user/assistant. — Propriétaire : à planifier.
+- [ ] **16-CHAT-STREAMING-V1** — streaming SSE/fetch progressif avec
+  re-rendu Markdown incrémental. — Propriétaire : à planifier.
