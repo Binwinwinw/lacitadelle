@@ -1901,3 +1901,31 @@ jusqu'à la réponse complète avant de l'afficher.
 **Conséquences** : le streaming backend/frontend est implémenté et les
 237 tests passent. L'affichage réel, le curseur et la neutralisation XSS
 pendant un flux restent à vérifier manuellement par le Décideur.
+
+## [2026-11-07] Persona V1.3 + limites Qwen3-1.7B confirmées
+
+**Contexte** : tests manuels post-V1.3 rapportés par le Décideur pour
+évaluer le prompt Nexxus et les limites factuelles de Qwen3-1.7B.
+
+**Constats** :
+
+1. Les règles positives sont suivies dans les cas testés : persona,
+   refus médical et détection du risque XSS.
+2. Certaines règles négatives sont partiellement ignorées : « N'hésitez
+   pas » persiste et des articles de loi sont inventés.
+3. Des erreurs juridiques graves ont été observées : articles inexistants,
+   URL inventée (`onpc.fr`) et vocabulaire incorrect.
+4. Le rendu factuel du Markdown a été correct dans le test de CV.
+
+**Décision(s)** :
+
+1. Conserver le prompt V1.3, bénéfique pour les modèles futurs et renforçant
+   la sécurité XSS.
+2. Accepter comme limite produit que Qwen3-1.7B ne soit pas adapté aux
+   questions juridiques ou factuelles précises.
+3. Prioriser l'évaluation de modèles 2–4B; Qwen3-1.7B reste le modèle par
+   défaut jusqu'à une décision ultérieure.
+
+**Conséquences** : les limites observées sont documentées sans attribuer au
+prompt une fiabilité juridique. Les modèles alternatifs seront comparés sur
+trois tests révélateurs avant tout changement de défaut.

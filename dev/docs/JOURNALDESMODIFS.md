@@ -2,6 +2,21 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-07] Persona V1.3 — limites confirmées de Qwen3-1.7B
+
+**Commit** : identifiant consultable dans l'historique Git.
+
+**Fichiers modifiés** : `dev/tools/prompts/system.txt`,
+`.memory/decisions.md`, `TODO.md`, AGENTS.md, JOURNALDESMODIFS.md et
+JOURNALDEBORD.md.
+
+**Raison** : consigner les observations manuelles post-V1.3 et prioriser
+l'évaluation de modèles conversationnels plus grands.
+
+**Impact** : le prompt V1.3 est conservé; les limites juridiques/factuelles
+de Qwen3-1.7B et les trois règles prompt ajoutées sont documentées. Aucun
+code métier ni test n'est modifié; la validation d'alternatives reste à faire.
+
 ## [2026-11-07] Phase 16-CHAT-STREAMING-V1 — Réponses SSE thinking-aware
 
 **Commit** : identifiant consultable dans l'historique Git.
