@@ -675,6 +675,18 @@ doit rester sur 80/443 avant le démarrage de Caddy. Vérifier également les
 règles du pare-feu de l'hôte et du fournisseur; un port libre localement ne
 prouve pas que le pare-feu externe est configuré correctement.
 
+## Vérification des ports réseau
+
+Llamafile écoute sur 127.0.0.1:8080 et le proxy Python sur 127.0.0.1:8081,
+tous deux sur loopback uniquement (non exposés au réseau). Le port 9931,
+annoncé par llamafile comme futur défaut, n'est pas écouté à ce jour.
+Vérifier périodiquement avec :
+
+    netstat -ano | Select-String ":8080|:8081|:9931"
+
+Aucune ligne 9931 ne doit apparaître. Les lignes 8080/8081 doivent être
+sur 127.0.0.1 (loopback), jamais sur 0.0.0.0.
+
 ## Logs de sécurité
 
 ### État actuel
