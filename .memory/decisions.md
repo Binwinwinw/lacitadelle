@@ -1929,3 +1929,19 @@ pendant un flux restent à vérifier manuellement par le Décideur.
 **Conséquences** : les limites observées sont documentées sans attribuer au
 prompt une fiabilité juridique. Les modèles alternatifs seront comparés sur
 trois tests révélateurs avant tout changement de défaut.
+
+## [2026-11-08] Changement de modèle par défaut : Qwen3-4B
+
+**Contexte** : évaluation comparative Qwen3-1.7B vs Qwen3-4B sur questions révélatrices (persona, "N'hésitez pas", articles juridiques, Markdown).
+
+**Constats** :
+1. Qwen3-4B élimine le tic "N'hésitez pas" (règle V1.3 respectée).
+2. Structure de réponse plus solide, pas d'URL inventée.
+3. Limite persistante : cite des articles juridiques existants mais hors contexte. Acceptable pour brouillons, à valider par professionnel.
+
+**Décision(s)** :
+1. `DEFAULT_MODEL_FILENAME` passe à "Qwen3-4B-Q4_K_M.gguf" dans lancer.py.
+2. Test `test_first_install_model.py` lit le défaut via `lancer.DEFAULT_MODEL_FILENAME` (auto-adaptatif).
+3. Persona V1.4 (censure juridique) conserve la protection.
+
+**Conséquences** : persona V1.4 active, streaming fonctionnel. Suite : validation manuelle streaming + persona par le Décideur.

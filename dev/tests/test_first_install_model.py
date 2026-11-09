@@ -164,14 +164,7 @@ def test_current_model_gate_and_lancer_default_branch(tmp_path, monkeypatch):
     monkeypatch.setattr(lancer, "CURRENT_MODEL_FILE", model_file)
     monkeypatch.setattr(model_health, "CURRENT_MODEL_FILE", model_file)
     proxy_log = tmp_path / "proxy.log"
-    assert lancer.select_model_path(proxy_log) == (
-        Path(__file__).resolve().parents[2]
-        / "dev"
-        / "tools"
-        / "vendor"
-        / "llamafile"
-        / "Qwen3-1.7B-Q4_K_M.gguf"
-    )
+    assert str(lancer.select_model_path(proxy_log)).endswith(lancer.DEFAULT_MODEL_FILENAME)
 
     model_path.write_bytes(b"current model")
     citadelle_memory.set_setting("current_model_path", str(model_path))

@@ -4,7 +4,7 @@
 tâche terminée est supprimée ici; sa trace reste dans
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 
-**Dernière mise à jour** : 2026-11-07.
+**Dernière mise à jour** : 2026-11-08.
 
 ## Actif
 
@@ -28,9 +28,8 @@ tâche terminée est supprimée ici; sa trace reste dans
   Propriétaire : Décideur.
 - [ ] Re-tester manuellement le persona Nexxus V1.1 après les ajustements
   (anti-flagornerie, conseils pros, llamafile). — Propriétaire : Décideur.
-- [ ] Évaluer les modèles 2-4B alternatifs (Qwen3-4B, Phi-3.5-mini,
-  Llama 3.2-3B) sur 3 tests révélateurs. — Propriétaire : Décideur.
-  Priorité : haute.
+- [ ] Validation manuelle post-Qwen3-4B : persona V1.3/V1.4, réponses structurées,
+  pas d'URL  inventée, pas d'article de loi inventé. — Propriétaire : Décideur.
 - [ ] Exécuter le test manuel 10C sur une base jetable, jamais sur la base
   réelle. — Propriétaire : Décideur.
 

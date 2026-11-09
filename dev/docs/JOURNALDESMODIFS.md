@@ -2,6 +2,23 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+
+## [2026-11-08] Phase 16-MODEL-DEFAULT-SWITCH — Qwen3-4B par défaut
+
+**Commit** : en cours de rédaction (hash final à acter après validation des preuves).
+
+**Fichiers modifiés** : `dev/tools/lancer.py`,
+`dev/tests/test_first_install_model.py`, `.memory/decisions.md`,
+`AGENTS.md`, `TODO.md`, JOURNALDESMODIFS.md, JOURNALDEBORD.md.
+
+**Raison** : Qwen3-4B suit mieux les règles persona V1.3/V1.4 et produit
+des réponses plus structurées sur les tests révélateurs. Le test utilise un
+import dynamique pour lire le défaut sans hardcode.
+
+**Impact** : défaut changé, test auto-adaptatif. Note : le commit `a6fef62`
+(persona V1.4 system.txt) est journalisé ici (correctif post-commit).
+Suite : validation manuelle par le Décideur.
+
 ## [2026-11-07] Persona V1.3 — limites confirmées de Qwen3-1.7B
 
 **Commit** : identifiant consultable dans l'historique Git.
@@ -1554,3 +1571,4 @@ en remplaçant le shell avec `exec` et en isolant le runtime du terminal.
 **Impact** : trois tests couvrent le lancement Unix et Windows; la suite
 complète compte 221 tests. Archive régénérée, source-only et non publiée;
 validation manuelle macOS en attente.
+

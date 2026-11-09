@@ -41,7 +41,7 @@ PROXY_LOG = (
     if IS_FROZEN
     else PROJECT_ROOT / "dist" / "proxy.log"
 )
-DEFAULT_MODEL_FILENAME = "Qwen3-1.7B-Q4_K_M.gguf"
+DEFAULT_MODEL_FILENAME = "Qwen3-4B-Q4_K_M.gguf"
 DEFAULT_MODEL = ASSETS_DIR / DEFAULT_MODEL_FILENAME if IS_FROZEN else (
     Path("dev") / "tools" / "vendor" / "llamafile" / DEFAULT_MODEL_FILENAME
 )
