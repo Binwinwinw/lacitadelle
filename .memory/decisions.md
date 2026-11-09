@@ -1945,3 +1945,21 @@ trois tests révélateurs avant tout changement de défaut.
 3. Persona V1.4 (censure juridique) conserve la protection.
 
 **Conséquences** : persona V1.4 active, streaming fonctionnel. Suite : validation manuelle streaming + persona par le Décideur.
+
+## [2026-11-08] Persona V1.5 — Anti-affirmation juridique
+
+**Contexte** : test manuel Qwen3-4B révèle que le modèle affirmait
+"les articles cités sont corrects" sur des articles hors contexte
+(Code civil art. 1218 = force majeure, pas résiliation).
+
+**Décision(s)** :
+1. Ajouter puce au prompt : ne JAMAIS affirmer qu'un article est correct
+   ou applicable. Formuler principes généraux + recommander professionnel.
+2. Test manuel confirme : pas d'affirmation fausse, recommandation pro
+   présente, pas d'URL inventée.
+3. Limite acceptée : Qwen3-4B cite encore des articles réels mais
+   potentiellement hors contexte (1104, 1229). Niveau du 4B.
+
+**Conséquences** : Nexxus n'est plus dangereux (ne se porte pas garant,
+recommande un pro). Ne pas utiliser pour un conseil juridique définitif.
+Phase persona clôturée à V1.5.

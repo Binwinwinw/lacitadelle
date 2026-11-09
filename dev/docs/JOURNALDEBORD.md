@@ -131,3 +131,4 @@
 [2026-11-07] Phase 16-CHAT-STREAMING-V1 : relais SSE `thinking`/`delta`/`done`, reasoning filtré, re-rendu Markdown assaini à chaque chunk; cinq tests ajoutés (237 passés), décision #79. Prochaine étape : test visuel streaming/XSS par le Décideur.
 [2026-11-07] Persona Nexxus V1.3 : observations manuelles consignées; règles conservées, limites juridiques/factuelles de Qwen3-1.7B documentées et décision #80 ajoutée. Prochaine étape : évaluer trois modèles 2-4B sur les tests révélateurs.
 [2026-11-08] Phase 16-MODEL-DEFAULT-SWITCH : Qwen3-4B par d�faut, test auto-adaptatif, d�cision #81. Tests : 237 passed. Prochaine �tape : validation manuelle streaming + persona.
+[2026-11-08] Persona V1.5 : puce anti-affirmation juridique ajoutée. Test manuel Qwen3-4B : 3/4 critères OK, limite citation articles acceptée. Phase persona clôturée.

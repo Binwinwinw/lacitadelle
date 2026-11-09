@@ -2,6 +2,17 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-08] Persona V1.5 — Anti-affirmation juridique
+
+**Commit** : en cours de rédaction (hash final à acter après validation).
+
+**Fichiers modifiés** : `dev/tools/prompts/system.txt`,
+`.memory/decisions.md`, `JOURNALDEBORD.md`, `JOURNALDESMODIFS.md`.
+
+**Raison** : Qwen3-4B affirmait que les articles cités étaient corrects.
+
+**Impact** : règle "ne jamais affirmer" ajoutée. Limite citation articles
+acceptée. Phase persona clôturée à V1.5.
 
 ## [2026-11-08] Phase 16-MODEL-DEFAULT-SWITCH — Qwen3-4B par défaut
 
@@ -1571,4 +1582,3 @@ en remplaçant le shell avec `exec` et en isolant le runtime du terminal.
 **Impact** : trois tests couvrent le lancement Unix et Windows; la suite
 complète compte 221 tests. Archive régénérée, source-only et non publiée;
 validation manuelle macOS en attente.
-
