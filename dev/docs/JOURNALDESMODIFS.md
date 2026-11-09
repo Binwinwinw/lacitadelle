@@ -5,7 +5,7 @@ Ce document résume les évolutions du produit et de sa distribution.
 
 ## [2026-11-08] Phase 16-MODEL-DEFAULT-SWITCH — Qwen3-4B par défaut
 
-**Commit** : en cours de rédaction (hash final à acter après validation des preuves).
+**Commit** : d40721b (feat: Qwen3-4B par défaut, 16-MODEL-DEFAULT-SWITCH).
 
 **Fichiers modifiés** : `dev/tools/lancer.py`,
 `dev/tests/test_first_install_model.py`, `.memory/decisions.md`,
