@@ -72,3 +72,7 @@ tâche terminée est supprimée ici; sa trace reste dans
   Propriétaire : à planifier.
 - [ ] **16-CHAT-CONTEXT-STRATEGY** — MAX_CONTEXT_TOKENS + troncature par
   paire user/assistant. — Propriétaire : à planifier.
+- [ ] **16-CHAT-RAG-LOCAL** : implémenter une base de connaissances locale
+  (upload documents, recherche, injection dans prompt). — Propriétaire : à planifier.
+- [ ] **16-CHAT-WEB-ACCESS** (optionnel) : accès web contrôlé via API.
+  Casse la promesse offline, à désactiver par défaut. — Propriétaire : à planifier.

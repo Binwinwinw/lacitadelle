@@ -1963,3 +1963,26 @@ trois tests révélateurs avant tout changement de défaut.
 **Conséquences** : Nexxus n'est plus dangereux (ne se porte pas garant,
 recommande un pro). Ne pas utiliser pour un conseil juridique définitif.
 Phase persona clôturée à V1.5.
+
+## [2026-11-09] Persona V1.6 — Avertissement factuel + limites LLM
+
+**Contexte** : test révèle que Qwen3-4B hallucine sur les faits
+post-2024 (lois, chiffres, institutions inventées). V1.6 ajoute
+un avertissement final et interdit les détails précis.
+
+**Constats** :
+1. L'avertissement final fonctionne (ajouté en fin de réponse).
+2. Le 4B ignore partiellement la règle "pas de détails précis" et
+   continue d'inventer des lois (ex: "Loi santé mentale 2026").
+3. Limite structurelle : tous les LLM locaux ont une date de coupure
+   (~2024). Pas de "patch" possible.
+
+**Décision(s)** :
+1. Committer V1.6 (avertissement utile, ne fait pas de mal).
+2. Accepter la limite : Nexxus ne peut pas répondre sur l'actualité
+   post-2024. Hallucinations possibles sur ces sujets.
+3. Ajouter un avertissement UI permanent dans le chat.
+4. Ne pas implémenter RAG local ni accès web dans cette phase.
+
+**Conséquences** : Nexxus est honnête sur ses limites (avertissement),
+mais reste limité sur les faits récents. RAG local = GO futur possible.

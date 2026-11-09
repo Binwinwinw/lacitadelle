@@ -7,9 +7,11 @@ WEB_DIR = Path(__file__).resolve().parent.parent / "tools" / "web"
 def test_chat_loads_pinned_markdown_parser_and_sanitizer():
     page = (WEB_DIR / "chat.html").read_text(encoding="utf-8")
 
-    assert "marked@18.1.2/lib/marked.umd.js" in page
-    assert "dompurify@3.4.17/dist/purify.min.js" in page
-    assert page.index("marked@") < page.index("dompurify@") < page.index("chat.js")
+    assert "vendor/marked.umd.js" in page
+    assert "vendor/purify.min.js" in page
+    assert page.index("vendor/marked.umd.js") < page.index(
+        "vendor/purify.min.js"
+    ) < page.index("chat.js")
 
 
 def test_assistant_markdown_is_sanitized_before_insertion():

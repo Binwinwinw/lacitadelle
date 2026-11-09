@@ -2,6 +2,20 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-09] Persona V1.6 — Avertissement factuel
+
+**Commit** : en cours de rédaction.
+
+**Fichiers modifiés** : `dev/tools/prompts/system.txt`, `.memory/decisions.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`, `chat.js`,
+`style.css`, `TODO.md`, `AGENTS.md`.
+
+**Raison** : Qwen3-4B hallucine sur les faits post-2024. V1.6 ajoute
+avertissement + interdit détails précis. Avertissement UI ajouté.
+
+**Impact** : Nexxus honnête mais limité sur les faits récents. 241 tests
+(avec tests context) attendus. RAG local = dette identifiée.
+
 ## [2026-11-08] Persona V1.5 — Anti-affirmation juridique
 
 **Commit** : en cours de rédaction (hash final à acter après validation).
