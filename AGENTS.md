@@ -359,3 +359,22 @@ Avant d'ajouter une règle dans `.memory/`, vérifier qu'elle n'existe pas déj�
 4. Mettre à jour les compteurs d'AGENTS.md quand le nombre de tests ou de
    décisions change.
 5. Si un prérequis T0 échoue, arrêter avant de modifier le code.
+6. **Pas de `Write` destructeur sur fichier existant** : ne jamais utiliser
+   `Write(<fichier>)` sur un fichier existant de plus de 50 lignes. Utiliser
+   `Update` avec contexte précis ou `Add-Content`. `Write` écrase tout le
+   contenu.
+7. **Pas de `git checkout/restore` auto** : `git checkout HEAD -- <fichier>`
+   et `git restore` sont destructifs. Interdits sans autorisation explicite
+   du Décideur.
+8. **Un GO = une tâche = une preuve** : chaque GO doit contenir une seule
+   tâche atomique et demander une seule preuve. Les GO complexes doivent être
+   découpés en mini-GO séquentiels.
+9. **Pas d'invention de tâches** : l'IDE ne doit jamais inventer un GO ou
+   enchaîner plusieurs GO dans la même réponse. Si un GO est ambigu, demander
+   confirmation.
+10. **Pas d'enchaînement entre GO** : l'IDE s'arrête après chaque GO et
+    attend le suivant. Aucune action ne doit être prise hors du périmètre
+    d'un GO validé.
+11. **Attention limite de tokens** : si un GO risque de produire plus de
+    20 000 tokens de sortie (nombreux fichiers, longs diffs), le découper.
+    La limite observée est 32 000 tokens.
