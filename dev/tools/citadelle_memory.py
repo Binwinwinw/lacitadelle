@@ -633,6 +633,32 @@ def get_messages_for_user(
     return get_messages(session_id, limit=limit, db_path=db_path)
 
 
+def get_messages_for_user_within_token_budget(
+    user_id: int,
+    session_id: int,
+    max_tokens: int = 8000,
+    db_path: Path | None = None,
+) -> list[dict]:
+    """Lit les messages récents dans la limite de tokens.
+
+    Approximation : 1 token ≈ 4 caractères (stdlib, pas de tiktoken).
+    Tricote depuis le plus récent, aligne sur user/assistant (jamais orphelin).
+    """
+    messages = get_messages_for_user(user_id, session_id, limit=200, db_path=db_path)
+    selected = []
+    total_chars = 0
+    for msg in reversed(messages):
+        chars = len(msg["content"])
+        if total_chars + chars > max_tokens * 4:
+            break
+        selected.insert(0, msg)
+        total_chars += chars
+    # Aligner : le premier doit être 'user' (sinon retirer jusqu'au 1er user)
+    while selected and selected[0]["role"] != "user":
+        selected.pop(0)
+    return selected
+
+
 def create_session_for_user(
     user_id: int,
     title: str | None = None,

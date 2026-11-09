@@ -40,6 +40,7 @@ from typing import Any, Callable
 from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import citadelle_memory
 from citadelle_memory import (
     DB_PATH as MEMORY_DB_PATH,
     add_message,
@@ -77,7 +78,7 @@ LLAMAFILE_PROXY_TIMEOUT = 60
 TOOLS_BUNDLE_DIR = get_bundle_dir() / "dev" / "tools"
 WEB_DIR = TOOLS_BUNDLE_DIR / "web"
 PROMPT_FILE = TOOLS_BUNDLE_DIR / "prompts" / "system.txt"
-MAX_CONTEXT_MESSAGES = 15
+MAX_CONTEXT_TOKENS = 8000  # 1 token ≈ 4 caractères
 FALLBACK_SYSTEM_PROMPT = (
     "Tu es Nexxus, l'assistant IA de La Citadelle. "
     "Réponds en français de façon claire et concise. "
@@ -2187,7 +2188,9 @@ def handle_post_message(
         )
         return
 
-    history = get_messages_for_user(user_id, session_id, limit=MAX_CONTEXT_MESSAGES)
+    history = citadelle_memory.get_messages_for_user_within_token_budget(
+        user_id, session_id, max_tokens=MAX_CONTEXT_TOKENS
+    )
     messages = [{
         "role": "system",
         "content": load_system_prompt(model_name, username, session_id),

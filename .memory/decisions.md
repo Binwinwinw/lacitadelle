@@ -1986,3 +1986,18 @@ un avertissement final et interdit les détails précis.
 
 **Conséquences** : Nexxus est honnête sur ses limites (avertissement),
 mais reste limité sur les faits récents. RAG local = GO futur possible.
+
+## [2026-11-09] Context strategy — MAX_CONTEXT_TOKENS
+
+**Contexte** : MAX_CONTEXT_MESSAGES=15 (impair) pouvait couper une
+paire user/assistant. Remplacer par une stratégie par tokens.
+
+**Décision(s)** :
+1. MAX_CONTEXT_MESSAGES=15 remplacé par MAX_CONTEXT_TOKENS=8000.
+2. Nouvelle fonction get_messages_for_user_within_token_budget
+   (approx. 1 token = 4 caractères, stdlib).
+3. Alignement : le premier message du contexte est toujours 'user'.
+4. 4 tests dédiés (limite, ordre, récence, session vide).
+
+**Conséquences** : conversations longues supportées jusqu'à ~8000
+tokens. Limite runtime llamafile : 40k tokens. Marge suffisante.

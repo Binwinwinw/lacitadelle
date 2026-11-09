@@ -2,6 +2,19 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-09] Context strategy — MAX_CONTEXT_TOKENS
+
+**Commit** : en cours de rédaction.
+
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tests/test_chat_context.py`,
+`.memory/decisions.md`, `AGENTS.md`, journaux.
+
+**Raison** : MAX_CONTEXT_MESSAGES=15 (impair) pouvait couper une paire.
+
+**Impact** : conversations longues supportées, troncature propre.
+Tests : 241 passed (237 + 4).
+
 ## [2026-11-09] Persona V1.6 — Avertissement factuel
 
 **Commit** : en cours de rédaction.

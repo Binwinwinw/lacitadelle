@@ -133,3 +133,4 @@
 [2026-11-08] Phase 16-MODEL-DEFAULT-SWITCH : Qwen3-4B par d�faut, test auto-adaptatif, d�cision #81. Tests : 237 passed. Prochaine �tape : validation manuelle streaming + persona.
 [2026-11-08] Persona V1.5 : puce anti-affirmation juridique ajoutée. Test manuel Qwen3-4B : 3/4 critères OK, limite citation articles acceptée. Phase persona clôturée.
 [2026-11-09] Persona V1.6 : avertissement final ajouté. Hallucinations factuelles persistent (limite 4B). Avertissement UI prévu. RAG local = dette identifiée.
+[2026-11-09] Context strategy : MAX_CONTEXT_TOKENS=8000 remplace MAX_CONTEXT_MESSAGES=15. Troncature aligne sur user/assistant. 4 tests ajoutés (241 passed).
