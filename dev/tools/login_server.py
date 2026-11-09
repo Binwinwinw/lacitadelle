@@ -111,6 +111,8 @@ EXEMPT_PATHS_WHEN_MUST_CHANGE = {
     "/register",
     "/style.css",
     "/chat.js",
+    "/vendor/marked.umd.js",
+    "/vendor/purify.min.js",
     "/login.html",
     "/register.html",
     "/change-password.html",
@@ -2392,6 +2394,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                 serve_static(self, "style.css")
             elif path == "/chat.js":
                 serve_static(self, "chat.js")
+            elif path == "/vendor/marked.umd.js":
+                serve_static(self, "vendor/marked.umd.js")
+            elif path == "/vendor/purify.min.js":
+                serve_static(self, "vendor/purify.min.js")
             elif path == "/api/sessions":
                 handle_get_api_sessions(self)
             elif path == "/api/preferences":
