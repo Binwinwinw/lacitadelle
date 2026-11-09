@@ -625,3 +625,36 @@ si les dépendances ne chargent pas, le chat affiche le texte brut.
 `dev/tools/web/vendor/`, avec intégrité locale.
 **Moment de traitement** : quand la dépendance CDN devient un problème,
 notamment pour une distribution EXE hors ligne.
+
+## Phase 16 — Récapitulatif session 2026-11-09
+
+**Statut** : Phase 16 (Chat + Persona) clôturée à V1.6.
+**Commits livrés** : 3248427, 8e4d706, d45c9cb, 7e0a9fb, 8864537, e38bac7, 98203b4.
+
+### Ce qui a été livré
+
+1. Persona V1.5 (anti-affirmation juridique) + V1.6 (avertissement factuel + limites LLM).
+2. Avertissement UI permanent : bandeau "Nexxus connaît les données jusqu'à ~2024" dans chat.html.
+3. Vendorisation offline Marked + DOMPurify dans dev/tools/web/vendor/ (fix proxy vendor/).
+4. Context strategy : MAX_CONTEXT_TOKENS=8000 remplace MAX_CONTEXT_MESSAGES=15.
+5. Migration Qwen3-1.7B → Qwen3-4B (par défaut dans lancer.py).
+6. Règles 12-17 documentées dans AGENTS.md.
+7. Vérification port 9931 (non écouté, documenté dans RUNBOOK-PROD.md).
+
+### Limites identifiées (importantes)
+
+1. **Tous les LLM locaux ont un knowledge cutoff** (~2024 pour Qwen3-4B).
+   Pas de "patch" possible : les connaissances sont distribuées dans les poids.
+2. **Qwen3-4B hallucine sur les faits post-2024** (lois, chiffres, institutions)
+   malgré V1.4/V1.5/V1.6. Limite intrinsèque du 4B.
+3. **L'avertissement V1.6 fonctionne** (présent en fin de réponse), mais
+   n'empêche pas les hallucinations factuelles.
+4. **Solutions possibles** (hors périmètre Phase 16) :
+   - RAG local (base de connaissances, upload documents)
+   - Accès web contrôlé (casse la promesse offline)
+
+### Dettes planifiées (voir TODO.md)
+
+- 16-CHAT-RAG-LOCAL
+- 16-CHAT-WEB-ACCESS (optionnel)
+- 16-AGENTS-RULES-18

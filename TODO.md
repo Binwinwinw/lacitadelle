@@ -72,7 +72,13 @@ tâche terminée est supprimée ici; sa trace reste dans
   Propriétaire : à planifier.
 - [ ] **16-CHAT-CONTEXT-STRATEGY** — MAX_CONTEXT_TOKENS + troncature par
   paire user/assistant. — Propriétaire : à planifier.
-- [ ] **16-CHAT-RAG-LOCAL** : implémenter une base de connaissances locale
-  (upload documents, recherche, injection dans prompt). — Propriétaire : à planifier.
-- [ ] **16-CHAT-WEB-ACCESS** (optionnel) : accès web contrôlé via API.
-  Casse la promesse offline, à désactiver par défaut. — Propriétaire : à planifier.
+- [ ] **16-CHAT-RAG-LOCAL** : implémenter une base de connaissances
+  locale (upload documents, recherche BM25, injection dans prompt).
+  Objectif : Nexxus fiable sur les faits couverts par la base,
+  indépendamment du knowledge cutoff du LLM. — Propriétaire : à planifier.
+- [ ] **16-CHAT-WEB-ACCESS** (optionnel) : accès web contrôlé via API
+  (DuckDuckGo, Légifrance, Wikipedia). Casse la promesse offline, à
+  désactiver par défaut dans /settings. — Propriétaire : à planifier.
+- [ ] **16-AGENTS-RULES-18** : ajouter une règle dans AGENTS.md :
+  "Tout GO qui modifie un fichier testé doit inclure la mise à jour
+  du test associé." — Propriétaire : à planifier.
