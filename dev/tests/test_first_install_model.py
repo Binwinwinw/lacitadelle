@@ -14,7 +14,7 @@ import model_health
 
 def test_v7_seeds_verified_integrated_gguf_on_first_install(tmp_path, monkeypatch):
     db_path = tmp_path / "memory.db"
-    model_path = tmp_path / "Qwen3-1.7B-Q4_K_M.gguf"
+    model_path = tmp_path / "Qwen3-4B-Q4_K_M.gguf"
     model_path.write_bytes(b"integrated gguf fixture")
     digest = hashlib.sha256(model_path.read_bytes()).hexdigest()
     config_path = (
@@ -25,7 +25,7 @@ def test_v7_seeds_verified_integrated_gguf_on_first_install(tmp_path, monkeypatc
     )
     config = json.loads(config_path.read_text(encoding="utf-8"))
     assert citadelle_memory.SHA256_INTEGRATED_MODEL_GGUF == config["assets"][
-        "qwen3-1.7b-q4km"
+        "qwen3-4b-q4km"
     ]["sha256"]
     monkeypatch.setattr(
         citadelle_memory,
@@ -50,7 +50,7 @@ def test_v7_seeds_verified_integrated_gguf_on_first_install(tmp_path, monkeypatc
 
 def test_v7_is_idempotent(tmp_path, monkeypatch):
     db_path = tmp_path / "memory.db"
-    model_path = tmp_path / "Qwen3-1.7B-Q4_K_M.gguf"
+    model_path = tmp_path / "Qwen3-4B-Q4_K_M.gguf"
     model_path.write_bytes(b"integrated gguf fixture")
     digest = hashlib.sha256(model_path.read_bytes()).hexdigest()
     citadelle_memory.migrate_to_v6(db_path)
@@ -81,7 +81,7 @@ def test_v7_does_not_whitelist_a_missing_integrated_gguf(tmp_path):
 
 def test_v7_rejects_bad_hash_without_whitelisting(tmp_path, monkeypatch, capsys):
     db_path = tmp_path / "memory.db"
-    model_path = tmp_path / "Qwen3-1.7B-Q4_K_M.gguf"
+    model_path = tmp_path / "Qwen3-4B-Q4_K_M.gguf"
     model_path.write_bytes(b"tampered gguf fixture")
     monkeypatch.setattr(
         citadelle_memory,
@@ -144,6 +144,8 @@ def test_current_model_gate_and_lancer_default_branch(tmp_path, monkeypatch):
     db_path = tmp_path / "memory.db"
     model_path = tmp_path / "current.gguf"
     model_path.write_bytes(b"current model")
+    default_model_path = tmp_path / "Qwen3-4B-Q4_K_M.gguf"
+    default_model_path.write_bytes(b"default model")
     citadelle_memory.migrate_to_v6(db_path)
     monkeypatch.setattr(citadelle_memory, "DB_PATH", db_path)
 
@@ -162,6 +164,7 @@ def test_current_model_gate_and_lancer_default_branch(tmp_path, monkeypatch):
     model_file = tmp_path / "dist" / ".current_model"
     model_file.parent.mkdir()
     monkeypatch.setattr(lancer, "CURRENT_MODEL_FILE", model_file)
+    monkeypatch.setattr(lancer, "DEFAULT_MODEL", default_model_path)
     monkeypatch.setattr(model_health, "CURRENT_MODEL_FILE", model_file)
     proxy_log = tmp_path / "proxy.log"
     assert str(lancer.select_model_path(proxy_log)).endswith(lancer.DEFAULT_MODEL_FILENAME)

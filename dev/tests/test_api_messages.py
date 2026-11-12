@@ -71,7 +71,7 @@ def test_post_message_ok():
         assert sent_messages[0]["role"] == "system"
         assert "Tu es Nexxus" in sent_messages[0]["content"]
         assert "alice" in sent_messages[0]["content"]
-        assert "Qwen3-1.7B-Q4_K_M.gguf" in sent_messages[0]["content"]
+        assert "Qwen3-4B-Q4_K_M.gguf" in sent_messages[0]["content"]
         assert f"Session : {session_id}" in sent_messages[0]["content"]
         assert sent_messages[-1] == {"role": "user", "content": "Salut"}
 

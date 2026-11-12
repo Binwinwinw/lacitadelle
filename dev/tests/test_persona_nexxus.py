@@ -29,11 +29,11 @@ def test_system_prompt_loaded_and_missing_file_fallback(tmp_path, monkeypatch):
 
 def test_system_prompt_substitutes_model_name():
     prompt = login_server.load_system_prompt(
-        "Qwen3-1.7B-Q4_K_M.gguf",
+        "Qwen3-4B-Q4_K_M.gguf",
         "alice",
         12,
     )
-    assert "- Modèle actif : Qwen3-1.7B-Q4_K_M.gguf" in prompt
+    assert "- Modèle actif : Qwen3-4B-Q4_K_M.gguf" in prompt
     assert "{model_name}" not in prompt
 
 
@@ -56,7 +56,7 @@ def test_extract_model_name_from_settings():
         assert login_server.extract_model_name() == "test-model.gguf"
 
     with patch.object(login_server, "get_setting", return_value=None):
-        assert login_server.extract_model_name() == "Qwen3-1.7B-Q4_K_M.gguf"
+        assert login_server.extract_model_name() == "Qwen3-4B-Q4_K_M.gguf"
 
 
 def test_classify_file_public_extensions(tmp_path):
