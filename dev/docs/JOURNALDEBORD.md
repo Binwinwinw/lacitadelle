@@ -136,3 +136,4 @@
 [2026-11-09] Context strategy : MAX_CONTEXT_TOKENS=8000 remplace MAX_CONTEXT_MESSAGES=15. Troncature aligne sur user/assistant. 4 tests ajoutés (241 passed).
 [2026-11-09] Phase 16 clôturée : 5 dettes closes (règles, vendorisation offline, port 9931, context strategy, fix test markdown), persona V1.5+V1.6, avertissement UI sur cutoff 2024. 7 commits livrés, 241 tests, 84 décisions. Limites LLM locaux documentées (knowledge cutoff, hallucinations). Dettes futures planifiées (RAG local, web access).
 [2026-11-12] Fix distribution Qwen3-4B : llamafile_config.json + model_health.py + citadelle_memory.py alignés. Signal PAIT-GGUF-100 accepté (Qwen officiel, renderer llama.cpp limité; aucune garantie générale de sandbox).
+[2026-11-12] Fix migration destructive : backup SQLite automatique avant DROP TABLE dans migrate_to_v3. Collision timestamp gérée. 2 tests ajoutés (244 passed).

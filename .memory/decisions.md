@@ -2024,3 +2024,21 @@ restent possibles. Ce n'est pas une garantie générale de sandbox.
 **Conséquences** : le GGUF reste distribué tel quel. Le template est
 une surface d'attaque du renderer et n'est pas présenté comme isolé
 par une sandbox garantie.
+
+## [2026-11-12] Fix migration destructive (audit)
+
+**Contexte** : audit révèle que migrate_to_v3 fait DROP TABLE si
+password_hash manque, détruisant données sans backup. Une mise à
+niveau peut entraîner une perte irréversible.
+
+**Décision(s)** :
+1. Avant tout DROP TABLE, vérifier si des données existent
+   (messages, sessions, users via SELECT COUNT).
+2. Si données : créer backup SQLite via VACUUM INTO
+   (path.db.backup-YYYYMMDD-HHMMSS).
+3. Gérer la collision de timestamp (suffixe -1, -2 en cas d'existence).
+4. Logger le path du backup (via logging.info).
+
+**Conséquences** : les données ne sont plus détruites silencieusement.
+Backup permet restauration manuelle. Reste à faire : UI de confirmation
+utilisateur et doc utilisateur.

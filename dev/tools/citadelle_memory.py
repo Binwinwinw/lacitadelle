@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import hashlib
 import hmac
+import logging
 import os
 import secrets
 import sqlite3
@@ -162,10 +163,38 @@ def _users_has_password_hash(conn: sqlite3.Connection) -> bool:
 
 
 def migrate_to_v3(db_path: Path | None = None) -> None:
-    """Remplace le schéma V2 par V3, en supprimant toutes les données."""
-    with _connect(db_path) as conn:
+    """Remplace le schéma V2 par V3, après sauvegarde des données existantes."""
+    database_path = Path(db_path or DB_PATH)
+    with _connect(database_path) as conn:
         if _users_has_password_hash(conn):
             return
+        tables = {
+            row["name"]
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            )
+        }
+        row_counts = {
+            table: conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in ("messages", "sessions", "users")
+            if table in tables
+        }
+        if any(row_counts.values()):
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            backup_path = database_path.with_suffix(
+                f".db.backup-{timestamp}"
+            )
+            collision = 1
+            while backup_path.exists():
+                backup_path = database_path.with_suffix(
+                    f".db.backup-{timestamp}-{collision}"
+                )
+                collision += 1
+            conn.execute("VACUUM INTO ?", (str(backup_path),))
+            logging.getLogger(__name__).info(
+                "Migration V3 : backup créé à %s",
+                backup_path,
+            )
         conn.execute("PRAGMA foreign_keys = OFF")
         try:
             conn.executescript(

@@ -2,6 +2,19 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-12] Fix migration destructive (audit Must Fix 2)
+
+**Commit** : en cours de rédaction.
+
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tests/test_migration_backup.py`, `.memory/decisions.md`,
+`AGENTS.md`, journaux.
+
+**Raison** : audit révèle que migrate_to_v3 peut DROP TABLE sans backup.
+
+**Impact** : backup automatique avant migration destructive.
+Collision timestamp gérée. 2 tests (242 + 2 = 244).
+
 ## [2026-11-12] Fix distribution Qwen3-4B
 
 **Commit** : en cours de rédaction.
