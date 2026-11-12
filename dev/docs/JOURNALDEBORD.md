@@ -135,3 +135,4 @@
 [2026-11-09] Persona V1.6 : avertissement final ajouté. Hallucinations factuelles persistent (limite 4B). Avertissement UI prévu. RAG local = dette identifiée.
 [2026-11-09] Context strategy : MAX_CONTEXT_TOKENS=8000 remplace MAX_CONTEXT_MESSAGES=15. Troncature aligne sur user/assistant. 4 tests ajoutés (241 passed).
 [2026-11-09] Phase 16 clôturée : 5 dettes closes (règles, vendorisation offline, port 9931, context strategy, fix test markdown), persona V1.5+V1.6, avertissement UI sur cutoff 2024. 7 commits livrés, 241 tests, 84 décisions. Limites LLM locaux documentées (knowledge cutoff, hallucinations). Dettes futures planifiées (RAG local, web access).
+[2026-11-12] Fix distribution Qwen3-4B : llamafile_config.json + model_health.py + citadelle_memory.py alignés. Signal PAIT-GGUF-100 accepté (Qwen officiel, renderer llama.cpp limité; aucune garantie générale de sandbox).

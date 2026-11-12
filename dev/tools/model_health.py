@@ -16,7 +16,7 @@ from citadelle_memory import get_setting, migrate_to_v7, set_setting
 from paths import get_assets_dir, get_bundle_dir, is_frozen
 
 PROJECT_ROOT = get_bundle_dir()
-DEFAULT_MODEL_FILENAME = "Qwen3-1.7B-Q4_K_M.gguf"
+DEFAULT_MODEL_FILENAME = "Qwen3-4B-Q4_K_M.gguf"
 if is_frozen():
     DEFAULT_MODEL_PATH = str(get_assets_dir() / DEFAULT_MODEL_FILENAME)
 else:

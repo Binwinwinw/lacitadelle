@@ -2,6 +2,22 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-12] Fix distribution Qwen3-4B
+
+**Commit** : en cours de rédaction.
+
+**Fichiers modifiés** : `dev/tools/llamafile_config.json`,
+`dev/tools/model_health.py`, `dev/tools/citadelle_memory.py`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/LLM-LIMITES.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : audit révèle que le passage à Qwen3-4B n'était pas
+distribué (config, model_health, citadelle_memory attendaient 1.7B).
+
+**Impact** : installation propre alignée sur Qwen3-4B et son SHA-256.
+Signal PAIT-GGUF-100 accepté et documenté; le renderer n'est pas décrit
+comme une garantie générale de sandbox.
+
 ## [2026-11-09] Context strategy — MAX_CONTEXT_TOKENS
 
 **Commit** : en cours de rédaction.

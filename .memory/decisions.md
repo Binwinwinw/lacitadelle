@@ -2001,3 +2001,26 @@ paire user/assistant. Remplacer par une stratégie par tokens.
 
 **Conséquences** : conversations longues supportées jusqu'à ~8000
 tokens. Limite runtime llamafile : 40k tokens. Marge suffisante.
+
+## [2026-11-12] Signal PAIT-GGUF-100 sur Qwen3-4B
+
+**Contexte** : lors de l'alignement du modèle par défaut sur
+Qwen3-4B (commit à venir), Hugging Face signale `PAIT-GGUF-100`
+sur le fichier Qwen3-4B-Q4_K_M.gguf.
+
+**Constat** : selon Protect AI, ce signal signifie qu'un template
+Jinja est présent et qu'aucun motif connu d'évasion ou d'exécution de
+code n'a été détecté. C'est courant pour les modèles de chat. llama.cpp
+utilise un moteur de templates C++ limité; ses mainteneurs avertissent
+néanmoins que des bugs dans le traitement de templates non fiables
+restent possibles. Ce n'est pas une garantie générale de sandbox.
+
+**Décision(s)** :
+1. Accepter le signal informatif pour ce modèle officiel Qwen.
+2. Documenter la présence du template Jinja et la limite du renderer.
+3. Aucune action corrective n'est requise pour le signal lui-même;
+   conserver le runtime à jour et n'utiliser que des modèles de source fiable.
+
+**Conséquences** : le GGUF reste distribué tel quel. Le template est
+une surface d'attaque du renderer et n'est pas présenté comme isolé
+par une sandbox garantie.

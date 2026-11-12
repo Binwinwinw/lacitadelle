@@ -21,13 +21,13 @@
       "required": true,
       "purpose": "Runtime llamafile thin universel (CPU, ~44 Mo), déployé sous un nom adapté à chaque OS."
     },
-    "qwen3-1.7b-q4km": {
-      "url": "https://huggingface.co/smarttasks/Qwen3-1.7B-GGUF/resolve/4b9aca3fb9c8fcace456430347c2fc34752e515f/Qwen3-1.7B-Q4_K_M.gguf",
-      "sha256": "16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207",
-      "filename": "Qwen3-1.7B-Q4_K_M.gguf",
-      "destination": "dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf",
+    "qwen3-4b-q4km": {
+      "url": "https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/a9a60d009fa7ff9606305047c2bf77ac25dbec49/Qwen3-4B-Q4_K_M.gguf",
+      "sha256": "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5",
+      "filename": "Qwen3-4B-Q4_K_M.gguf",
+      "destination": "dev/tools/vendor/llamafile/Qwen3-4B-Q4_K_M.gguf",
       "required": true,
-      "purpose": "Modèle Qwen3-1.7B Q4_K_M pour le mode external."
+      "purpose": "Modèle Qwen3-4B Q4_K_M pour le mode external."
     }
   }
 }

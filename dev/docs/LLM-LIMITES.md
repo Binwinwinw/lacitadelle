@@ -69,3 +69,24 @@ L'utilisateur doit vérifier les informations factuelles.
 
 Pour La Citadelle V3.x : accepter les limites, avertir
 l'utilisateur. RAG local = phase future (voir TODO.md).
+
+## Annexe — Signaux de sécurité des GGUF
+
+Les fichiers GGUF peuvent porter des signaux Hugging Face
+(`PAIT-GGUF-XXX`). Ces signaux sont des avertissements de sécurité
+émis par Protect AI.
+
+Signal `PAIT-GGUF-100` (présent sur Qwen3-4B) : présence d'un
+template Jinja dans le GGUF. Protect AI le classe comme informatif
+lorsqu'aucun motif connu d'évasion du sandbox n'est détecté.
+Les modèles de chat incluent couramment un tel template.
+
+llama.cpp utilise Minja, un renderer Jinja-like en C++ avec un sous-ensemble
+limité du langage; ce n'est pas Python Jinja2. Minja n'accède pas lui-même
+aux fichiers ou au réseau, mais ses mainteneurs avertissent que des bugs
+dans le traitement de templates non fiables restent possibles. Ne pas
+considérer ce renderer comme une garantie générale de sandbox.
+
+Décision pour La Citadelle : accepter le signal informatif. Qwen3-4B
+provient du dépôt officiel Qwen; conserver le runtime à jour et vérifier
+les sources des modèles utilisés.

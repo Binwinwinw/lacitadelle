@@ -36,7 +36,7 @@ CITADELLE_DATA_DIR = (
 )
 DB_PATH = CITADELLE_DATA_DIR / "memory.db"
 if is_frozen():
-    INTEGRATED_MODEL_GGUF = get_assets_dir() / "Qwen3-1.7B-Q4_K_M.gguf"
+    INTEGRATED_MODEL_GGUF = get_assets_dir() / "Qwen3-4B-Q4_K_M.gguf"
 else:
     INTEGRATED_MODEL_GGUF = (
         PROJECT_ROOT
@@ -44,10 +44,10 @@ else:
         / "tools"
         / "vendor"
         / "llamafile"
-        / "Qwen3-1.7B-Q4_K_M.gguf"
+        / "Qwen3-4B-Q4_K_M.gguf"
     )
 SHA256_INTEGRATED_MODEL_GGUF = (
-    "16da7ba1721b1620fa843e0978badd3d93756274fd209a01874b37e29750e207"
+    "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5"
 )
 
 # Utilisateur par défaut
