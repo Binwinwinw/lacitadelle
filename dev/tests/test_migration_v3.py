@@ -1,11 +1,14 @@
 """Tests pour migrate_to_v3."""
 
+import logging
 import sqlite3
 import sys
 import tempfile
 from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
+
+logger = logging.getLogger(__name__)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
@@ -67,9 +70,11 @@ def test_migration_from_v2():
         ):
             try:
                 migrate_to_v3(db_path)
-                assert False, "La migration invalide devait échouer"
             except sqlite3.OperationalError:
                 pass
+            else:
+                logger.warning("La migration invalide devait échouer")
+                raise AssertionError("La migration invalide devait échouer")
         with _connect(db_path) as conn:
             assert conn.execute("SELECT username FROM users").fetchone()[0] == "legacy"
             assert conn.execute("PRAGMA foreign_keys").fetchone()[0] == 1
@@ -126,9 +131,11 @@ def test_schema_v3_complete():
                     "created_at) VALUES (?, ?, ?, ?)",
                     ("u1", "hash", "invalid", _utcnow()),
                 )
-                assert False, "CHECK doit rejeter role invalide"
             except sqlite3.IntegrityError:
                 pass
+            else:
+                logger.warning("CHECK doit rejeter role invalide")
+                raise AssertionError("CHECK doit rejeter role invalide")
 
 
 def run_all():

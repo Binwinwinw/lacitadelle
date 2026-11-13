@@ -2149,3 +2149,19 @@ pas où lire l'état actuel du projet.
 2. Règle 13 : maintenir ETAT-PROJET.md à chaque release majeure.
 
 **Conséquences** : point d'entrée unique pour les reprises de session.
+
+## [2026-11-13] Fix Ruff B011 (assert False dans tests)
+
+**Contexte** : Ruff détecte 3 issues B011 (assert False) dans les
+tests `test_auth_hash.py:67` et `test_migration_v3.py:70,129`.
+`assert False` est désactivé sous `python -O` et masque les tests
+qui devraient échouer.
+
+**Constat** : les 3 occurrences sont dans des tests (pas en prod).
+
+**Décision(s)** : remplacer par `logger.warning` + `raise AssertionError`
+dans un `else` (après le `try/except`). Pattern idiomatique pour
+vérifier qu'une exception attendue est bien levée.
+
+**Conséquences** : tests robustes sous `python -O`. Ruff B011 vide.
+93 décisions.

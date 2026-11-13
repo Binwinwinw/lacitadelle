@@ -1,7 +1,10 @@
 """Tests pour hash_password, verify_password et generate_strong_password."""
 
+import logging
 import sys
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
@@ -64,9 +67,11 @@ def test_generate_strong_password_categories():
 def test_generate_strong_password_min_length():
     try:
         generate_strong_password(15)
-        assert False, "Devrait lever ValueError"
     except ValueError:
         pass
+    else:
+        logger.warning("Devrait lever ValueError")
+        raise AssertionError("Devrait lever ValueError")
 
 
 def run_all():

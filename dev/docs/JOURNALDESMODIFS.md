@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] Fix Ruff B011 (assert False dans tests)
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tests/test_auth_hash.py`,
+`dev/tests/test_migration_v3.py`, `.memory/decisions.md`, `AGENTS.md`,
+journaux.
+**Raison** : Ruff B011 dans 3 tests.
+**Impact** : tests robustes sous python -O. 93 décisions.
+
 ## [2026-11-13] Création ETAT-PROJET.md
 
 **Commit** : en cours de rédaction.
