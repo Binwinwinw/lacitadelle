@@ -248,7 +248,8 @@ décisions #50–#64). L'upload GGUF reste un GO séparé.
 - Stocker la configuration runtime dans SQLite, table `settings`; la clé
   `current_model_path` désigne le GGUF actif. Le launcher ne doit plus
   dépendre d'un chemin de modèle codé en dur.
-- Conserver Qwen3-1.7B Q4_K_M comme modèle par défaut uniquement s'il existe
+- À l'époque de cette décision, conserver l'ancien modèle Qwen3-1.7B Q4_K_M
+  comme modèle par défaut uniquement s'il existe
   et figure dans `settings.allowed_models`. `llamafile_config.json` reste le
   manifeste des assets d'installation, distinct de l'état runtime.
 - La whitelist V1 est un tableau JSON de chemins GGUF absolus géré depuis

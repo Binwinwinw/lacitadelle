@@ -2056,3 +2056,21 @@ base peut être inutilisable.
 
 **Conséquences** : démarrage refuse si la base est inutilisable.
 L'utilisateur voit une erreur claire au lieu d'un serveur bancal.
+
+## [2026-11-12] Fix REPL contexte + doc modèle (audit Must Fix 4+5)
+
+**Contexte** : audit révèle que client.py (REPL) utilise encore
+MAX_CONTEXT_MESSAGES=15 (au lieu de MAX_CONTEXT_TOKENS=8000 du
+webchat) et que plusieurs documents mentionnent encore Qwen3-1.7B
+comme modèle courant (ARCHITECTURE.md, OBJECTIF.md, RUNBOOK-PROD.md).
+
+**Décision(s)** :
+1. client.py aligné sur MAX_CONTEXT_TOKENS=8000 via
+   get_messages_for_user_within_token_budget + ensure_default_user.
+2. Docs courantes mises à jour pour Qwen3-4B (ARCHITECTURE, OBJECTIF,
+   RUNBOOK).
+3. Mentions historiques préservées (BACKLOG Phase 11 marqué "ancien
+   modèle", .memory/decisions.md non modifié).
+
+**Conséquences** : webchat et REPL cohérents. Docs alignées.
+Historique préservé.

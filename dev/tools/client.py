@@ -19,7 +19,7 @@ LLAMAFILE_URL = "http://127.0.0.1:8080/v1/chat/completions"
 LLAMAFILE_HEALTH_URL = "http://127.0.0.1:8080/v1/models"
 MODEL_NAME = "LLaMA_CPP"
 SYSTEM_PROMPT = "Tu es La Citadelle, un assistant local. Réponds en français de façon claire et concise."
-MAX_CONTEXT_MESSAGES = 15
+MAX_CONTEXT_TOKENS = 8000
 HTTP_TIMEOUT = 60
 
 
@@ -92,8 +92,12 @@ def chat_with_llamafile(messages: list[dict[str, str]]) -> str:
 
 
 def build_messages_for_context(session_id: int) -> list[dict[str, str]]:
-    """Construit le prompt système suivi des N derniers messages."""
-    history = memory.get_messages(session_id, limit=MAX_CONTEXT_MESSAGES)
+    """Construit le prompt système suivi de l'historique sous budget de tokens."""
+    history = memory.get_messages_for_user_within_token_budget(
+        memory.ensure_default_user(),
+        session_id,
+        max_tokens=MAX_CONTEXT_TOKENS,
+    )
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.extend(
         {"role": row["role"], "content": row["content"]}

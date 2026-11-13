@@ -52,7 +52,7 @@ déjà présents.
 ### Vérifications après installation
 
 - Le runtime adapté à l'OS et
-  `dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf` existent.
+  `dev/tools/vendor/llamafile/Qwen3-4B-Q4_K_M.gguf` existent.
 - `citadelle_data/memory.db` existe et la liste
   `settings.allowed_models` contient le GGUF intégré autorisé.
 - Au premier lancement, `dist/.current_model` peut être absent : c'est
@@ -110,7 +110,7 @@ retélécharger et ré-extraire l'archive officielle sans déplacer ce dossier.
 ### Initialisation whitelist refusée ou SHA-256 invalide
 
 Vérifier la présence de
-`dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf` et comparer son SHA-256
+`dev/tools/vendor/llamafile/Qwen3-4B-Q4_K_M.gguf` et comparer son SHA-256
 au manifeste. Relancer l'installateur natif avec Internet pour laisser le bootstrap
 réparer un asset corrompu. Le lanceur ne doit pas inscrire un fichier absent
 ou dont le hash est invalide.

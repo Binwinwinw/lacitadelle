@@ -5,7 +5,7 @@ Le produit livré comprend :
 - le runtime llamafile-thin universel 0.10.6, téléchargé dans `dist/` et
   nommé selon l'OS (`llamafile.exe`, `llamafile-linux` ou
   `llamafile-macos`) ;
-- le modèle GGUF externe Qwen3-1.7B Q4_K_M, téléchargé dans
+- le modèle GGUF externe Qwen3-4B Q4_K_M, téléchargé dans
   `dev/tools/vendor/llamafile/` ;
 - un proxy Python local (`login_server.py`) et un webchat.
 

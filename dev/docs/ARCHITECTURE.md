@@ -21,8 +21,8 @@ lancement.
 
 ### 2. Modèle externe
 
-- Fichier `dev/tools/vendor/llamafile/Qwen3-1.7B-Q4_K_M.gguf`, d'environ 1,28 Go.
-- Qwen3-1.7B Q4_K_M, licence Apache 2.0.
+- Fichier `dev/tools/vendor/llamafile/Qwen3-4B-Q4_K_M.gguf`, d'environ 2,5 Go.
+- Qwen3-4B Q4_K_M, licence Apache 2.0.
 - Téléchargé et vérifié par checksum SHA-256 par `dev/tools/bootstrap.py` ;
   il n'est pas embarqué dans le runtime.
 
@@ -79,7 +79,7 @@ lancement.
 
 1. Lancer `lancer.bat`, `lancer.sh` ou `lancer.command` selon l'OS.
 2. Le serveur llamafile-thin démarre sur `localhost:8080` et le proxy sur `localhost:8081`.
-3. Le navigateur s'ouvre sur `http://localhost:8081`; l'utilisateur se connecte et discute avec Qwen3-1.7B en local, sur CPU.
+3. Le navigateur s'ouvre sur `http://localhost:8081`; l'utilisateur se connecte et discute avec Qwen3-4B en local, sur CPU.
 
 ### Client avec mémoire
 

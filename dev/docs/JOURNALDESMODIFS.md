@@ -2,6 +2,20 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-12] Fix REPL contexte + doc modèle (audit Must Fix 4+5)
+
+**Commit** : en cours de rédaction.
+
+**Fichiers modifiés** : `dev/tools/client.py`,
+`dev/docs/ARCHITECTURE.md`, `dev/docs/OBJECTIF.md`,
+`dev/docs/RUNBOOK-PROD.md`, `dev/docs/BACKLOG.md`,
+`.memory/decisions.md`, `AGENTS.md`, journaux.
+
+**Raison** : audit révèle incohérence REPL + docs obsolètes.
+
+**Impact** : cohérence webchat/REPL, docs alignées. 244 tests,
+88 décisions.
+
 ## [2026-11-12] Fix proxy démarre après échec migration (audit Must Fix 3)
 
 **Commit** : en cours de rédaction.
