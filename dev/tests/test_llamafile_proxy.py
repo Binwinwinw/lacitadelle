@@ -11,8 +11,8 @@ TESTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(TESTS_DIR))
 sys.path.insert(0, str(TESTS_DIR.parent / "tools"))
 
-import login_server
 import lancer
+import login_server
 from _helpers import (
     SESSION_COOKIE_NAME,
     api_test_context,

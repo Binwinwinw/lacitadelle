@@ -12,13 +12,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 citadelle_memory = importlib.import_module("citadelle_memory")
 login_server = importlib.import_module("login_server")
 from _helpers import (
-    NoRedirect,
     api_post,
     api_test_context,
     create_test_user,
     login_as,
     open_no_redirect,
 )
+
 SESSION_COOKIE_NAME = login_server.SESSION_COOKIE_NAME
 
 

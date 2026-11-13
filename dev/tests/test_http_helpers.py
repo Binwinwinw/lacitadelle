@@ -42,7 +42,7 @@ def test_json_response():
     json_response(handler, {"greeting": "café"}, 200)
     body = handler.wfile.getvalue()
     assert json.loads(body.decode("utf-8")) == {"greeting": "café"}
-    assert "café".encode("utf-8") in body
+    assert "café".encode() in body
     handler.send_response.assert_called_once_with(200)
     headers = {call.args[0]: call.args[1] for call in handler.send_header.call_args_list}
     assert headers["Content-Type"] == "application/json; charset=utf-8"

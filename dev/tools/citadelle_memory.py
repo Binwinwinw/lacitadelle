@@ -14,19 +14,19 @@ Aucune dépendance externe. Python 3.10+ requis.
 
 from __future__ import annotations
 
-import json
 import hashlib
 import hmac
+import json
 import logging
 import os
 import secrets
 import sqlite3
 import string
-import uuid
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from paths import get_assets_dir, get_bundle_dir, get_data_dir, is_frozen
 

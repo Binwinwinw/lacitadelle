@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 from login_server import (
-    SESSIONS,
     SESSION_COOKIE_NAME,
+    SESSIONS,
     clear_cookie_token,
     create_session_token,
     get_user_from_token,

@@ -43,16 +43,15 @@ def test_e2e_full_workflow_admin_changes_model():
                         login_server,
                         "CURRENT_MODEL_FILE",
                         mirror_path,
-                    ):
-                        with api_post(
-                            opener,
-                            base_url,
-                            "/api/admin/model",
-                            token,
-                            {"model_path": expected_path},
-                        ) as response:
-                            assert response.code == 200
-                            result = json.loads(response.read())
+                    ), api_post(
+                        opener,
+                        base_url,
+                        "/api/admin/model",
+                        token,
+                        {"model_path": expected_path},
+                    ) as response:
+                        assert response.code == 200
+                        result = json.loads(response.read())
 
                     assert result["model_path"] == expected_path
                     assert citadelle_memory.get_setting(
@@ -116,18 +115,17 @@ def test_e2e_whitelist_blocks_unallowed():
                 login_server,
                 "CURRENT_MODEL_FILE",
                 mirror_path,
-            ):
-                with api_post(
-                    opener,
-                    base_url,
-                    "/api/admin/model",
-                    token,
-                    {"model_path": str(rejected_path)},
-                ) as response:
-                    assert response.code == 400
-                    assert "ce modèle n'est pas autorisé" in json.loads(
-                        response.read()
-                    )["error"].lower()
+            ), api_post(
+                opener,
+                base_url,
+                "/api/admin/model",
+                token,
+                {"model_path": str(rejected_path)},
+            ) as response:
+                assert response.code == 400
+                assert "ce modèle n'est pas autorisé" in json.loads(
+                    response.read()
+                )["error"].lower()
 
             assert citadelle_memory.get_setting(
                 "current_model_path",

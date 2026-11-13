@@ -1,0 +1,17 @@
+[project]
+name = "lacitadelle"
+version = "3.1.0"
+description = "Chat IA local avec Qwen3-4B et llamafile"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["dev/tests"]
+pythonpath = ["dev/tools"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]

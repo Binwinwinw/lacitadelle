@@ -1,7 +1,7 @@
 """Tests unitaires et d'intégration pour les routes login/logout."""
 
-import io
 import importlib
+import io
 import sqlite3
 import sys
 import tempfile

@@ -103,7 +103,7 @@ def check_model_loaded(
             payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError:
         return False, "http_error"
-    except (TimeoutError, socket.timeout):
+    except TimeoutError:
         return False, "timeout"
     except urllib.error.URLError as exc:
         if isinstance(exc.reason, (TimeoutError, socket.timeout)):

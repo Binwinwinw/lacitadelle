@@ -8,8 +8,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 from citadelle_memory import (
     add_message,
-    create_session,
-    get_messages,
     get_messages_for_user,
     get_session_for_user,
     init_db,

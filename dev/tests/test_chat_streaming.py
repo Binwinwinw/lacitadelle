@@ -22,7 +22,7 @@ from _helpers import (
 class _FakeSseResponse:
     def __init__(self, events):
         self.lines = [
-            f"data: {json.dumps(event)}\n\n".encode("utf-8")
+            f"data: {json.dumps(event)}\n\n".encode()
             for event in events
         ]
         self.lines.append(b"data: [DONE]\n\n")

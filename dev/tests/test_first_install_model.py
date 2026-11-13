@@ -24,9 +24,9 @@ def test_v7_seeds_verified_integrated_gguf_on_first_install(tmp_path, monkeypatc
         / "llamafile_config.json"
     )
     config = json.loads(config_path.read_text(encoding="utf-8"))
-    assert citadelle_memory.SHA256_INTEGRATED_MODEL_GGUF == config["assets"][
+    assert config["assets"][
         "qwen3-4b-q4km"
-    ]["sha256"]
+    ]["sha256"] == citadelle_memory.SHA256_INTEGRATED_MODEL_GGUF
     monkeypatch.setattr(
         citadelle_memory,
         "SHA256_INTEGRATED_MODEL_GGUF",

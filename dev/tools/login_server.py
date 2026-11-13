@@ -31,32 +31,30 @@ import time
 import urllib.error
 import urllib.request
 from collections import deque
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import citadelle_memory
 from citadelle_memory import (
     DB_PATH as MEMORY_DB_PATH,
+)
+from citadelle_memory import (
     add_message,
-    create_session,
     create_session_for_user,
-    ensure_default_user,
     ensure_admin_exists,
     generate_strong_password,
-    get_setting,
-    get_messages,
     get_messages_for_user,
     get_preferences,
     get_session_for_user,
+    get_setting,
     hash_password,
-    init_db,
-    list_sessions,
     list_sessions_for_user,
     migrate_to_v3,
     migrate_to_v4,

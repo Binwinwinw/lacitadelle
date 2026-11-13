@@ -13,7 +13,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 citadelle_memory = importlib.import_module("citadelle_memory")
 login_server = importlib.import_module("login_server")
 from _helpers import (
-    NoRedirect,
     SESSION_COOKIE_NAME,
     api_post,
     api_test_context,

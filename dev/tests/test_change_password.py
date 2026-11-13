@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _helpers import add_test_csrf_header
+
 citadelle_memory = importlib.import_module("citadelle_memory")
 login_server = importlib.import_module("login_server")
 

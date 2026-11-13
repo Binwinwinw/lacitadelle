@@ -11,6 +11,8 @@ from urllib.request import Request
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
+import citadelle_memory
+import login_server
 from _helpers import (
     SESSION_COOKIE_NAME,
     api_test_context,
@@ -18,8 +20,6 @@ from _helpers import (
     login_as,
     open_no_redirect,
 )
-import citadelle_memory
-import login_server
 
 
 def api_get(opener, base_url: str, path: str, token: str | None = None):
@@ -303,15 +303,14 @@ def test_create_user_requires_admin():
 
 
 def test_create_user_requires_auth():
-    with admin_test_context() as (base_url, opener, _):
-        with api_post(
-            opener,
-            base_url,
-            "/api/admin/users",
-            None,
-            {"username": "newuser"},
-        ) as response:
-            assert response.code == 401
+    with admin_test_context() as (base_url, opener, _), api_post(
+        opener,
+        base_url,
+        "/api/admin/users",
+        None,
+        {"username": "newuser"},
+    ) as response:
+        assert response.code == 401
 
 
 def test_create_user_temp_password_requires_change():
@@ -474,15 +473,14 @@ def test_deactivate_explicitly_deletes_messages_and_reactivates_empty():
             login_server,
             "_get_db_connection",
             side_effect=connect_without_foreign_keys,
-        ):
-            with api_post(
-                opener,
-                base_url,
-                f"/api/admin/users/{user_id}/deactivate",
-                admin_token,
-                {},
-            ) as response:
-                assert response.code == 200
+        ), api_post(
+            opener,
+            base_url,
+            f"/api/admin/users/{user_id}/deactivate",
+            admin_token,
+            {},
+        ) as response:
+            assert response.code == 200
 
         conn = sqlite3.connect(str(db_path))
         try:

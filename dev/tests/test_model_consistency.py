@@ -1,8 +1,8 @@
 def test_default_model_is_consistent_across_sources():
     """Vérifie que le modèle par défaut est identique dans les 3 sources."""
+    import json
     import sys
     from pathlib import Path
-    import json
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
     import lancer

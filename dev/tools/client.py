@@ -11,7 +11,6 @@ import json
 import sys
 import urllib.error
 import urllib.request
-from typing import Any
 
 import citadelle_memory as memory
 

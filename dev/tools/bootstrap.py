@@ -127,7 +127,7 @@ def load_config() -> dict[str, Any]:
     for name, meta in assets.items():
         if not isinstance(name, str) or not name.strip():
             raise BootstrapError(
-                f"Configuration invalide : nom d'asset vide ou non-chaîne."
+                "Configuration invalide : nom d'asset vide ou non-chaîne."
             )
         if not isinstance(meta, dict):
             raise BootstrapError(

@@ -3,14 +3,11 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
 import login_server
 import security_files
-
 
 PROMPT_FILE = Path(login_server.PROMPT_FILE)
 
