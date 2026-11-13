@@ -2074,3 +2074,15 @@ comme modèle courant (ARCHITECTURE.md, OBJECTIF.md, RUNBOOK-PROD.md).
 
 **Conséquences** : webchat et REPL cohérents. Docs alignées.
 Historique préservé.
+
+## [2026-11-12] Fix payload model (audit Should Fix 3)
+
+**Contexte** : login_server.py:1986 envoie "model": "qwen3-1.7b"
+hardcodé. llama.cpp ignore le champ (sert le GGUF chargé), mais
+c'est incohérent.
+
+**Décision(s)** : remplacer par extract_model_name() (ou constante
+alignée sur DEFAULT_MODEL_FILENAME). Le payload reflète le modèle
+réel.
+
+**Conséquences** : cohérence cosmétique.

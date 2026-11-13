@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-12] Fix payload model (audit Should Fix 3)
+
+**Commit** : en cours de rédaction.
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+
+**Raison** : payload envoyait l'identifiant Qwen3-1.7B en dur.
+
+**Impact** : le payload reflète désormais le modèle actif.
+
 ## [2026-11-12] Fix REPL contexte + doc modèle (audit Must Fix 4+5)
 
 **Commit** : en cours de rédaction.

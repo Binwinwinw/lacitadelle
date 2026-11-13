@@ -139,3 +139,4 @@
 [2026-11-12] Fix migration destructive : backup SQLite automatique avant DROP TABLE dans migrate_to_v3. Collision timestamp gérée. 2 tests ajoutés (244 passed).
 [2026-11-12] Fix proxy : sys.exit(1) si migration échoue. Test_auto_admin adapté. 244 passed, 87 décisions.
 [2026-11-12] Fix REPL contexte (MAX_CONTEXT_TOKENS=8000) + doc modèle Qwen3-4B (4 docs). 244 passed, 88 décisions. Must Fix 4+5 résolus.
+[2026-11-12] Fix payload model : extract_model_name() remplace le modèle hardcodé; 244 tests, 89 décisions.

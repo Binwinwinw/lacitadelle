@@ -1983,7 +1983,7 @@ def call_llamafile(
     completion_tokens = None
     try:
         payload = {
-            "model": "qwen3-1.7b",
+            "model": extract_model_name(),
             "messages": messages,
             "stream": stream,
         }
