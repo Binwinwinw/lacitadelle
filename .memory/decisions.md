@@ -2112,3 +2112,28 @@ test_persona_nexxus.
 perte de données possible" à "distribuable sereinement avec 244
 tests verts". Leçon : un audit avant release est indispensable —
 les tests ne détectent pas tous les bugs.
+
+## [2026-11-13] Clôture post-audit — La Citadelle stable
+
+**Contexte** : test manuel complet par le Décideur après les 6 fix
+de l'audit ponytail-audit.
+
+**Résultats du test manuel** :
+1. Modèle Qwen3-4B chargé (confirmé dans le chat).
+2. Streaming SSE fonctionnel.
+3. Markdown offline fonctionnel (200 OK sur vendor/marked.umd.js).
+4. Persona V1.6 respectée : refus XSS, refus loi inventée, avertissements
+   en tête et en pied pour le juridique, pas de "N'hésitez pas",
+   pas d'émojis.
+5. Backup migration (test formel 244 passed).
+6. Proxy refuse démarrage si migration échoue (test formel).
+
+**Limites acceptées** :
+- Typo occasionnelle du 4B ("Résolubilité" au lieu de "Résiliation").
+- Articles de loi cités peuvent être inexacts (avertissement systématique).
+
+**Décision(s)** : La Citadelle est officiellement stable pour la
+distribution. Aucun Must Fix restant.
+
+**Conséquences** : prêt pour release. Dettes futures : RAG local,
+web access optionnel.

@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] Clôture post-audit — La Citadelle stable
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `.memory/decisions.md`, `TODO.md`, journaux.
+**Raison** : test manuel complet validé par le Décideur.
+**Impact** : La Citadelle est officiellement stable. 6 Must Fix résolus.
+91 décisions, 244 tests. Prêt pour release.
+
 ## [2026-11-12] Bilan audit ponytail-audit (6 fix résolus)
 
 **Commit** : en cours de rédaction.
