@@ -2137,3 +2137,15 @@ distribution. Aucun Must Fix restant.
 
 **Conséquences** : prêt pour release. Dettes futures : RAG local,
 web access optionnel.
+
+## [2026-11-13] Création ETAT-PROJET.md
+
+**Contexte** : après 8+ commits post-audit, un nouveau venu ne sait
+pas où lire l'état actuel du projet.
+
+**Décision(s)** :
+1. Créer `dev/docs/ETAT-PROJET.md` : tableau de bord (métriques,
+   ce qui marche, limites, dettes, où lire quoi).
+2. Règle 13 : maintenir ETAT-PROJET.md à chaque release majeure.
+
+**Conséquences** : point d'entrée unique pour les reprises de session.

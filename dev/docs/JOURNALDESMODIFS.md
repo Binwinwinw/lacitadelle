@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] Création ETAT-PROJET.md
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/ETAT-PROJET.md` (nouveau),
+`AGENTS.md`, `.memory/decisions.md`, journaux.
+**Raison** : fournir un point d'entrée "état actuel".
+**Impact** : documentation pérenne. Règle 13 ajoutée. 92 décisions.
+
 ## [2026-11-13] Clôture post-audit — La Citadelle stable
 
 **Commit** : en cours de rédaction.

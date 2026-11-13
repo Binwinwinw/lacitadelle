@@ -142,3 +142,4 @@
 [2026-11-12] Fix payload model : extract_model_name() remplace le modèle hardcodé; 244 tests, 89 décisions.
 [2026-11-12] Bilan audit ponytail-audit : 6 fix résolus (distribution, migration, proxy, REPL, docs, payload). 244 tests, 90 décisions. Règle audit-avant-release ajoutée (16-AGENTS-RULES-19).
 [2026-11-13] Clôture post-audit : test manuel complet validé (Qwen3-4B chargé, streaming, Markdown offline, persona V1.6, XSS refusé, backup migration). 6 Must Fix résolus. La Citadelle est stable pour distribution. 91 décisions, 244 tests.
+[2026-11-13] Création ETAT-PROJET.md (tableau de bord). Règle 13 ajoutée. 92 décisions.

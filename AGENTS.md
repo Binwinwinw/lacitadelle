@@ -13,7 +13,7 @@ V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Un build PyInstaller Windows autonome est disponible; il télécharge runtime et
 GGUF au premier lancement et conserve les données sous `%APPDATA%\LaCitadelle\`.
-La suite compte 244 tests permanents et `.memory/decisions.md` 91 décisions.
+La suite compte 244 tests permanents et `.memory/decisions.md` 92 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
 <!-- Compteurs vérifiés le 2026-11-07.
@@ -381,3 +381,5 @@ Avant d'ajouter une règle dans `.memory/`, vérifier qu'elle n'existe pas déj�
 12. **Audit avant release** : lancer `ponytail-audit` avant chaque
     release majeure. Consigner les fix identifiés. Ne pas livrer une release
     si l'audit révèle un Must Fix non résolu.
+13. **État du projet à jour** : `dev/docs/ETAT-PROJET.md` doit être
+    mis à jour à chaque release majeure ou changement significatif.
