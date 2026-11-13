@@ -90,3 +90,13 @@ considérer ce renderer comme une garantie générale de sandbox.
 Décision pour La Citadelle : accepter le signal informatif. Qwen3-4B
 provient du dépôt officiel Qwen; conserver le runtime à jour et vérifier
 les sources des modèles utilisés.
+
+## Annexe — Audits de dépôt
+
+L'audit `ponytail-audit` (2026-11-12) a révélé 6 problèmes critiques
+invisibles aux tests unitaires. Les bugs de distribution et de
+migration sont typiquement invisibles jusqu'à un test en conditions
+réelles.
+
+Recommandation : lancer `ponytail-audit` avant chaque release
+majeure.

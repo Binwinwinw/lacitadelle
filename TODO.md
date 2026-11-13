@@ -82,3 +82,6 @@ tâche terminée est supprimée ici; sa trace reste dans
 - [ ] **16-AGENTS-RULES-18** : ajouter une règle dans AGENTS.md :
   "Tout GO qui modifie un fichier testé doit inclure la mise à jour
   du test associé." — Propriétaire : à planifier.
+- [ ] **16-AGENTS-RULES-19** : ajouter une règle dans AGENTS.md
+  "lancer ponytail-audit avant chaque release majeure".
+  — Propriétaire : à planifier.

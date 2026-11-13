@@ -2086,3 +2086,29 @@ alignée sur DEFAULT_MODEL_FILENAME). Le payload reflète le modèle
 réel.
 
 **Conséquences** : cohérence cosmétique.
+
+## [2026-11-12] Audit ponytail-audit — 6 fix résolus
+
+**Contexte** : audit complet du dépôt révèle 6 problèmes critiques
+(2 Must Fix + 4 Should Fix). Les tests (242) ne détectaient pas
+ces bugs, notamment la distribution cassée et la migration
+destructive.
+
+**Constats** :
+1. Distribution Qwen3-4B cassée (manifest, model_health, tests).
+2. Migration V3 destructive (DROP TABLE sans backup).
+3. Proxy démarre après échec migration.
+4. REPL incohérent avec webchat (MAX_CONTEXT_MESSAGES=15 vs 8000).
+5. Docs obsolètes (Qwen3-1.7B).
+6. Payload model hardcodé (Qwen3-1.7B).
+
+**Décision(s)** : 6 fix appliqués en 6 commits (ac5b405, bc0c63f,
+31737cb, f4f3e6e, b058d27, 50aeddc). Tests ajoutés :
+test_model_consistency, test_migration_backup. Tests adaptés :
+test_first_install_model, test_auto_admin, test_api_messages,
+test_persona_nexxus.
+
+**Conséquences** : La Citadelle passe de "installation cassée +
+perte de données possible" à "distribuable sereinement avec 244
+tests verts". Leçon : un audit avant release est indispensable —
+les tests ne détectent pas tous les bugs.

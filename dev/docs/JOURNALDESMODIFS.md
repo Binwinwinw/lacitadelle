@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-12] Bilan audit ponytail-audit (6 fix résolus)
+
+**Commit** : en cours de rédaction.
+
+**Fichiers modifiés** : `.memory/decisions.md`, `TODO.md`,
+`dev/docs/LLM-LIMITES.md`, `AGENTS.md`, journaux.
+
+**Raison** : consigner l'audit et ses 6 fix.
+
+**Impact** : documentation pérenne. Règle 12 "audit avant release"
+ajoutée. 90 décisions.
+
 ## [2026-11-12] Fix payload model (audit Should Fix 3)
 
 **Commit** : en cours de rédaction.
