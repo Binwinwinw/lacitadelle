@@ -2042,3 +2042,17 @@ niveau peut entraîner une perte irréversible.
 **Conséquences** : les données ne sont plus détruites silencieusement.
 Backup permet restauration manuelle. Reste à faire : UI de confirmation
 utilisateur et doc utilisateur.
+
+## [2026-11-12] Fix proxy refuse démarrage si migration échoue (audit Must Fix 3)
+
+**Contexte** : audit révèle que login_server.main() démarre HTTPServer
+même si migrate_to_v3 échoue. Le port 8081 est ouvert alors que la
+base peut être inutilisable.
+
+**Décision(s)** :
+1. Si migration ou init_db échoue, sys.exit(1) AVANT HTTPServer.
+2. Test_auto_admin adapté pour vérifier SystemExit(1) et absence de serveur.
+3. Log explicite sur stderr.
+
+**Conséquences** : démarrage refuse si la base est inutilisable.
+L'utilisateur voit une erreur claire au lieu d'un serveur bancal.

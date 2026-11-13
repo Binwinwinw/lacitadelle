@@ -2554,6 +2554,7 @@ def main() -> int:
             "--username superadmin",
             file=sys.stderr,
         )
+        sys.exit(1)
     else:
         print(f"[ADMIN] {message}")
         if created and password is not None:

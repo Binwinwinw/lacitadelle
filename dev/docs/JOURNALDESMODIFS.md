@@ -2,6 +2,19 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-12] Fix proxy démarre après échec migration (audit Must Fix 3)
+
+**Commit** : en cours de rédaction.
+
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tests/test_auto_admin.py`, `.memory/decisions.md`,
+`AGENTS.md`, journaux.
+
+**Raison** : audit révèle que le proxy démarre malgré échec migration.
+
+**Impact** : sys.exit(1) si migration échoue. Test adapté. 244 tests,
+87 décisions.
+
 ## [2026-11-12] Fix migration destructive (audit Must Fix 2)
 
 **Commit** : en cours de rédaction.

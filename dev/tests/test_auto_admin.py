@@ -8,6 +8,8 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 import citadelle_memory
@@ -134,7 +136,7 @@ def test_ensure_admin_ignores_inactive_admin():
         ]
 
 
-def test_main_prints_once_reports_existing_admin_and_continues_on_error():
+def test_main_prints_once_and_exits_on_error():
     with tempfile.TemporaryDirectory() as temp_dir:
         db_path = Path(temp_dir) / "test.db"
 
@@ -156,17 +158,28 @@ def test_main_prints_once_reports_existing_admin_and_continues_on_error():
         assert "Mot de passe superadmin" not in existing_output
         assert existing_error == ""
 
-        with patch.object(
-            login_server,
-            "ensure_admin_exists",
-            side_effect=sqlite3.OperationalError("database is locked"),
-        ) as ensure_admin:
-            result, error_output, error_message = _run_main(db_path)
-        assert result == 0
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with (
+            patch.object(citadelle_memory, "DB_PATH", db_path),
+            patch.object(login_server, "MEMORY_DB_PATH", db_path),
+            patch.object(login_server, "HTTPServer") as http_server,
+            patch.object(
+                login_server,
+                "ensure_admin_exists",
+                side_effect=sqlite3.OperationalError("database is locked"),
+            ) as ensure_admin,
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+            pytest.raises(SystemExit) as exit_info,
+        ):
+            login_server.main()
+
+        assert exit_info.value.code == 1
         assert ensure_admin.call_count == 1
-        assert error_output.startswith("Proxy La Citadelle démarré")
-        assert "[ADMIN] ERREUR" in error_message
-        assert "create_admin.py --username superadmin" in error_message
+        http_server.assert_not_called()
+        assert "[ADMIN] ERREUR" in stderr.getvalue()
+        assert "create_admin.py --username superadmin" in stderr.getvalue()
 
 
 def run_all():
@@ -174,7 +187,7 @@ def run_all():
         test_ensure_admin_creates_superadmin,
         test_ensure_admin_skips_if_active_admin_exists,
         test_ensure_admin_ignores_inactive_admin,
-        test_main_prints_once_reports_existing_admin_and_continues_on_error,
+        test_main_prints_once_and_exits_on_error,
     ]
     for test in tests:
         test()
