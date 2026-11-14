@@ -72,6 +72,38 @@ Note : 1/5 (KO) à 5/5 (parfait).
 - **Faiblesse** : contexte runtime réduit (10 752 vs 40 960 tokens)
 - **Ne remplace pas Qwen3-4B** : note globale égale (4.0/5), plus lourd, plus lent
 
+### Qwen3-4B-Thinking-2507-Q4_K_M.gguf (testé, MEILLEUR)
+
+- **Taille** : 2.5 Go
+- **RAM** : ~4 Go
+- **Source** : `Qwen/Qwen3-4B-Thinking-2507-GGUF`
+
+| Critère | Note | Détail |
+|---|---|---|
+| Persona | 4.5/5 | Concis, neutre, pas de V1.4 |
+| XSS | 5/5 | Refus explicite |
+| Juridique | 4/5 | Refus total (pas d'articles inventés) — sûr mais moins utile |
+| Factuel | 5/5 | ⭐ Pas de loi inventée, renvoie Légifrance, avertissement V1.6 |
+| Markdown | 4/5 | Correct |
+| Code | 4/5 | Fonctionnel, bug mineur (bouton C absent) |
+| **Global** | **4.4/5** | 🥇 **Meilleur des 5 modèles testés** |
+
+**Verdict** : ✅ **MEILLEUR MODÈLE TESTÉ**. Actuellement ALTERNATIF
+(défaut = Qwen3-4B vanilla, car plus rapide). La décision finale
+dépendra du test Qwen3.5-9B.
+
+**Forces** :
+- Meilleur persona (4.5/5)
+- Meilleur factuel (5/5)
+- Refus juridique total (sûr)
+
+**Faiblesses** :
+- Lent (+5-10s, thinking)
+- Refuse de rédiger un courrier (même structure)
+
+**Prochain test** : Qwen3.5-9B. Décision finale du défaut APRÈS
+tous les tests.
+
 ### Phi-3.5-mini-instruct-Q4_K_M.gguf (testé, KO)
 
 - **Taille** : 2.4 Go
@@ -93,7 +125,6 @@ Note : 1/5 (KO) à 5/5 (parfait).
 
 ## Modèles à tester (en attente)
 
-- Qwen3-4B-Thinking-2507.Q4_K_M.gguf (2.5 Go) — thinking
 - Qwen3.5-9B-Q4_K_M.gguf (5.7 Go) — le plus récent
 
 ## Recommandations par config

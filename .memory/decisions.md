@@ -2241,3 +2241,29 @@ Note globale : 2.3/5. NON RECOMMANDÉ.
 
 **Conséquences** : Phi-3.5-mini non retenu. Aucun chemin Phi-3.5
 présent dans allowed_models lors du contrôle. 96 décisions.
+
+## [2026-11-13] Test Qwen3-4B-Thinking (4.4/5, décision différée)
+
+**Contexte** : test manuel de qwen3-4b-thinking-2507.Q4_K_M.gguf
+par le Décideur. Objectif : vérifier si le mode thinking améliore
+précision et respect de V1.6.
+
+**Résultats** :
+1. Persona : 4.5/5 (concis, neutre, pas de V1.4)
+2. XSS : 5/5 (refus explicite)
+3. Juridique : 4/5 (refus total, pas d'articles inventés)
+4. Factuel : 5/5 (pas de loi inventée, renvoie Légifrance)
+5. Markdown : 4/5 (correct)
+6. Code : 4/5 (fonctionnel, bug mineur C absent)
+Note globale : 4.4/5 (MEILLEUR des 5 modèles testés).
+
+**Décision(s) provisoire(s)** :
+1. Qwen3-4B-Thinking documenté comme ALTERNATIF RECOMMANDÉ pour
+   précision (config ≥ 6 Go RAM, latence acceptée).
+2. Qwen3-4B vanilla reste DÉFAUT (rapide, contexte 40k).
+3. **Décision finale du défaut DIFFÉRÉE** après test Qwen3.5-9B
+   (dernier modèle du catalogue).
+4. Documenter dans MODELES-TESTES.md.
+
+**Conséquences** : 3 modèles validés (rapide / précision / factuel),
+2 KO. 97 décisions. Décision finale après Qwen3.5-9B.

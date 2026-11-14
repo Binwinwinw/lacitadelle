@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] Test Qwen3-4B-Thinking (4.4/5, décision différée)
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, journaux.
+**Raison** : documenter le meilleur score testé avant décision finale de défaut.
+**Impact** : Thinking recommandé comme alternatif précision; vanilla reste défaut jusqu'au test Qwen3.5-9B. 97 décisions.
+
 ## [2026-11-13] Test Phi-3.5-mini (KO)
 
 **Commit** : en cours de rédaction.
