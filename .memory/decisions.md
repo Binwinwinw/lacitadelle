@@ -2297,3 +2297,21 @@ tokens (limite max_tokens), 0 content tokens.
 
 **Conséquences** : pas de feature toggle. Le mode thinking est
 obligatoire sur ce GGUF. 98 décisions.
+
+## [2026-11-13] Finalisation MODELES-TESTES — budgets et contexte
+
+**Contexte** : finalisation du récapitulatif des modèles testés avant
+le test Qwen3.5-9B.
+
+**Décision(s)** :
+1. Conserver Qwen3-8B à 4.0/5, conformément à son résultat documenté.
+2. Documenter les budgets max_tokens comme heuristiques, pas comme
+   mesures : les compteurs du benchmark précédent représentaient des
+   chunks SSE, pas les tokens du tokenizer.
+3. Documenter les contextes runtime par slot fournis pour Qwen3-4B,
+   Qwen3-8B et Qwen3-4B-Thinking; MAX_CONTEXT_TOKENS reste à 8000.
+4. Qwen3-4B-Thinking reste un alternatif précision; la décision
+   finale du défaut attend le test Qwen3.5-9B.
+
+**Conséquences** : MODELES-TESTES.md distingue résultats et
+recommandations heuristiques. 99 décisions.

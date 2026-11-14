@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] MODELES-TESTES.md finalisé (récap + max_tokens + contexte)
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+journaux.
+**Raison** : récapituler les modèles testés, les budgets max_tokens et le contexte runtime.
+**Impact** : recommandations documentées; estimations max_tokens explicitement heuristiques. 99 décisions.
+
 ## [2026-11-13] Benchmark thinking OFF KO (toggle ignoré)
 
 **Commit** : en cours de rédaction.

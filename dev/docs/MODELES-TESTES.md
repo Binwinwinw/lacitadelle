@@ -145,6 +145,46 @@ tous les tests.
 | 6-10 Go | Qwen3-4B (< 8 Go), Qwen3-8B (≥ 8 Go) | Alternatif testé |
 | > 10 Go | À tester (Qwen3.5-9B) | En cours |
 
+**Note contexte runtime** : le contexte par slot est calculé
+automatiquement par llama.cpp selon la RAM disponible et le nombre
+de slots (4 par défaut) :
+- Qwen3-4B : 40 960 tokens par slot
+- Qwen3-8B : 10 752 tokens par slot (modèle plus gros)
+- Qwen3-4B-Thinking : 25 600 tokens par slot
+
+Le `MAX_CONTEXT_TOKENS = 8000` (dans `login_server.py`) tient dans
+tous les cas.
+
+## Récapitulatif des tests
+
+| Modèle | Taille | Note | Verdict | Recommandé pour | Commit |
+|---|---|---|---|---|---|
+| **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | 🥇 Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |
+| **Qwen3-8B** | 5.0 Go | **4.0/5** | 🥈 Alternatif factuel | Config ≥ 8 Go RAM, factualité critique | 154c709 |
+| **Qwen3-4B** | 2.5 Go | 4.0/5 | 🥉 **Défaut** | Toutes configs (rapide) | bc0c63f |
+| **Qwen2.5-7B** | 4.7 Go | 2.75/5 | ❌ KO (supprimé) | — | 471c935 |
+| **Phi-3.5-mini** | 2.4 Go | 2.3/5 | ❌ KO (non retenu, absent whitelist) | — | 62e5039 |
+
+**Note** : Qwen3.5-9B en cours de test (sera ajouté après validation).
+
+## Configuration recommandée (max_tokens)
+
+Le paramètre `max_tokens` doit être adapté au modèle. Les modèles
+"thinking" génèrent des tokens de raisonnement avant le contenu
+visible. Les valeurs ci-dessous sont des heuristiques à valider :
+
+| Modèle | max_tokens minimum | Recommandé | Raison |
+|---|---|---|---|
+| **Qwen3-4B** (vanilla) | 512 | 1024 | Pas de reasoning |
+| **Qwen3-4B-Thinking** | 2048 | 4096 | Budget de départ estimé pour le reasoning |
+| **Qwen3-8B** | 1024 | 2048 | Génère du reasoning |
+| **Qwen3.5-9B** | à mesurer | à mesurer | En cours |
+
+**Bug observé** : avec `max_tokens: 512`, la question longue a produit
+`content_tokens: 0` après consommation du budget en reasoning. Le
+benchmark comptait des chunks SSE, pas les tokens du tokenizer; ces
+compteurs ne constituent donc pas une mesure exacte des tokens générés.
+
 ## Comment tester un nouveau modèle
 
 1. Copier le GGUF dans `dev/tools/vendor/llamafile/`
