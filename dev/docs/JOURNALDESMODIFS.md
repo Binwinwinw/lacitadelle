@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] Test Phi-3.5-mini (KO)
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, journaux.
+**Raison** : test Phi-3.5-mini révèle des violations V1.4 et une menace juridique inventée.
+**Impact** : Phi-3.5-mini non retenu; Qwen3-4B et Qwen3-8B restent validés. 96 décisions.
+
 ## [2026-11-13] Test Qwen3-8B (alternatif, 4.0/5)
 
 **Commit** : en cours de rédaction.

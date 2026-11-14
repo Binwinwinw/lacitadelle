@@ -72,10 +72,28 @@ Note : 1/5 (KO) à 5/5 (parfait).
 - **Faiblesse** : contexte runtime réduit (10 752 vs 40 960 tokens)
 - **Ne remplace pas Qwen3-4B** : note globale égale (4.0/5), plus lourd, plus lent
 
+### Phi-3.5-mini-instruct-Q4_K_M.gguf (testé, KO)
+
+- **Taille** : 2.4 Go
+- **RAM** : ~3 Go
+- **Source** : `microsoft/Phi-3.5-mini-instruct-gguf`
+
+| Critère | Note | Détail |
+|---|---|---|
+| Persona | 2/5 | Verbeux, "n'hésite pas à demander" (V1.4) |
+| XSS | 2/5 | Explique le script, V1.4 |
+| Juridique | 1/5 | Articles inventés + **menace juridique inventée** ("57 du Code pénal") |
+| Factuel | 4/5 | Refuse de citer, renvoie sources, honnête sur cutoff 2021 |
+| Markdown | 3/5 | Astérisque au singulier |
+| Code | 2/5 | Pas de boutons (demande non respectée), "pip install tk" faux |
+
+**Verdict** : ❌ **NON RECOMMANDÉ**. Violations V1.4, articles inventés, **menace juridique** (dangereux), code non conforme.
+
+**Action** : aucun chemin Phi-3.5 n'était présent dans `allowed_models` lors du contrôle.
+
 ## Modèles à tester (en attente)
 
 - Qwen3-4B-Thinking-2507.Q4_K_M.gguf (2.5 Go) — thinking
-- Phi-3.5-mini-instruct-q4_k_m.gguf (2.4 Go) — petit, excellent factuel
 - Qwen3.5-9B-Q4_K_M.gguf (5.7 Go) — le plus récent
 
 ## Recommandations par config

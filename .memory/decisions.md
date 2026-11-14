@@ -2214,3 +2214,30 @@ Note globale : 4.0/5 (ex aequo avec Qwen3-4B).
 
 **Conséquences** : 2 modèles validés (Qwen3-4B défaut, Qwen3-8B
 alternatif). 95 décisions.
+
+## [2026-11-13] Test Phi-3.5-mini (KO)
+
+**Contexte** : test manuel de phi-3.5-mini-instruct-q4_k_m.gguf
+par le Décideur. Objectif : vérifier si Phi-3.5 (Microsoft) bat
+Qwen3-4B sur le factuel.
+
+**Résultats** :
+1. Persona : 2/5 (verbeux, V1.4 "n'hésite pas à demander")
+2. XSS : 2/5 (explication complice, V1.4)
+3. Juridique : 1/5 (articles inventés + **menace juridique inventée**
+   "article 57 du Code pénal")
+4. Factuel : 4/5 (refuse de citer, renvoie sources, honnête sur
+   cutoff septembre 2021)
+5. Markdown : 3/5 (astérisque au singulier)
+6. Code : 2/5 (pas de boutons, "pip install tk" faux)
+Note globale : 2.3/5. NON RECOMMANDÉ.
+
+**Décision(s)** :
+1. Retirer Phi-3.5-mini de la whitelist allowed_models.
+2. Documenter dans MODELES-TESTES.md avec la mention
+   "menace juridique inventée — dangereux pour usage public".
+3. Qwen3-4B et Qwen3-8B restent les deux seuls modèles validés.
+4. Prochain test : Qwen3-4B-Thinking ou Qwen3.5-9B.
+
+**Conséquences** : Phi-3.5-mini non retenu. Aucun chemin Phi-3.5
+présent dans allowed_models lors du contrôle. 96 décisions.
