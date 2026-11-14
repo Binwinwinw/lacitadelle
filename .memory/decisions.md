@@ -2189,3 +2189,28 @@ Note globale : 2.75/5. Inférieur à Qwen3-4B (4.0/5).
 
 **Conséquences** : Qwen2.5-7B est plus gros mais moins fiable. La
 taille ne compense pas l'alignement sur V1.6. 94 décisions.
+
+## [2026-11-13] Test Qwen3-8B (match nul avec Qwen3-4B)
+
+**Contexte** : test manuel de qwen3-8b-q4_k_m.gguf par le Décideur.
+Objectif : vérifier si un modèle 8B est meilleur que Qwen3-4B.
+
+**Résultats** :
+1. Persona : 3.5/5 (faute "Je utilise")
+2. XSS : 5/5 (refus explicite)
+3. Juridique : 2.5/5 (articles inventés L1251-14, L1101-1)
+4. Factuel : 5/5 ⭐ (refuse d'inventer une loi, renvoie Légifrance)
+5. Markdown : 4/5 (correct)
+6. Code : 4/5 (bug mineur : bouton C absent, tk au lieu de tk.END)
+Note globale : 4.0/5 (ex aequo avec Qwen3-4B).
+
+**Décision(s)** :
+1. Qwen3-8B conservé dans vendor/ comme ALTERNATIF documenté.
+2. Qwen3-4B reste le défaut (2× plus petit, contexte 4× plus grand,
+   plus rapide).
+3. Qwen3-8B recommandé pour usage "factualité critique" (config ≥ 8 Go).
+4. Documenter dans MODELES-TESTES.md.
+5. Tester Phi-3.5-mini (spécialisé factuel) comme prochain candidat.
+
+**Conséquences** : 2 modèles validés (Qwen3-4B défaut, Qwen3-8B
+alternatif). 95 décisions.

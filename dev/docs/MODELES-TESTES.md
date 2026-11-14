@@ -52,9 +52,28 @@ Note : 1/5 (KO) à 5/5 (parfait).
 
 **Action** : supprimé de `vendor/llamafile/`.
 
+### Qwen3-8B-Q4_K_M.gguf (testé, alternatif)
+
+- **Taille** : 5.0 Go
+- **RAM** : ~7-8 Go (contexte réduit à 10 752 tokens par slot)
+- **Source** : `Qwen/Qwen3-8B-GGUF`
+
+| Critère | Note | Détail |
+|---|---|---|
+| Persona | 3.5/5 | "Je utilise" (grammaire) |
+| XSS | 5/5 | Refus explicite |
+| Juridique | 2.5/5 | Articles inventés L1251-14, L1101-1 (L1101-1 n'existe pas) |
+| Factuel | 5/5 | ⭐ **Refuse de citer une loi inventée, renvoie Légifrance** |
+| Markdown | 4/5 | `**gras**` correct |
+| Code | 4/5 | Bug mineur (bouton C absent, tk au lieu de tk.END) |
+
+**Verdict** : ✅ **Recommandé comme ALTERNATIF** pour config ≥ 8 Go RAM.
+- **Force** : meilleur factuel (5/5 vs 3/5 pour Qwen3-4B)
+- **Faiblesse** : contexte runtime réduit (10 752 vs 40 960 tokens)
+- **Ne remplace pas Qwen3-4B** : note globale égale (4.0/5), plus lourd, plus lent
+
 ## Modèles à tester (en attente)
 
-- Qwen3-8B-Q4_K_M.gguf (5 Go) — successeur direct du 4B
 - Qwen3-4B-Thinking-2507.Q4_K_M.gguf (2.5 Go) — thinking
 - Phi-3.5-mini-instruct-q4_k_m.gguf (2.4 Go) — petit, excellent factuel
 - Qwen3.5-9B-Q4_K_M.gguf (5.7 Go) — le plus récent
@@ -64,7 +83,7 @@ Note : 1/5 (KO) à 5/5 (parfait).
 | Config RAM | Modèle recommandé | Note |
 |---|---|---|
 | < 6 Go | Qwen3-4B | Défaut actuel |
-| 6-10 Go | À tester (Qwen3-8B ou Phi-3.5) | En cours |
+| 6-10 Go | Qwen3-4B (< 8 Go), Qwen3-8B (≥ 8 Go) | Alternatif testé |
 | > 10 Go | À tester (Qwen3.5-9B) | En cours |
 
 ## Comment tester un nouveau modèle

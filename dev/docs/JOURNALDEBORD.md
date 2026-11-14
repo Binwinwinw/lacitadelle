@@ -146,3 +146,4 @@
 [2026-11-13] Correction des 3 B011 dans les tests : avertissement + AssertionError; Ruff B011 vide, 244 tests passent. Prochaine étape : prochain GO.
 [2026-11-13] Fix Ruff B011 (3 assert False dans tests). Pattern logger.warning + raise AssertionError. 244 passed, 93 décisions.
 [2026-11-13] Test Qwen2.5-7B : KO (2.75/5). Hallucine lois, viole V1.4. Supprimé de vendor/. Qwen3-4B reste défaut. Création MODELES-TESTES.md. 94 décisions.
+[2026-11-13] Test Qwen3-8B : 4.0/5 (ex aequo avec Qwen3-4B). Meilleur factuel (5/5) mais contexte réduit (10 752). Conservé comme alternatif. 95 décisions.

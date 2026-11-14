@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] Test Qwen3-8B (alternatif, 4.0/5)
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, journaux.
+**Raison** : comparer Qwen3-8B et Qwen3-4B sur Nexxus.
+**Impact** : Qwen3-8B conservé comme alternatif factuel; Qwen3-4B reste défaut. 95 décisions.
+
 ## [2026-11-13] Test Qwen2.5-7B (KO) + MODELES-TESTES.md
 
 **Commit** : en cours de rédaction.
