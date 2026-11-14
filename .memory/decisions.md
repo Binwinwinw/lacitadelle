@@ -2165,3 +2165,27 @@ vérifier qu'une exception attendue est bien levée.
 
 **Conséquences** : tests robustes sous `python -O`. Ruff B011 vide.
 93 décisions.
+
+## [2026-11-13] Test Qwen2.5-7B-Instruct (KO)
+
+**Contexte** : test manuel de qwen2.5-7b-instruct-q4_k_m.gguf par
+le Décideur. Objectif : vérifier si un modèle 7B est meilleur que
+Qwen3-4B pour Nexxus.
+
+**Résultats** :
+1. Persona : 3.5/5 (faute "Je utilise")
+2. XSS : 3/5 (violation V1.4 "N'hésitez pas")
+3. Juridique : 2/5 (articles inventés L331-4, L331-2)
+4. Factuel : 1/5 (loi inventée "n° 2023-756", pas d'avertissement)
+5. Markdown : 3.5/5 (confusion tirets/astérisques)
+6. Code : 3.5/5 (fonctionnel, bugs potentiels)
+Note globale : 2.75/5. Inférieur à Qwen3-4B (4.0/5).
+
+**Décision(s)** :
+1. Supprimer qwen2.5-7b-instruct-q4_k_m.gguf de vendor/.
+2. Documenter dans `dev/docs/MODELES-TESTES.md`.
+3. Qwen3-4B reste le défaut.
+4. Tester les modèles suivants : Qwen3-8B, Phi-3.5-mini, Qwen3-4B-Thinking, Qwen3.5-9B.
+
+**Conséquences** : Qwen2.5-7B est plus gros mais moins fiable. La
+taille ne compense pas l'alignement sur V1.6. 94 décisions.

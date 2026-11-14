@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] Test Qwen2.5-7B (KO) + MODELES-TESTES.md
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md` (nouveau),
+`dev/tools/vendor/llamafile/qwen2.5-7b-instruct-q4_k_m.gguf`
+(supprimé), `.memory/decisions.md`, `AGENTS.md`, journaux.
+**Raison** : test Qwen2.5-7B révèle régressions (V1.4, hallucinations).
+**Impact** : Qwen3-4B reste défaut. Documentation modèles. 94 décisions.
+
 ## [2026-11-13] Fix Ruff B011 (assert False dans tests)
 
 **Commit** : en cours de rédaction.
