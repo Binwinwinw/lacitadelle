@@ -2267,3 +2267,33 @@ Note globale : 4.4/5 (MEILLEUR des 5 modèles testés).
 
 **Conséquences** : 3 modèles validés (rapide / précision / factuel),
 2 KO. 97 décisions. Décision finale après Qwen3.5-9B.
+
+## [2026-11-13] Benchmark thinking OFF — Toggle ignoré
+
+**Contexte** : benchmark comparatif ON/OFF/baseline sur
+qwen3-4b-thinking-2507 avec max_tokens=512.
+
+**Résultats (question courte)** :
+- Thinking ON : 4.52s total, 190 reasoning tokens, 72 content tokens
+- Thinking OFF : 7.89s total, 435 reasoning tokens, 23 content tokens
+- Baseline (sans kwargs) : 8.58s total, 512 reasoning tokens, 0 content
+
+**Résultats (question longue)** : tous variants atteignent 512 reasoning
+tokens (limite max_tokens), 0 content tokens.
+
+**Constat** :
+1. enable_thinking=false est IGNORÉ par le GGUF.
+2. Le paramètre PERTURBE llama.cpp (435 vs 190 reasoning tokens).
+3. Le temps est RALLONGÉ avec OFF (7.89s vs 4.52s).
+4. Le GGUF est "thinking-only" : pas de désactivation possible.
+
+**Décision(s)** :
+1. Revert login_server.py (git checkout HEAD).
+2. Pas de toggle UI thinking (impossible).
+3. Documenter dans MODELES-TESTES.md : "Qwen3-4B-Thinking : toggle
+   non supporté, thinking obligatoire".
+4. Qwen3-4B vanilla reste pour les utilisateurs qui veulent rapide.
+5. Qwen3-4B-Thinking reste alternatif "précision" avec thinking ON.
+
+**Conséquences** : pas de feature toggle. Le mode thinking est
+obligatoire sur ce GGUF. 98 décisions.

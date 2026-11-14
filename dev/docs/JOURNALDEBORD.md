@@ -149,3 +149,4 @@
 [2026-11-13] Test Qwen3-8B : 4.0/5 (ex aequo avec Qwen3-4B). Meilleur factuel (5/5) mais contexte réduit (10 752). Conservé comme alternatif. 95 décisions.
 [2026-11-13] Test Phi-3.5-mini : 2.3/5 (KO). Articles inventés + menace juridique ("57 du Code pénal"), V1.4 partout. Aucune entrée Phi-3.5 dans la whitelist au contrôle. 96 décisions.
 [2026-11-13] Test Qwen3-4B-Thinking : 4.4/5 (MEILLEUR). Documenté comme alternatif précision. Décision finale différée après Qwen3.5-9B. 97 décisions.
+[2026-11-13] Benchmark thinking OFF : KO. Toggle ignoré, temps rallongé (7.89s vs 4.52s), reasoning générés quand même. Revert login_server.py. Pas de toggle UI. 98 décisions.

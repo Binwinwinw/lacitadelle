@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-13] Benchmark thinking OFF KO (toggle ignoré)
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, journaux.
+**Raison** : comparer le comportement du GGUF avec le toggle ON, OFF et sans kwargs.
+**Impact** : expérience de `login_server.py` revertie avant commit. Pas de toggle UI; vanilla reste l'option rapide. 98 décisions.
+
 ## [2026-11-13] Test Qwen3-4B-Thinking (4.4/5, décision différée)
 
 **Commit** : en cours de rédaction.

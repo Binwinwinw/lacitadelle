@@ -88,6 +88,16 @@ Note : 1/5 (KO) à 5/5 (parfait).
 | Code | 4/5 | Fonctionnel, bug mineur (bouton C absent) |
 | **Global** | **4.4/5** | 🥇 **Meilleur des 5 modèles testés** |
 
+**Note toggle** : ❌ **Toggle non supporté**. Le GGUF ignore
+`chat_template_kwargs: {enable_thinking: false}`. Le mode thinking
+est **obligatoire** (temps de réponse +5-10s). Pour désactiver,
+utiliser `Qwen3-4B-Q4_K_M.gguf` (vanilla, sans thinking).
+
+**Benchmark** :
+- Thinking ON : 4.52s, 190 reasoning tokens, 72 content tokens
+- Thinking OFF : 7.89s, 435 reasoning tokens, 23 content tokens (KO)
+- Baseline : 8.58s, 512 reasoning tokens, 0 content tokens
+
 **Verdict** : ✅ **MEILLEUR MODÈLE TESTÉ**. Actuellement ALTERNATIF
 (défaut = Qwen3-4B vanilla, car plus rapide). La décision finale
 dépendra du test Qwen3.5-9B.
