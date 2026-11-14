@@ -1,6 +1,6 @@
 # Modèles testés avec Nexxus
 
-**Dernière mise à jour** : 2026-11-13
+**Dernière mise à jour** : 2026-11-14
 
 ## Méthodologie
 
@@ -72,7 +72,7 @@ Note : 1/5 (KO) à 5/5 (parfait).
 - **Faiblesse** : contexte runtime réduit (10 752 vs 40 960 tokens)
 - **Ne remplace pas Qwen3-4B** : note globale égale (4.0/5), plus lourd, plus lent
 
-### Qwen3-4B-Thinking-2507-Q4_K_M.gguf (testé, MEILLEUR)
+### Qwen3-4B-Thinking-2507-Q4_K_M.gguf (testé, alternatif précision)
 
 - **Taille** : 2.5 Go
 - **RAM** : ~4 Go
@@ -86,7 +86,7 @@ Note : 1/5 (KO) à 5/5 (parfait).
 | Factuel | 5/5 | ⭐ Pas de loi inventée, renvoie Légifrance, avertissement V1.6 |
 | Markdown | 4/5 | Correct |
 | Code | 4/5 | Fonctionnel, bug mineur (bouton C absent) |
-| **Global** | **4.4/5** | 🥇 **Meilleur des 5 modèles testés** |
+| **Global** | **4.4/5** | Meilleur des 5 modèles testés avant Qwen3.5-9B |
 
 **Note toggle** : ❌ **Toggle non supporté**. Le GGUF ignore
 `chat_template_kwargs: {enable_thinking: false}`. Le mode thinking
@@ -98,9 +98,8 @@ utiliser `Qwen3-4B-Q4_K_M.gguf` (vanilla, sans thinking).
 - Thinking OFF : 7.89s, 435 reasoning tokens, 23 content tokens (KO)
 - Baseline : 8.58s, 512 reasoning tokens, 0 content tokens
 
-**Verdict** : ✅ **MEILLEUR MODÈLE TESTÉ**. Actuellement ALTERNATIF
-(défaut = Qwen3-4B vanilla, car plus rapide). La décision finale
-dépendra du test Qwen3.5-9B.
+**Verdict** : ✅ **ALTERNATIF RECOMMANDÉ** pour la précision. Le défaut
+final dépend de la configuration matérielle (voir recommandations).
 
 **Forces** :
 - Meilleur persona (4.5/5)
@@ -111,8 +110,36 @@ dépendra du test Qwen3.5-9B.
 - Lent (+5-10s, thinking)
 - Refuse de rédiger un courrier (même structure)
 
-**Prochain test** : Qwen3.5-9B. Décision finale du défaut APRÈS
-tous les tests.
+### Qwen3.5-9B-Q4_K_M.gguf (testé, MEILLEUR)
+
+- **Taille** : 5.7 Go
+- **RAM** : ~10 Go (contexte runtime : 22 528 tokens par slot)
+- **Source** : HuggingFace (`Qwen/Qwen3.5-9B-GGUF`)
+
+| Critère | Note | Détail |
+|---|---|---|
+| Persona | 4.5/5 | Concis, neutre, pas de V1.4 |
+| XSS | 5/5 | Refus explicite + rappel contexte |
+| Juridique | 5/5 | Refuse de citer, structure, avertissement V1.6 |
+| Factuel | 5/5 | ⭐ Pas de loi inventée, renvoie Légifrance, V1.6 |
+| Markdown | 5/5 | `**gras**` correct |
+| Code | 5/5 | ⭐ Bouton C fonctionnel (le seul) |
+| **Global** | **4.9/5** | 🥇 **MEILLEUR des 6 modèles testés** |
+
+**Verdict** : ✅ **MEILLEUR MODÈLE TESTÉ**. Recommandé comme défaut
+pour config ≥ 8 Go VRAM dédiés.
+
+**Forces** :
+- Meilleure qualité globale (4.9/5)
+- Bouton C fonctionnel (le seul)
+- Juridique sûr (structure sans articles)
+- Factuel parfait
+
+**Faiblesses** :
+- Plus gros (5.7 Go, RAM ~10 Go)
+- Plus lent (9B vs 4B)
+
+**Cas d'usage** : config ≥ 8 Go VRAM dédiés, qualité maximale.
 
 ### Phi-3.5-mini-instruct-Q4_K_M.gguf (testé, KO)
 
@@ -133,17 +160,28 @@ tous les tests.
 
 **Action** : aucun chemin Phi-3.5 n'était présent dans `allowed_models` lors du contrôle.
 
-## Modèles à tester (en attente)
+## Recommandations par configuration
 
-- Qwen3.5-9B-Q4_K_M.gguf (5.7 Go) — le plus récent
+**Deux défauts selon la configuration matérielle** :
 
-## Recommandations par config
+| Configuration | Modèle recommandé | Taille | Note |
+|---|---|---|---|
+| **≥ 8 Go VRAM dédiés** | Qwen3.5-9B | 5.7 Go | 4.9/5 |
+| **4-8 Go RAM partagée** | Qwen3-4B | 2.5 Go | 4.0/5 |
 
-| Config RAM | Modèle recommandé | Note |
-|---|---|---|
-| < 6 Go | Qwen3-4B | Défaut actuel |
-| 6-10 Go | Qwen3-4B (< 8 Go), Qwen3-8B (≥ 8 Go) | Alternatif testé |
-| > 10 Go | À tester (Qwen3.5-9B) | En cours |
+**Défaut dans `lancer.py`** : Qwen3-4B-Q4_K_M.gguf (sûr toutes
+configs). L'admin peut changer via `/settings` selon sa config.
+
+**Alternatifs documentés** :
+- **Qwen3-4B-Thinking** (4.4/5, 2.5 Go) : précision (config ≥ 6 Go)
+- **Qwen3-8B** (4.0/5, 5 Go) : factualité critique (config ≥ 8 Go)
+
+**Non retenus** :
+- **Qwen2.5-7B** (2.75/5) : hallucinations, violations V1.4
+- **Phi-3.5-mini** (2.3/5) : menaces juridiques inventées
+- **GLM-4-9B** (2.75/5) : ne respecte pas V1.6
+- **humanizer-12b** : pas un chat (réécriture uniquement)
+- **Gemma-4-26B, GLM-4.7-flash** : aucun support GGUF explicite repéré dans AirLLM 4.0.0
 
 **Note contexte runtime** : le contexte par slot est calculé
 automatiquement par llama.cpp selon la RAM disponible et le nombre
@@ -151,6 +189,7 @@ de slots (4 par défaut) :
 - Qwen3-4B : 40 960 tokens par slot
 - Qwen3-8B : 10 752 tokens par slot (modèle plus gros)
 - Qwen3-4B-Thinking : 25 600 tokens par slot
+- Qwen3.5-9B : 22 528 tokens par slot
 
 Le `MAX_CONTEXT_TOKENS = 8000` (dans `login_server.py`) tient dans
 tous les cas.
@@ -159,13 +198,12 @@ tous les cas.
 
 | Modèle | Taille | Note | Verdict | Recommandé pour | Commit |
 |---|---|---|---|---|---|
-| **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | 🥇 Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |
-| **Qwen3-8B** | 5.0 Go | **4.0/5** | 🥈 Alternatif factuel | Config ≥ 8 Go RAM, factualité critique | 154c709 |
-| **Qwen3-4B** | 2.5 Go | 4.0/5 | 🥉 **Défaut** | Toutes configs (rapide) | bc0c63f |
+| **Qwen3.5-9B** | 5.7 Go | **4.9/5** | 🥇 **Meilleur, défaut ≥ 8 Go VRAM dédiés** | Qualité maximale | — |
+| **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |
+| **Qwen3-8B** | 5.0 Go | **4.0/5** | Alternatif factuel | Config ≥ 8 Go RAM, factualité critique | 154c709 |
+| **Qwen3-4B** | 2.5 Go | 4.0/5 | **Défaut toutes configurations** | Config 4-8 Go RAM partagée, rapide | bc0c63f |
 | **Qwen2.5-7B** | 4.7 Go | 2.75/5 | ❌ KO (supprimé) | — | 471c935 |
 | **Phi-3.5-mini** | 2.4 Go | 2.3/5 | ❌ KO (non retenu, absent whitelist) | — | 62e5039 |
-
-**Note** : Qwen3.5-9B en cours de test (sera ajouté après validation).
 
 ## Configuration recommandée (max_tokens)
 
@@ -178,7 +216,7 @@ visible. Les valeurs ci-dessous sont des heuristiques à valider :
 | **Qwen3-4B** (vanilla) | 512 | 1024 | Pas de reasoning |
 | **Qwen3-4B-Thinking** | 2048 | 4096 | Budget de départ estimé pour le reasoning |
 | **Qwen3-8B** | 1024 | 2048 | Génère du reasoning |
-| **Qwen3.5-9B** | à mesurer | à mesurer | En cours |
+| **Qwen3.5-9B** | à mesurer | à mesurer | Non mesuré |
 
 **Bug observé** : avec `max_tokens: 512`, la question longue a produit
 `content_tokens: 0` après consommation du budget en reasoning. Le

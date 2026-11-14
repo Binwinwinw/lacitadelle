@@ -2315,3 +2315,25 @@ le test Qwen3.5-9B.
 
 **Conséquences** : MODELES-TESTES.md distingue résultats et
 recommandations heuristiques. 99 décisions.
+
+## [2026-11-14] Décision finale du défaut — deux modèles contextuels
+
+**Contexte** : après test de 6 modèles, décision du Décideur
+sur le défaut à utiliser.
+
+**Décision(s)** :
+1. Config ≥ 8 Go VRAM dédiés : Qwen3.5-9B (4.9/5, meilleur).
+2. Config 4-8 Go RAM partagée : Qwen3-4B (4.0/5, léger rapide).
+3. Défaut dans lancer.py : Qwen3-4B-Q4_K_M.gguf (sûr toutes
+   configs, l'admin peut changer via /settings).
+4. Alternatifs documentés :
+   - Qwen3-4B-Thinking (4.4/5, précision, config ≥ 6 Go)
+   - Qwen3-8B (4.0/5, factualité critique, config ≥ 8 Go)
+5. Non retenus : Qwen2.5-7B, Phi-3.5-mini, GLM-4-9B, humanizer-12b,
+   Gemma-4-26B, GLM-4.7-flash.
+6. GLM-4-9B testé KO; aucune entrée correspondante n'était présente
+   dans la whitelist lors du contrôle, donc aucun retrait n'était nécessaire.
+
+**Conséquences** : catalogue complet et documenté. Le défaut est
+sûr (4B léger). Les utilisateurs avancés peuvent monter en gamme
+via /settings. 100 décisions.

@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-14] Qwen3.5-9B et décision finale du défaut
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`dev/tools/lancer.py`, `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : documenter le test Qwen3.5-9B et les modèles recommandés selon la configuration.
+**Impact** : recommandations actualisées; valeur du modèle par défaut inchangée; 100 décisions.
+
 ## [2026-11-13] MODELES-TESTES.md finalisé (récap + max_tokens + contexte)
 
 **Commit** : en cours de rédaction.

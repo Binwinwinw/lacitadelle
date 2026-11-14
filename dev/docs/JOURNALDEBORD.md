@@ -151,3 +151,4 @@
 [2026-11-13] Test Qwen3-4B-Thinking : 4.4/5 (MEILLEUR). Documenté comme alternatif précision. Décision finale différée après Qwen3.5-9B. 97 décisions.
 [2026-11-13] Benchmark thinking OFF : KO. Toggle ignoré, temps rallongé (7.89s vs 4.52s), reasoning générés quand même. Revert login_server.py. Pas de toggle UI. 98 décisions.
 [2026-11-13] Finalisation MODELES-TESTES.md : tableau récapitulatif 5 modèles, config max_tokens recommandée, note contexte runtime. 99 décisions.
+[2026-11-14] Décision finale du défaut : Qwen3.5-9B pour config ≥ 8 Go VRAM, Qwen3-4B pour RAM 4-8 Go. Défaut lancer.py = 4B. GLM-4-9B testé KO et déjà absent de la whitelist. 100 décisions. Prochaine étape : validation du Décideur.

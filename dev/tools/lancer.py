@@ -41,6 +41,8 @@ PROXY_LOG = (
     if IS_FROZEN
     else PROJECT_ROOT / "dist" / "proxy.log"
 )
+# Défaut : Qwen3-4B, compatible toutes configurations (4-8 Go RAM partagée).
+# Pour config ≥ 8 Go VRAM dédiés, utiliser Qwen3.5-9B via /settings.
 DEFAULT_MODEL_FILENAME = "Qwen3-4B-Q4_K_M.gguf"
 DEFAULT_MODEL = ASSETS_DIR / DEFAULT_MODEL_FILENAME if IS_FROZEN else (
     Path("dev") / "tools" / "vendor" / "llamafile" / DEFAULT_MODEL_FILENAME
