@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-15] UX whitelist — sélection et badge du modèle actif
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/web/settings.html`, `dev/tools/web/style.css`,
+`dev/tests/test_admin_model.py`, `dev/tests/test_settings_ui.py`,
+`.memory/decisions.md`, `AGENTS.md`, `TODO.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : permettre de sélectionner directement un modèle autorisé et identifier le modèle actif.
+**Impact** : changement manuel via `/settings`; 107 décisions; 244 tests.
+
 ## [2026-11-14] UX whitelist — tooltip et copie du chemin
 
 **Commit** : en cours de rédaction.

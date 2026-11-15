@@ -56,6 +56,11 @@ def test_settings_serves_model_form_to_authenticated_user():
         assert 'id="model-section" class="settings-section"' in page
         assert 'aria-labelledby="model-heading" hidden>' in page
         assert "modelSection.hidden = !isAdmin;" in page
+        assert '"/api/admin/model/use"' in page
+        assert 'textContent = "Utiliser"' in page
+        assert 'className = "model-active-badge"' in page
+        assert "currentModelPath.toLowerCase()" in page
+        assert "location.reload();" in page
 
 
 def test_get_model_setting_is_admin_only_and_returns_saved_path():

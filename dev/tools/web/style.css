@@ -472,6 +472,36 @@ html[data-theme="light"] #allowed-models-list::-webkit-scrollbar-thumb {
   background: #4a6a8a;
 }
 
+#allowed-models-list li .btn-utiliser {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  background: #4a7c59;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#allowed-models-list li .btn-utiliser:hover {
+  background: #5a9069;
+}
+
+#allowed-models-list li .model-active-badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  background: #2a5a3a;
+  color: #8fffaa;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+html[data-theme="light"] #allowed-models-list li .model-active-badge {
+  background: #c8f0d0;
+  color: #1a5a2a;
+}
+
 #allowed-models-list li .model-name {
   flex: 1;
   min-width: 0;

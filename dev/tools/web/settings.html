@@ -178,6 +178,7 @@
         let logsInterval = null;
         let indicatorsInterval = null;
         let allowedModels = [];
+        let currentModelPath = "";
         const csrfToken = document.querySelector(
             'meta[name="csrf-token"]',
         ).content;
@@ -236,8 +237,8 @@
                 userIndicatorsSection.hidden = isAdmin;
                 userLogsSection.hidden = isAdmin;
                 if (isAdmin) {
-                    loadCurrentModel();
-                    loadAllowedModels();
+                    await loadCurrentModel();
+                    await loadAllowedModels();
                 } else {
                     startIndicatorsPolling();
                     startLogsPolling();
@@ -262,6 +263,7 @@
                     return;
                 }
                 const model = await response.json();
+                currentModelPath = model.current_model_path || "";
                 modelCurrent.textContent =
                     model.current_model_path || "(non chargé)";
             } catch (error) {
@@ -317,7 +319,56 @@
                         }, 1500);
                     }
                 });
-                item.append(removeButton, modelName, copyButton);
+                const isActive = currentModelPath && (
+                    modelPath === currentModelPath
+                    || modelPath.toLowerCase()
+                    === currentModelPath.toLowerCase()
+                );
+                if (isActive) {
+                    const badge = document.createElement("span");
+                    badge.className = "model-active-badge";
+                    badge.textContent = "🟢 Actif";
+                    item.append(removeButton, modelName, badge, copyButton);
+                } else {
+                    const useButton = document.createElement("button");
+                    useButton.type = "button";
+                    useButton.className = "btn-utiliser settings-save";
+                    useButton.textContent = "Utiliser";
+                    useButton.addEventListener("click", async () => {
+                        if (!confirm(
+                            "Changer le modèle actif ? "
+                            + "L'application devra être redémarrée.",
+                        )) {
+                            return;
+                        }
+                        try {
+                            const response = await fetch(
+                                "/api/admin/model/use",
+                                {
+                                    method: "POST",
+                                    headers: csrfHeaders({
+                                        "Content-Type": "application/json",
+                                    }),
+                                    body: JSON.stringify({ path: modelPath }),
+                                    credentials: "same-origin",
+                                },
+                            );
+                            const data = await response.json();
+                            if (response.ok && data.applied) {
+                                alert(data.message);
+                                location.reload();
+                            } else {
+                                alert(
+                                    "Erreur : " + (data.error || "Inconnue"),
+                                );
+                            }
+                        } catch (error) {
+                            console.error("Erreur :", error);
+                            alert("Erreur réseau.");
+                        }
+                    });
+                    item.append(removeButton, modelName, copyButton, useButton);
+                }
                 allowedModelsList.appendChild(item);
             }
         }

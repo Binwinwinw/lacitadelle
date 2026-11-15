@@ -50,6 +50,19 @@ def _post_model(opener, base_url, token, payload):
     return open_no_redirect(opener, request)
 
 
+def _post_model_use(opener, base_url, token, path):
+    headers = {"Content-Type": "application/json"}
+    if token is not None:
+        headers["Cookie"] = f"{SESSION_COOKIE_NAME}={token}"
+    request = Request(
+        f"{base_url}/api/admin/model/use",
+        data=json.dumps({"path": path}).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    return open_no_redirect(opener, request)
+
+
 def _get_allowed_models(opener, base_url, token):
     headers = {}
     if token is not None:
@@ -104,6 +117,20 @@ def test_set_model_requires_admin():
             {"model_path": "model.gguf"},
         ) as response:
             assert response.code == 403
+        with _post_model_use(
+            opener,
+            base_url,
+            None,
+            "model.gguf",
+        ) as response:
+            assert response.code == 401
+        with _post_model_use(
+            opener,
+            base_url,
+            user_token,
+            "model.gguf",
+        ) as response:
+            assert response.code == 403
 
 
 def test_set_model_valid_path_saves_resolved_path():
@@ -113,7 +140,9 @@ def test_set_model_valid_path_saves_resolved_path():
         token = login_as(opener, base_url, admin, "secret123")
         with tempfile.TemporaryDirectory() as temp_dir:
             model_path = Path(temp_dir) / "model.gguf"
+            other_model_path = Path(temp_dir) / "other.gguf"
             model_path.write_bytes(b"gguf")
+            other_model_path.write_bytes(b"gguf")
             citadelle_memory.set_setting(
                 "allowed_models",
                 json.dumps([str(model_path.resolve())]),
@@ -143,6 +172,27 @@ def test_set_model_valid_path_saves_resolved_path():
                 "current_model_path",
                 db_path=db_path,
             ) == expected_path
+
+            with _post_model_use(
+                opener,
+                base_url,
+                token,
+                str(model_path),
+            ) as response:
+                assert response.code == 200
+                result = json.loads(response.read())
+            assert result["model_path"] == expected_path
+            assert result["applied"] is True
+            assert result["message"] == (
+                "Modèle enregistré. Fermez et relancez lancer.bat."
+            )
+            with _post_model_use(
+                opener,
+                base_url,
+                token,
+                str(other_model_path),
+            ) as response:
+                assert response.code == 403
 
 
 def test_set_model_invalid_path():

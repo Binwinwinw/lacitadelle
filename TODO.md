@@ -75,10 +75,6 @@ tâche terminée est supprimée ici; sa trace reste dans
 
 ### Chat et modèles
 
-- [ ] **16-FEATURE-MODEL-USE** : bouton "Utiliser" dans la whitelist
-  `/settings` pour sélectionner un modèle actif sans copier-coller.
-  Confirmation, enregistrement SQLite et message de redémarrage.
-  — Propriétaire : à planifier (prochaine session UX).
 - [ ] **16-FEATURE-MODEL-USE-V2** : redémarrage automatique du proxy
   et de llamafile après sélection d'un modèle; progression, détection
   d'échec et rollback. — Propriétaire : à planifier (après V1).

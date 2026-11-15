@@ -2437,3 +2437,23 @@ copier.
 
 **Conséquences** : UX plus claire, chemin copiable sans sélection.
 106 décisions.
+
+## [2026-11-15] Feature UX — bouton "Utiliser" + badge "Actif"
+
+**Contexte** : les utilisateurs devaient copier le chemin du modèle
+puis le coller dans "Changer de modèle" pour changer de modèle actif.
+UX fastidieuse et source d'erreurs.
+
+**Décision(s)** :
+1. Endpoint `/api/admin/model/use` (POST) qui :
+   - Valide le chemin (whitelist, fichier GGUF).
+   - Enregistre `current_model_path` (SQLite).
+   - Écrit `.current_model` (miroir).
+   - Retourne le message "Modèle enregistré. Fermez et relancez lancer.bat."
+2. Bouton "Utiliser" dans chaque ligne de whitelist (sauf modèle actif).
+3. Confirmation avant envoi ("Changer le modèle actif ?").
+4. Badge "🟢 Actif" sur le modèle actif (bouton "Utiliser" masqué).
+5. Rechargement automatique de la page après succès.
+6. Redémarrage manuel (V1, pas d'auto).
+
+**Conséquences** : UX nettement améliorée. 107 décisions.

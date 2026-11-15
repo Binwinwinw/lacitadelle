@@ -671,7 +671,7 @@ dix GO sont nouveaux, soit 13 au total.
 
 ### Priorité haute (UX)
 
-1. **16-FEATURE-MODEL-USE** — 2-3 h.
+1. **16-FEATURE-MODEL-USE** — terminé; validation manuelle du Décideur le 2026-11-15.
 2. **16-FIX-SETTINGS-SCROLL** — 30 min.
 
 ### Priorité moyenne (qualité)

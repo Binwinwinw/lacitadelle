@@ -1397,7 +1397,17 @@ def handle_post_api_admin_users_create(handler: BaseHTTPRequestHandler) -> None:
     )
 
 
-def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
+def handle_post_api_admin_model(
+    handler: BaseHTTPRequestHandler,
+    *,
+    path_key: str = "model_path",
+    path_required_message: str = "model_path requis",
+    not_allowed_status: int = HTTPStatus.BAD_REQUEST,
+    success_message: str = (
+        "Chemin enregistré. Le modèle sera chargé après le test "
+        "de chargement et le redémarrage du lot 11d."
+    ),
+) -> None:
     """POST /api/admin/model : enregistre le chemin d'un GGUF existant."""
     admin_id = require_admin(handler)
     if admin_id is None:
@@ -1415,9 +1425,13 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
         error_response(handler, "Requête JSON invalide", HTTPStatus.BAD_REQUEST)
         return
 
-    model_path = payload.get("model_path")
+    model_path = payload.get(path_key)
     if not isinstance(model_path, str) or not model_path.strip():
-        error_response(handler, "model_path requis", HTTPStatus.BAD_REQUEST)
+        error_response(
+            handler,
+            path_required_message,
+            HTTPStatus.BAD_REQUEST,
+        )
         return
 
     try:
@@ -1487,7 +1501,7 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
         error_response(
             handler,
             MODEL_NOT_ALLOWED_MESSAGE,
-            HTTPStatus.BAD_REQUEST,
+            not_allowed_status,
         )
         return
 
@@ -1579,11 +1593,23 @@ def handle_post_api_admin_model(handler: BaseHTTPRequestHandler) -> None:
             "model_path": str(path),
             "size_bytes": size_bytes,
             "applied": True,
-            "message": (
-                "Chemin enregistré. Le modèle sera chargé après le test "
-                "de chargement et le redémarrage du lot 11d."
-            ),
+            "message": success_message,
         },
+    )
+
+
+def handle_post_api_admin_model_use(
+    handler: BaseHTTPRequestHandler,
+) -> None:
+    """POST /api/admin/model/use : sélectionne un modèle autorisé."""
+    handle_post_api_admin_model(
+        handler,
+        path_key="path",
+        path_required_message="path requis",
+        not_allowed_status=HTTPStatus.FORBIDDEN,
+        success_message=(
+            "Modèle enregistré. Fermez et relancez lancer.bat."
+        ),
     )
 
 
@@ -2484,6 +2510,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_settings_preferences(self)
             elif path == "/api/admin/users":
                 handle_post_api_admin_users_create(self)
+            elif path == "/api/admin/model/use":
+                handle_post_api_admin_model_use(self)
             elif path == "/api/admin/model":
                 handle_post_api_admin_model(self)
             elif path == "/api/settings/allowed_models":

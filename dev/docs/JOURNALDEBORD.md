@@ -159,3 +159,6 @@
 [2026-11-14] TODO.md + BACKLOG.md : 13 GO futurs documentés (session modèles + UX). Traçabilité pérenne. 105 décisions.
 [2026-11-14] Précision TODO/BACKLOG : effort, priorité et dépendances ajoutés aux 3 GO déjà planifiés; 10 nouveaux, 13 au total. 105 décisions.
 [2026-11-14] Fix UX tooltip + bouton Copier dans whitelist. 106 décisions.
+[2026-11-15] GO 16-FEATURE-MODEL-USE : endpoint admin sécurisé, sélection par whitelist et bouton avec confirmation; redémarrage manuel conservé. Tests HTTP associés. Validation manuelle en attente.
+[2026-11-15] GO 16-FEATURE-MODEL-ACTIVE-BADGE : badge "Actif" remplace le bouton "Utiliser" pour le modèle configuré; validation manuelle en attente.
+[2026-11-15] UX : bouton "Utiliser" + badge "Actif" dans whitelist. Endpoint /api/admin/model/use. 107 décisions.
