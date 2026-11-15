@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-14] ETAT-PROJET aligné sur 9 modèles testés
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/ETAT-PROJET.md`, `.memory/decisions.md`,
+`AGENTS.md`, `dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : ajouter le modèle code-only au tableau de bord et actualiser les métriques du catalogue.
+**Impact** : état projet aligné sur 9 modèles testés et 104 décisions; aucun code modifié.
+
 ## [2026-11-14] Qwen2.5-Coder-7B KO pour chat
 
 **Commit** : en cours de rédaction.

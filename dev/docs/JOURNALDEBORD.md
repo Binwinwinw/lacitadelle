@@ -155,3 +155,4 @@
 [2026-11-14] Test MiMo-V2.6-9B : KO (3.9/5). Persona faible, bug code. Retiré whitelist. 101 décisions.
 [2026-11-14] ETAT-PROJET.md mis à jour avec catalogue modèles final (8 testés, 4 validés, 4 KO). 102 décisions.
 [2026-11-14] Test Qwen2.5-Coder-7B : KO chat (3.8/5), excellent code (4.5/5). Conservé whitelist comme alternatif code. 103 décisions.
+[2026-11-14] ETAT-PROJET.md aligné sur 9 modèles testés (4 validés, 1 code only, 4 KO). 104 décisions.

@@ -12,8 +12,8 @@ manuelle par le Décideur, le statut est **stable pour release**.
 ## Métriques actuelles
 
 - **Tests** : 244 passed (`python -m pytest -q`)
-- **Décisions documentées** : 102 (voir `.memory/decisions.md`)
-- **Modèles testés** : 8 (4 validés, 4 KO)
+- **Décisions documentées** : 104 (voir `.memory/decisions.md`)
+- **Modèles testés** : 9 (4 validés chat, 1 code only, 4 KO)
 - **Qualité Python** : Ruff configuré dans `pyproject.toml`; 39 issues
   restent à examiner, sans corrections manuelles appliquées.
 
@@ -28,14 +28,18 @@ manuelle par le Décideur, le statut est **stable pour release**.
 
 **Défaut dans `lancer.py`** : Qwen3-4B-Q4_K_M.gguf.
 
-**Alternatifs** :
+**Alternatifs (chat)** :
 - Qwen3-4B-Thinking (4.4/5) : précision
 - Qwen3-8B (4.0/5) : factualité critique
 
-**Non retenus (KO)** : MiMo-V2.6-9B (3.9/5), Qwen2.5-7B (2.75/5),
-GLM-4-9B (2.75/5), Phi-3.5-mini (2.3/5).
+**Alternatif spécialisé** :
+- Qwen2.5-Coder-7B (3.8/5 chat, 4.5/5 code) : **code uniquement**, à éviter pour le chat
 
-**Non-chat** : humanizer-12b (réécriture uniquement).
+**Non retenus (KO)** : MiMo-V2.6-9B, Qwen2.5-7B, GLM-4-9B,
+Phi-3.5-mini.
+
+**Non-chat** : humanizer-12b (réécriture), Gemma-4-26B et GLM-4.7-flash
+(AirLLM incompatible).
 
 **Catalogue complet** : voir `dev/docs/MODELES-TESTES.md`.
 

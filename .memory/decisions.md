@@ -2394,3 +2394,17 @@ Note globale : 3.8/5 (inférieur à Qwen3.5-9B 4.9/5).
 
 **Conséquences** : le modèle reste autorisé pour les utilisateurs qui
 veulent surtout générer du code. 103 décisions.
+
+## [2026-11-14] ETAT-PROJET.md aligné sur 9 modèles testés
+
+**Contexte** : Qwen2.5-Coder-7B ajouté au catalogue après
+test manuel (3.8/5 chat, 4.5/5 code). ETAT-PROJET.md
+mentionnait encore 8 modèles testés.
+
+**Décision(s)** :
+1. Mettre à jour ETAT-PROJET.md : 9 modèles testés
+   (4 validés chat, 1 code only, 4 KO).
+2. Documenter Qwen2.5-Coder-7B comme "code only" dans
+   ETAT-PROJET.md.
+
+**Conséquences** : tableau de bord aligné. 104 décisions.
