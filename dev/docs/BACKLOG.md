@@ -664,34 +664,36 @@ notamment pour une distribution EXE hors ligne.
 
 **Statut** : session modèles clôturée (9 testés, 4 validés chat, 1
 code only, 4 KO). Décision de défaut contextuel (Qwen3.5-9B /
-Qwen3-4B).
+Qwen3-4B). Trois GO étaient déjà documentés et restent planifiés;
+dix GO sont nouveaux, soit 13 au total.
 
-**GO planifiés** (voir TODO.md pour la liste complète) :
+**GO planifiés** (détails, dépendances et propriétaires : voir TODO.md) :
 
 ### Priorité haute (UX)
 
-1. **16-FEATURE-MODEL-USE** (2-3 h) : bouton "Utiliser" dans la whitelist.
-2. **16-FIX-SETTINGS-SCROLL** (30 min) : scroll et affichage propre.
+1. **16-FEATURE-MODEL-USE** — 2-3 h.
+2. **16-FIX-SETTINGS-SCROLL** — 30 min.
 
 ### Priorité moyenne (qualité)
 
-3. **16-FIX-WHITELIST-UX** (1 h) : message précis pour entrées invalides.
-4. **16-FIX-FLAKY-TESTS** (2 h) : identifier et corriger les tests intermittents.
-5. **16-FEATURE-MODEL-USE-V2** (4-6 h) : redémarrage automatique.
+3. **16-FIX-WHITELIST-UX** — 1 h.
+4. **16-FIX-FLAKY-TESTS** — 2 h.
+5. **16-FEATURE-MODEL-USE-V2** — 4-6 h.
+6. **16-AGENTS-RULES-18** — 30 min.
 
 ### Priorité basse (évolutions)
 
-6. **16-FEATURE-MODEL-DRIFT-DETECTION** (1-2 h) : bandeau de dérive.
-7. **16-FEATURE-AUTO-MODEL-SELECTION** (1-2 jours) : sélection automatique.
-8. **16-CHAT-RAG-LOCAL** (2-3 jours) : base de connaissances.
-9. **16-CHAT-WEB-ACCESS** (optionnel) : accès web contrôlé.
-10. **16-REFACTOR-LOGIN-SERVER** (4-6 h) : découpage modulaire.
-11. **16-AGENTS-RULES-18** (30 min) : formaliser la règle de mise à jour des tests.
-12. **16-FIX-OTHER-PROJECTS-VENV** (5-10 min par projet) : migration vers Python 3.15.
-13. **16-DOC-RELEASE-NOTES** (30 min) : notes de release.
+7. **16-FEATURE-MODEL-DRIFT-DETECTION** — 1-2 h.
+8. **16-FEATURE-AUTO-MODEL-SELECTION** — 1-2 jours.
+9. **16-CHAT-RAG-LOCAL** — 2-3 jours.
+10. **16-CHAT-WEB-ACCESS** — 1-2 jours, optionnel.
+11. **16-REFACTOR-LOGIN-SERVER** — 4-6 h.
+12. **16-FIX-OTHER-PROJECTS-VENV** — 5-10 min par projet.
+13. **16-DOC-RELEASE-NOTES** — 30 min.
 
 **Effort total estimé** : ~10-15 jours de travail (répartis sur
 plusieurs sessions).
 
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
-BACKLOG.md conserve le contexte et les priorités.
+BACKLOG.md conserve le statut, les priorités et l'effort estimé sans
+répéter les détails des GO.

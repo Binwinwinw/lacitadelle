@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-14] Précisions des priorités et dépendances des GO
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : enrichir les trois GO existants et clarifier les catégories des 13 GO sans duplication.
+**Impact** : priorités, efforts et dépendances précisés; compteur de décisions inchangé à 105.
+
 ## [2026-11-14] TODO et BACKLOG — 13 GO futurs
 
 **Commit** : en cours de rédaction.

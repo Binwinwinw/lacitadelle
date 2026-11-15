@@ -157,3 +157,4 @@
 [2026-11-14] Test Qwen2.5-Coder-7B : KO chat (3.8/5), excellent code (4.5/5). Conservé whitelist comme alternatif code. 103 décisions.
 [2026-11-14] ETAT-PROJET.md aligné sur 9 modèles testés (4 validés, 1 code only, 4 KO). 104 décisions.
 [2026-11-14] TODO.md + BACKLOG.md : 13 GO futurs documentés (session modèles + UX). Traçabilité pérenne. 105 décisions.
+[2026-11-14] Précision TODO/BACKLOG : effort, priorité et dépendances ajoutés aux 3 GO déjà planifiés; 10 nouveaux, 13 au total. 105 décisions.

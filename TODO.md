@@ -91,11 +91,16 @@ tâche terminée est supprimée ici; sa trace reste dans
 - [ ] **16-CHAT-RAG-LOCAL** : base de connaissances locale (upload
   documents, recherche BM25, injection dans le prompt). Objectif :
   fiabiliser les faits couverts indépendamment du knowledge cutoff.
+  **Effort** : 2-3 jours. **Priorité** : basse.
+  **Dépendances** : cadrer l'import et le stockage des documents.
   — Propriétaire : à planifier.
 - [ ] **16-CHAT-WEB-ACCESS** (optionnel) : accès web contrôlé via API
   (DuckDuckGo, Légifrance, Wikipedia). Casse la promesse offline et
-  doit être désactivé par défaut dans `/settings`. — Propriétaire :
-  à planifier.
+  doit être désactivé par défaut dans `/settings`.
+  **Effort** : 1-2 jours. **Priorité** : basse.
+  **Dépendances** : choisir le fournisseur/API; validation explicite du
+  compromis avec la promesse offline.
+  — Propriétaire : à planifier.
 
 ### Qualité et dette
 
@@ -113,7 +118,9 @@ tâche terminée est supprimée ici; sa trace reste dans
   — Propriétaire : à planifier (maintenabilité).
 - [ ] **16-AGENTS-RULES-18** : formaliser dans AGENTS.md la règle
   selon laquelle tout GO qui modifie un fichier testé met à jour son
-  test associé. — Propriétaire : à planifier.
+  test associé. **Effort** : 30 min. **Priorité** : moyenne.
+  **Dépendances** : aucune.
+  — Propriétaire : à planifier.
 
 ### Distribution et environnement
 
