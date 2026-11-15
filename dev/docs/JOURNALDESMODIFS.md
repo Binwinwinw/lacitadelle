@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-14] Qwen2.5-Coder-7B KO pour chat
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : documenter le résultat manuel Qwen2.5-Coder-7B (3.8/5 pour le chat, 4.5/5 en code).
+**Impact** : modèle non recommandé pour le chat, conservé dans la whitelist comme alternatif code; 103 décisions.
+
 ## [2026-11-14] ETAT-PROJET — catalogue final des modèles
 
 **Commit** : en cours de rédaction.

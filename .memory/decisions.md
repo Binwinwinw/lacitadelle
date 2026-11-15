@@ -2373,3 +2373,24 @@ et la décision sur les modèles recommandés selon la configuration.
 
 **Conséquences** : `ETAT-PROJET.md` présente le catalogue final et
 les recommandations contextuelles. 102 décisions.
+
+## [2026-11-14] Test Qwen2.5-Coder-7B (KO pour chat, excellent code)
+
+**Contexte** : test manuel de qwen2.5-coder-7b-instruct-q4_k_m.gguf.
+Résultats : 3.8/5.
+1. Persona : 3/5 (ne s'identifie pas comme Nexxus)
+2. XSS : 5/5 (refus explicite)
+3. Juridique : 2.5/5 (bugs linguistiques, contradiction)
+4. Factuel : 4/5 (pas d'avertissement V1.6)
+5. Markdown : 4/5 (émojis V1.4 violés)
+6. Code : 4.5/5 (excellent code Python)
+Note globale : 3.8/5 (inférieur à Qwen3.5-9B 4.9/5).
+
+**Décision(s)** :
+1. Qwen2.5-Coder-7B NON RECOMMANDÉ pour le chat (3.8/5).
+2. Conservé en whitelist comme alternatif "code" (documenté).
+3. Qwen3.5-9B reste le défaut ≥ 8 Go VRAM.
+4. Catalogue complet : 9 modèles testés (4 validés, 5 KO pour le chat).
+
+**Conséquences** : le modèle reste autorisé pour les utilisateurs qui
+veulent surtout générer du code. 103 décisions.

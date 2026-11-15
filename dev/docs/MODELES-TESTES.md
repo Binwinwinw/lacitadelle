@@ -162,6 +162,28 @@ pour config ≥ 8 Go VRAM dédiés.
 
 **Action** : retiré de `allowed_models`.
 
+### Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf (testé, KO pour chat)
+
+- **Taille** : 4.7 Go
+- **RAM** : ~7 Go
+- **Source** : HuggingFace (`Qwen/Qwen2.5-Coder-7B-Instruct-GGUF`)
+
+| Critère | Note | Détail |
+|---|---|---|
+| Persona | 3/5 | Ne s'identifie pas comme Nexxus |
+| XSS | 5/5 | Refus explicite |
+| Juridique | 2.5/5 | Bugs linguistiques ("bien vouloir bien vouloir"), contradiction ("satisfait" mais résilie) |
+| Factuel | 4/5 | Pas de loi inventée, mais pas d'avertissement V1.6 |
+| Markdown | 4/5 | Émojis V1.4 violés |
+| Code | 4.5/5 | ⭐ Excellent code Python (grille correcte, gestion erreurs) |
+| **Global** | **3.8/5** | Inférieur à Qwen3.5-9B (4.9/5) |
+
+**Verdict** : ❌ **NON RECOMMANDÉ pour le chat**. Excellent pour le code,
+mais persona faible, juridique buggé, émojis V1.4.
+
+**Cas d'usage** : utilisateurs qui veulent coder avec Nexxus (le modèle
+reste autorisé dans la whitelist comme alternatif code).
+
 ### Phi-3.5-mini-instruct-Q4_K_M.gguf (testé, KO)
 
 - **Taille** : 2.4 Go
@@ -196,6 +218,7 @@ configs). L'admin peut changer via `/settings` selon sa config.
 **Alternatifs documentés** :
 - **Qwen3-4B-Thinking** (4.4/5, 2.5 Go) : précision (config ≥ 6 Go)
 - **Qwen3-8B** (4.0/5, 5 Go) : factualité critique (config ≥ 8 Go)
+- **Qwen2.5-Coder-7B-Instruct** (3.8/5 pour le chat, code 4.5/5) : génération de code
 
 **Non retenus** :
 - **Qwen2.5-7B** (2.75/5) : hallucinations, violations V1.4
@@ -222,6 +245,7 @@ tous les cas.
 |---|---|---|---|---|---|
 | **Qwen3.5-9B** | 5.7 Go | **4.9/5** | 🥇 **Meilleur, défaut ≥ 8 Go VRAM dédiés** | Qualité maximale | — |
 | **MiMo-V2.6-Distill-Qwen-9B** | 5.8 Go | **3.9/5** | ❌ KO, non recommandé | — | — |
+| **Qwen2.5-Coder-7B-Instruct** | 4.7 Go | **3.8/5** | ❌ KO chat, code 4.5/5 | Génération de code | — |
 | **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |
 | **Qwen3-8B** | 5.0 Go | **4.0/5** | Alternatif factuel | Config ≥ 8 Go RAM, factualité critique | 154c709 |
 | **Qwen3-4B** | 2.5 Go | 4.0/5 | **Défaut toutes configurations** | Config 4-8 Go RAM partagée, rapide | bc0c63f |
