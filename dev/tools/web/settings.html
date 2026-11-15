@@ -280,11 +280,11 @@
             }
             for (const modelPath of allowedModels) {
                 const item = document.createElement("li");
-                const path = document.createElement("code");
-                path.textContent = modelPath;
+                item.title = modelPath;
                 const removeButton = document.createElement("button");
                 removeButton.type = "button";
-                removeButton.className = "settings-save";
+                removeButton.className = "btn-retirer settings-save";
+                removeButton.dataset.path = modelPath;
                 removeButton.textContent = "Retirer";
                 removeButton.addEventListener("click", () => {
                     saveAllowedModels(
@@ -293,7 +293,31 @@
                         )),
                     );
                 });
-                item.append(path, " ", removeButton);
+                const modelName = document.createElement("span");
+                modelName.className = "model-name";
+                modelName.textContent =
+                    modelPath.split(/[\\/]/).pop() || modelPath;
+                modelName.title = modelPath;
+                const copyButton = document.createElement("button");
+                copyButton.type = "button";
+                copyButton.className = "btn-copier settings-save";
+                copyButton.textContent = "Copier";
+                copyButton.addEventListener("click", async () => {
+                    try {
+                        await navigator.clipboard.writeText(modelPath);
+                        copyButton.textContent = "Copié !";
+                        setTimeout(() => {
+                            copyButton.textContent = "Copier";
+                        }, 1500);
+                    } catch (error) {
+                        console.error("Copie échouée:", error);
+                        copyButton.textContent = "Erreur";
+                        setTimeout(() => {
+                            copyButton.textContent = "Copier";
+                        }, 1500);
+                    }
+                });
+                item.append(removeButton, modelName, copyButton);
                 allowedModelsList.appendChild(item);
             }
         }

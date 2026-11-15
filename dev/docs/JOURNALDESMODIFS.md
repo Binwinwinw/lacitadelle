@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-14] UX whitelist — tooltip et copie du chemin
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/web/settings.html`,
+`dev/tools/web/style.css`, `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : supprimer le curseur d'aide gênant et permettre de copier le chemin complet du modèle.
+**Impact** : UX de la whitelist améliorée; 106 décisions; 244 tests.
+
 ## [2026-11-14] Précisions des priorités et dépendances des GO
 
 **Commit** : en cours de rédaction.

@@ -408,6 +408,80 @@ html[data-theme="light"] .knowledge-warning {
   display: none;
 }
 
+#allowed-models-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+#allowed-models-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+#allowed-models-list::-webkit-scrollbar-track {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+#allowed-models-list::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+#allowed-models-list::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+html[data-theme="light"] #allowed-models-list::-webkit-scrollbar-track {
+  background: #e8e8e8;
+}
+
+html[data-theme="light"] #allowed-models-list::-webkit-scrollbar-thumb {
+  background: #bbb;
+}
+
+#allowed-models-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  min-width: 0;
+}
+
+#allowed-models-list li .btn-retirer {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+#allowed-models-list li .btn-copier {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  background: #3a5a7a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#allowed-models-list li .btn-copier:hover {
+  background: #4a6a8a;
+}
+
+#allowed-models-list li .model-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
 .settings-section h2 {
   color: #fff;
   font-size: 1.1rem;

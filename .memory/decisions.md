@@ -2421,3 +2421,19 @@ pour ne pas perdre l'information entre les sessions.
 3. 13 GO futurs documentés (UX, qualité, évolutions, distribution).
 
 **Conséquences** : traçabilité pérenne. 105 décisions.
+
+## [2026-11-14] Fix UX tooltip + copier dans whitelist
+
+**Contexte** : le curseur "?" au survol des modèles était gênant.
+Le chemin complet (attribut title) n'était pas sélectionnable pour
+copier.
+
+**Décision(s)** :
+1. Retirer cursor: help du span model-name.
+2. Ajouter un bouton "Copier" qui copie le chemin dans le
+   presse-papier via navigator.clipboard.writeText().
+3. Feedback visuel : "Copié !" pendant 1.5s puis retour à "Copier".
+4. Bouton stylisé (bleu foncé, hover plus clair).
+
+**Conséquences** : UX plus claire, chemin copiable sans sélection.
+106 décisions.
