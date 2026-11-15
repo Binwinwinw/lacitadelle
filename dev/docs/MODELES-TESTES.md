@@ -124,7 +124,7 @@ final dépend de la configuration matérielle (voir recommandations).
 | Factuel | 5/5 | ⭐ Pas de loi inventée, renvoie Légifrance, V1.6 |
 | Markdown | 5/5 | `**gras**` correct |
 | Code | 5/5 | ⭐ Bouton C fonctionnel (le seul) |
-| **Global** | **4.9/5** | 🥇 **MEILLEUR des 6 modèles testés** |
+| **Global** | **4.9/5** | 🥇 **MEILLEUR des 7 modèles testés** |
 
 **Verdict** : ✅ **MEILLEUR MODÈLE TESTÉ**. Recommandé comme défaut
 pour config ≥ 8 Go VRAM dédiés.
@@ -140,6 +140,27 @@ pour config ≥ 8 Go VRAM dédiés.
 - Plus lent (9B vs 4B)
 
 **Cas d'usage** : config ≥ 8 Go VRAM dédiés, qualité maximale.
+
+### MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf (testé, KO)
+
+- **Taille** : 5.8 Go
+- **RAM** : ~10 Go
+- **Source** : HuggingFace (MiMo)
+
+| Critère | Note | Détail |
+|---|---|---|
+| Persona | 3.5/5 | Ne mentionne pas le modèle (llamafile seulement) |
+| XSS | 5/5 | Refus explicite |
+| Juridique | 4/5 | Refuse de citer, mais structure incomplète |
+| Factuel | 5/5 | Pas de loi inventée, renvoie Légifrance |
+| Markdown | 4/5 | Confusion souligné/italique |
+| Code | 3/5 | Bug visuel : boutons empilés au lieu d'une grille |
+| **Global** | **3.9/5** | Inférieur à Qwen3.5-9B (4.9/5) |
+
+**Verdict** : ❌ **NON RECOMMANDÉ**. Note inférieure à Qwen3.5-9B
+(4.9/5). Persona faible (ne s'identifie pas), bug code.
+
+**Action** : retiré de `allowed_models`.
 
 ### Phi-3.5-mini-instruct-Q4_K_M.gguf (testé, KO)
 
@@ -180,6 +201,7 @@ configs). L'admin peut changer via `/settings` selon sa config.
 - **Qwen2.5-7B** (2.75/5) : hallucinations, violations V1.4
 - **Phi-3.5-mini** (2.3/5) : menaces juridiques inventées
 - **GLM-4-9B** (2.75/5) : ne respecte pas V1.6
+- **MiMo-V2.6-Distill-Qwen-9B** (3.9/5) : inférieur à Qwen3.5-9B
 - **humanizer-12b** : pas un chat (réécriture uniquement)
 - **Gemma-4-26B, GLM-4.7-flash** : aucun support GGUF explicite repéré dans AirLLM 4.0.0
 
@@ -199,6 +221,7 @@ tous les cas.
 | Modèle | Taille | Note | Verdict | Recommandé pour | Commit |
 |---|---|---|---|---|---|
 | **Qwen3.5-9B** | 5.7 Go | **4.9/5** | 🥇 **Meilleur, défaut ≥ 8 Go VRAM dédiés** | Qualité maximale | — |
+| **MiMo-V2.6-Distill-Qwen-9B** | 5.8 Go | **3.9/5** | ❌ KO, non recommandé | — | — |
 | **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |
 | **Qwen3-8B** | 5.0 Go | **4.0/5** | Alternatif factuel | Config ≥ 8 Go RAM, factualité critique | 154c709 |
 | **Qwen3-4B** | 2.5 Go | 4.0/5 | **Défaut toutes configurations** | Config 4-8 Go RAM partagée, rapide | bc0c63f |

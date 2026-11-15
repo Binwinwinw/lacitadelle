@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-14] MiMo-V2.6-9B non recommandé
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : consigner le résultat manuel MiMo-V2.6-9B (3.9/5), inférieur à Qwen3.5-9B.
+**Impact** : modèle retiré de la whitelist SQLite et marqué non recommandé; 101 décisions.
+
 ## [2026-11-14] Qwen3.5-9B et décision finale du défaut
 
 **Commit** : en cours de rédaction.
