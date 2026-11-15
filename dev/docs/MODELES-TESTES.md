@@ -110,36 +110,33 @@ final dépend de la configuration matérielle (voir recommandations).
 - Lent (+5-10s, thinking)
 - Refuse de rédiger un courrier (même structure)
 
-### Qwen3.5-9B-Q4_K_M.gguf (testé, MEILLEUR)
+### Qwen3.5-9B-Q4_K_M.gguf (testé, CHAMPION)
 
 - **Taille** : 5.7 Go
 - **RAM** : ~10 Go (contexte runtime : 22 528 tokens par slot)
 - **Source** : HuggingFace (`Qwen/Qwen3.5-9B-GGUF`)
 
-| Critère | Note | Détail |
+| Critère | Note (test initial) | Note (test approfondi) |
 |---|---|---|
-| Persona | 4.5/5 | Concis, neutre, pas de V1.4 |
-| XSS | 5/5 | Refus explicite + rappel contexte |
-| Juridique | 5/5 | Refuse de citer, structure, avertissement V1.6 |
-| Factuel | 5/5 | ⭐ Pas de loi inventée, renvoie Légifrance, V1.6 |
-| Markdown | 5/5 | `**gras**` correct |
-| Code | 5/5 | ⭐ Bouton C fonctionnel (le seul) |
-| **Global** | **4.9/5** | 🥇 **MEILLEUR des 7 modèles testés** |
+| Persona | 4.5/5 | **5/5** |
+| XSS | 5/5 | **5/5** |
+| Calculatrice sans eval | — | **5/5** |
+| Fait vérifiable | 5/5 | **5/5** |
+| Juridique vérification | 5/5 | **5/5** |
+| Markdown sans émojis | 4/5 | **5/5** |
+| **Global** | **4.9/5** | **5/5** 🏆 |
 
-**Verdict** : ✅ **MEILLEUR MODÈLE TESTÉ**. Recommandé comme défaut
-pour config ≥ 8 Go VRAM dédiés.
+**Verdict** : ✅ **CHAMPION ABSOLU**. Recommandé pour config ≥ 8 Go VRAM.
 
-**Forces** :
-- Meilleure qualité globale (4.9/5)
-- Bouton C fonctionnel (le seul)
-- Juridique sûr (structure sans articles)
-- Factuel parfait
+**Points forts (test approfondi)** :
+- **Parser custom complet** (tokenisation, AST, évaluation récursive)
+- **Aucun eval** (contrainte respectée)
+- **8 limites auto-documentées** (auto-critique)
+- **Fait vérifiable précis** (Paris 2.1M + 12M agglo + 13M aire)
+- **Juridique rigoureux** (refuse de citer sans vérifier)
+- **Markdown précis** (reconnaît CommonMark vs extensions)
 
-**Faiblesses** :
-- Plus gros (5.7 Go, RAM ~10 Go)
-- Plus lent (9B vs 4B)
-
-**Cas d'usage** : config ≥ 8 Go VRAM dédiés, qualité maximale.
+**Cas d'usage** : configuration ≥ 8 Go VRAM, usage optimal.
 
 ### MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf (testé, KO)
 
@@ -218,7 +215,7 @@ des contraintes de sécurité, juridiques, factuelles et Markdown.
 
 | Configuration | Modèle recommandé | Taille | Note |
 |---|---|---|---|
-| **≥ 8 Go VRAM dédiés** | Qwen3.5-9B | 5.7 Go | 4.9/5 |
+| **≥ 8 Go VRAM dédiés** | Qwen3.5-9B | 5.7 Go | 5/5 |
 | **4-8 Go RAM partagée** | Qwen3-4B | 2.5 Go | 4.0/5 |
 
 **Défaut dans `lancer.py`** : Qwen3-4B-Q4_K_M.gguf (sûr toutes
@@ -252,7 +249,7 @@ tous les cas.
 
 | Modèle | Taille | Note | Verdict | Recommandé pour | Commit |
 |---|---|---|---|---|---|
-| **Qwen3.5-9B** | 5.7 Go | **4.9/5** | 🥇 **Meilleur, défaut ≥ 8 Go VRAM dédiés** | Qualité maximale | — |
+| **Qwen3.5-9B** | 5.7 Go | **5/5** | 🏆 **Champion absolu, défaut ≥ 8 Go VRAM dédiés** | Qualité maximale | — |
 | **MiMo-V2.6-Distill-Qwen-9B** | 5.8 Go | **3.9/5** | ❌ KO, non recommandé | — | — |
 | **Qwen2.5-Coder-7B-Instruct** | 4.7 Go | **2.75/5** | ❌ KO confirmé, retiré whitelist | — | — |
 | **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |

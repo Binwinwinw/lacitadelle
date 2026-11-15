@@ -165,3 +165,4 @@
 [2026-11-15] GO 16-FIX-SETTINGS-LAYOUT : Mon compte et Préférences regroupés en grille responsive; autres sections restent pleine largeur. Validation visuelle manuelle en attente.
 [2026-11-15] UX : bouton "Utiliser" + badge "Actif" dans whitelist. Endpoint /api/admin/model/use. 107 décisions.
 [2026-11-15] Test amélioré révèle Qwen2.5-Coder-7B KO (2.75/5). Retiré whitelist. Test approfondi documenté. 108 décisions.
+[2026-11-15] Qwen3.5-9B : Champion absolu (5/5 au test approfondi). Parser custom, juridique rigoureux, Markdown précis. 109 décisions.

@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-15] Qwen3.5-9B champion absolu (5/5 test approfondi)
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : documenter le résultat parfait de Qwen3.5-9B au test approfondi.
+**Impact** : champion absolu identifié; 109 décisions.
+
 ## [2026-11-15] Qwen2.5-Coder-7B KO confirmé par test approfondi
 
 **Commit** : en cours de rédaction.
