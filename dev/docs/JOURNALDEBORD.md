@@ -161,4 +161,7 @@
 [2026-11-14] Fix UX tooltip + bouton Copier dans whitelist. 106 décisions.
 [2026-11-15] GO 16-FEATURE-MODEL-USE : endpoint admin sécurisé, sélection par whitelist et bouton avec confirmation; redémarrage manuel conservé. Tests HTTP associés. Validation manuelle en attente.
 [2026-11-15] GO 16-FEATURE-MODEL-ACTIVE-BADGE : badge "Actif" remplace le bouton "Utiliser" pour le modèle configuré; validation manuelle en attente.
+[2026-11-15] GO 16-FEATURE-REMOVE-CHANGER-MODEL : retrait de la section et de l'ancien POST /api/admin/model; whitelist conservée comme interface unique. Validation manuelle en attente.
+[2026-11-15] GO 16-FIX-SETTINGS-LAYOUT : Mon compte et Préférences regroupés en grille responsive; autres sections restent pleine largeur. Validation visuelle manuelle en attente.
 [2026-11-15] UX : bouton "Utiliser" + badge "Actif" dans whitelist. Endpoint /api/admin/model/use. 107 décisions.
+[2026-11-15] Test amélioré révèle Qwen2.5-Coder-7B KO (2.75/5). Retiré whitelist. Test approfondi documenté. 108 décisions.

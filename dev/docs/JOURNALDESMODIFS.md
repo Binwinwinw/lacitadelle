@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-15] Qwen2.5-Coder-7B KO confirmé par test approfondi
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : réviser la note du modèle après détection d'eval interdit, d'erreurs juridiques, d'une URL inventée et de violations Markdown.
+**Impact** : modèle retiré de la whitelist; test approfondi documenté; 108 décisions.
+
 ## [2026-11-15] UX whitelist — sélection et badge du modèle actif
 
 **Commit** : en cours de rédaction.

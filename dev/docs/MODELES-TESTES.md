@@ -162,11 +162,14 @@ pour config ≥ 8 Go VRAM dédiés.
 
 **Action** : retiré de `allowed_models`.
 
-### Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf (testé, KO pour chat)
+### Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf (KO confirmé pour chat)
 
 - **Taille** : 4.7 Go
 - **RAM** : ~7 Go
 - **Source** : HuggingFace (`Qwen/Qwen2.5-Coder-7B-Instruct-GGUF`)
+
+**Évaluation initiale (3.8/5)** : les résultats ci-dessous précèdent
+le test approfondi et sont révisés par celui-ci.
 
 | Critère | Note | Détail |
 |---|---|---|
@@ -176,13 +179,19 @@ pour config ≥ 8 Go VRAM dédiés.
 | Factuel | 4/5 | Pas de loi inventée, mais pas d'avertissement V1.6 |
 | Markdown | 4/5 | Émojis V1.4 violés |
 | Code | 4.5/5 | ⭐ Excellent code Python (grille correcte, gestion erreurs) |
-| **Global** | **3.8/5** | Inférieur à Qwen3.5-9B (4.9/5) |
+| **Global, test initial** | **3.8/5** | Note révisée par le test approfondi ci-dessous |
 
-**Verdict** : ❌ **NON RECOMMANDÉ pour le chat**. Excellent pour le code,
-mais persona faible, juridique buggé, émojis V1.4.
+**Test approfondi — note révisée : 2.75/5** :
+- Utilise `eval()` malgré l'interdiction explicite (2/5).
+- N'a pas de parser/tokenizer (contrainte non respectée).
+- Ne vérifie pas l'applicabilité de L121-20 (1/5).
+- Invente des URLs (`cmc.gouv.fr`).
+- Markdown faux : souligné, citation et "N'hésitez pas" (2/5).
 
-**Cas d'usage** : utilisateurs qui veulent coder avec Nexxus (le modèle
-reste autorisé dans la whitelist comme alternatif code).
+**Verdict** : ❌ **NON RECOMMANDÉ**. Le test approfondi confirme l'échec
+des contraintes de sécurité, juridiques, factuelles et Markdown.
+
+**Action** : retiré de `allowed_models`.
 
 ### Phi-3.5-mini-instruct-Q4_K_M.gguf (testé, KO)
 
@@ -218,10 +227,10 @@ configs). L'admin peut changer via `/settings` selon sa config.
 **Alternatifs documentés** :
 - **Qwen3-4B-Thinking** (4.4/5, 2.5 Go) : précision (config ≥ 6 Go)
 - **Qwen3-8B** (4.0/5, 5 Go) : factualité critique (config ≥ 8 Go)
-- **Qwen2.5-Coder-7B-Instruct** (3.8/5 pour le chat, code 4.5/5) : génération de code
 
 **Non retenus** :
 - **Qwen2.5-7B** (2.75/5) : hallucinations, violations V1.4
+- **Qwen2.5-Coder-7B-Instruct** (2.75/5, test approfondi) : `eval()`, erreur juridique, URL inventée
 - **Phi-3.5-mini** (2.3/5) : menaces juridiques inventées
 - **GLM-4-9B** (2.75/5) : ne respecte pas V1.6
 - **MiMo-V2.6-Distill-Qwen-9B** (3.9/5) : inférieur à Qwen3.5-9B
@@ -245,7 +254,7 @@ tous les cas.
 |---|---|---|---|---|---|
 | **Qwen3.5-9B** | 5.7 Go | **4.9/5** | 🥇 **Meilleur, défaut ≥ 8 Go VRAM dédiés** | Qualité maximale | — |
 | **MiMo-V2.6-Distill-Qwen-9B** | 5.8 Go | **3.9/5** | ❌ KO, non recommandé | — | — |
-| **Qwen2.5-Coder-7B-Instruct** | 4.7 Go | **3.8/5** | ❌ KO chat, code 4.5/5 | Génération de code | — |
+| **Qwen2.5-Coder-7B-Instruct** | 4.7 Go | **2.75/5** | ❌ KO confirmé, retiré whitelist | — | — |
 | **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |
 | **Qwen3-8B** | 5.0 Go | **4.0/5** | Alternatif factuel | Config ≥ 8 Go RAM, factualité critique | 154c709 |
 | **Qwen3-4B** | 2.5 Go | 4.0/5 | **Défaut toutes configurations** | Config 4-8 Go RAM partagée, rapide | bc0c63f |
@@ -278,3 +287,35 @@ compteurs ne constituent donc pas une mesure exacte des tokens générés.
 4. Tester les 5 questions révélatrices
 5. Documenter les résultats ici
 6. Décider : garder ou supprimer
+
+## Test approfondi (recommandé pour top candidats)
+
+Pour les modèles validés (Qwen3.5-9B, Qwen3-4B-Thinking, Qwen3-8B),
+un test approfondi est recommandé :
+
+### Test 1 — Calculatrice Python sans eval
+
+Demander une calculatrice Tkinter avec :
+- Boutons 0-9, + - × ÷, C, ←, =
+- PAS eval() (sécurité)
+- Parser/tokenizer
+- Gestion erreurs (division par zéro, expression vide)
+- Explication (sécurité, limites, exemple)
+
+### Test 2 — Fait vérifiable
+
+Demander : "Capitale de la France et population approximative 2024 ?"
+Attendu : Paris, ~2.1M (ville), ~12M (agglomération).
+Détecte les hallucinations factuelles.
+
+### Test 3 — Juridique avec contrainte de vérification
+
+Demander : "Lettre de résiliation Canal+ avec L121-20 (vérifie applicabilité)."
+Attendu : le modèle doit vérifier que L121-20 = rétractation (pas résiliation).
+
+### Test 4 — Markdown sans émojis
+
+Demander : "Explique le gras, italique, souligné, barré, citation en Markdown (sans émojis)."
+Attendu : syntaxe correcte, pas d'émojis.
+
+**Ce test est recommandé pour les top candidats, pas obligatoire pour les KO.**

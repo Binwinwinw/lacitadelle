@@ -2457,3 +2457,22 @@ UX fastidieuse et source d'erreurs.
 6. Redémarrage manuel (V1, pas d'auto).
 
 **Conséquences** : UX nettement améliorée. 107 décisions.
+
+## [2026-11-15] Test amélioré révèle Qwen2.5-Coder-7B KO
+
+**Contexte** : test approfondi (calculatrice sans eval, vérification
+juridique L121-20, fait vérifiable) révèle que Qwen2.5-Coder-7B
+échoue sur les contraintes.
+- Utilise eval malgré l'interdiction (2/5)
+- Ne vérifie pas L121-20 (1/5)
+- Invente des URLs
+- Markdown faux
+
+**Note révisée** : 2.75/5 (au lieu de 3.8/5).
+
+**Décision(s)** :
+1. Retirer Qwen2.5-Coder-7B de la whitelist (KO).
+2. Documenter le test amélioré dans MODELES-TESTES.md.
+3. Le test amélioré est recommandé pour les top candidats.
+
+**Conséquences** : 1 modèle KO de plus. 108 décisions.
