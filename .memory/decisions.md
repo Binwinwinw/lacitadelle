@@ -2408,3 +2408,16 @@ mentionnait encore 8 modèles testés.
    ETAT-PROJET.md.
 
 **Conséquences** : tableau de bord aligné. 104 décisions.
+
+## [2026-11-14] Documentation des futurs GO
+
+**Contexte** : après session modèles (9 modèles) et réflexions UX,
+13 GO futurs identifiés. Documenter dans TODO.md + BACKLOG.md
+pour ne pas perdre l'information entre les sessions.
+
+**Décision(s)** :
+1. TODO.md = source de vérité pour les GO futurs (liste actionnable).
+2. BACKLOG.md = contexte et priorités.
+3. 13 GO futurs documentés (UX, qualité, évolutions, distribution).
+
+**Conséquences** : traçabilité pérenne. 105 décisions.

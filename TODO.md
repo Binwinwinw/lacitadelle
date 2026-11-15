@@ -4,7 +4,7 @@
 tâche terminée est supprimée ici; sa trace reste dans
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 
-**Dernière mise à jour** : 2026-11-08.
+**Dernière mise à jour** : 2026-11-14.
 
 ## Actif
 
@@ -72,13 +72,54 @@ tâche terminée est supprimée ici; sa trace reste dans
   Propriétaire : à planifier.
 - [ ] **16-CHAT-CONTEXT-STRATEGY** — MAX_CONTEXT_TOKENS + troncature par
   paire user/assistant. — Propriétaire : à planifier.
-- [ ] **16-CHAT-RAG-LOCAL** : implémenter une base de connaissances
-  locale (upload documents, recherche BM25, injection dans prompt).
-  Objectif : Nexxus fiable sur les faits couverts par la base,
-  indépendamment du knowledge cutoff du LLM. — Propriétaire : à planifier.
+
+### Chat et modèles
+
+- [ ] **16-FEATURE-MODEL-USE** : bouton "Utiliser" dans la whitelist
+  `/settings` pour sélectionner un modèle actif sans copier-coller.
+  Confirmation, enregistrement SQLite et message de redémarrage.
+  — Propriétaire : à planifier (prochaine session UX).
+- [ ] **16-FEATURE-MODEL-USE-V2** : redémarrage automatique du proxy
+  et de llamafile après sélection d'un modèle; progression, détection
+  d'échec et rollback. — Propriétaire : à planifier (après V1).
+- [ ] **16-FEATURE-MODEL-DRIFT-DETECTION** : bandeau dans `/settings`
+  si `current_model_path` (SQLite) diffère du modèle chargé dans
+  llamafile (`/v1/models`). — Propriétaire : à planifier (après V1).
+- [ ] **16-FEATURE-AUTO-MODEL-SELECTION** : détection du matériel au
+  premier lancement et sélection Qwen3.5-9B si ≥ 8 Go VRAM, Qwen3-4B
+  sinon. — Propriétaire : à planifier (V3, après UX).
+- [ ] **16-CHAT-RAG-LOCAL** : base de connaissances locale (upload
+  documents, recherche BM25, injection dans le prompt). Objectif :
+  fiabiliser les faits couverts indépendamment du knowledge cutoff.
+  — Propriétaire : à planifier.
 - [ ] **16-CHAT-WEB-ACCESS** (optionnel) : accès web contrôlé via API
-  (DuckDuckGo, Légifrance, Wikipedia). Casse la promesse offline, à
-  désactiver par défaut dans /settings. — Propriétaire : à planifier.
-- [ ] **16-AGENTS-RULES-18** : ajouter une règle dans AGENTS.md :
-  "Tout GO qui modifie un fichier testé doit inclure la mise à jour
-  du test associé." — Propriétaire : à planifier.
+  (DuckDuckGo, Légifrance, Wikipedia). Casse la promesse offline et
+  doit être désactivé par défaut dans `/settings`. — Propriétaire :
+  à planifier.
+
+### Qualité et dette
+
+- [ ] **16-FIX-SETTINGS-SCROLL** : scroll vertical sur la liste des
+  modèles autorisés, boutons "Retirer" à gauche, noms courts et
+  tooltip du chemin complet. — Propriétaire : à planifier (session UX).
+- [ ] **16-FIX-WHITELIST-UX** : message précis pour les entrées
+  invalides de la whitelist, au lieu de "Chaque modèle doit être un
+  fichier GGUF existant". — Propriétaire : à planifier.
+- [ ] **16-FIX-FLAKY-TESTS** : identifier et corriger les tests
+  intermittents (`test_migration_v3`, `test_api_messages`).
+  — Propriétaire : à planifier.
+- [ ] **16-REFACTOR-LOGIN-SERVER** : découper `login_server.py`
+  (~2600 lignes) en modules auth, chat, admin, settings et static.
+  — Propriétaire : à planifier (maintenabilité).
+- [ ] **16-AGENTS-RULES-18** : formaliser dans AGENTS.md la règle
+  selon laquelle tout GO qui modifie un fichier testé met à jour son
+  test associé. — Propriétaire : à planifier.
+
+### Distribution et environnement
+
+- [ ] **16-FIX-OTHER-PROJECTS-VENV** : recréer les `.venv` des autres
+  projets (Nexxus Studio, etc.) avec Python 3.15, selon la procédure
+  La Citadelle. — Propriétaire : Décideur.
+- [ ] **16-DOC-RELEASE-NOTES** : documenter dans RELEASE-NOTES.md les
+  changements majeurs (modèles testés, choix du défaut, migration
+  Python, etc.). — Propriétaire : à planifier.

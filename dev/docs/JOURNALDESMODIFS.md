@@ -2,6 +2,15 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-14] TODO et BACKLOG — 13 GO futurs
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `TODO.md`, `dev/docs/BACKLOG.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : consigner les prochains GO modèles, UX, qualité et distribution sans dupliquer les entrées déjà planifiées.
+**Impact** : suivi actionnable et priorités documentés; 105 décisions.
+
 ## [2026-11-14] ETAT-PROJET aligné sur 9 modèles testés
 
 **Commit** : en cours de rédaction.
