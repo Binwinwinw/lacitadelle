@@ -2,6 +2,14 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-14] ETAT-PROJET — catalogue final des modèles
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/ETAT-PROJET.md`, `.memory/decisions.md`,
+`AGENTS.md`, `dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : refléter le catalogue final de 8 modèles et les recommandations contextuelles.
+**Impact** : état projet et compteurs alignés; 102 décisions.
+
 ## [2026-11-14] MiMo-V2.6-9B non recommandé
 
 **Commit** : en cours de rédaction.

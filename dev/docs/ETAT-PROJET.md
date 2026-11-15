@@ -1,6 +1,6 @@
 # État du projet La Citadelle
 
-**Dernière mise à jour** : 2026-11-13
+**Dernière mise à jour** : 2026-11-14
 
 ## Résumé exécutif
 
@@ -12,10 +12,32 @@ manuelle par le Décideur, le statut est **stable pour release**.
 ## Métriques actuelles
 
 - **Tests** : 244 passed (`python -m pytest -q`)
-- **Décisions documentées** : 92 (voir `.memory/decisions.md`)
-- **Modèle par défaut** : `Qwen3-4B-Q4_K_M.gguf`
+- **Décisions documentées** : 102 (voir `.memory/decisions.md`)
+- **Modèles testés** : 8 (4 validés, 4 KO)
 - **Qualité Python** : Ruff configuré dans `pyproject.toml`; 39 issues
   restent à examiner, sans corrections manuelles appliquées.
+
+## Modèles par défaut
+
+**Deux défauts contextuels** :
+
+| Config | Modèle | Taille | Note |
+|---|---|---|---|
+| **≥ 8 Go VRAM** | Qwen3.5-9B | 5.7 Go | 4.9/5 |
+| **4-8 Go RAM partagée** | Qwen3-4B | 2.5 Go | 4.0/5 |
+
+**Défaut dans `lancer.py`** : Qwen3-4B-Q4_K_M.gguf.
+
+**Alternatifs** :
+- Qwen3-4B-Thinking (4.4/5) : précision
+- Qwen3-8B (4.0/5) : factualité critique
+
+**Non retenus (KO)** : MiMo-V2.6-9B (3.9/5), Qwen2.5-7B (2.75/5),
+GLM-4-9B (2.75/5), Phi-3.5-mini (2.3/5).
+
+**Non-chat** : humanizer-12b (réécriture uniquement).
+
+**Catalogue complet** : voir `dev/docs/MODELES-TESTES.md`.
 
 ## Ce qui fonctionne
 

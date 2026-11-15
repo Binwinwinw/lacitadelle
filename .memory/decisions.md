@@ -2359,3 +2359,17 @@ Note globale : 3.9/5 (inférieur à Qwen3.5-9B 4.9/5).
 **Conséquences** : MiMo-V2.6-9B est retiré de `allowed_models`;
 il n'est pas recommandé pour les nouveaux utilisateurs.
 101 décisions.
+
+## [2026-11-14] Catalogue final des modèles dans l'état projet
+
+**Contexte** : mise à jour de `ETAT-PROJET.md` après les tests manuels
+et la décision sur les modèles recommandés selon la configuration.
+
+**Décision(s)** :
+1. Le catalogue comptabilise 8 modèles testés : 4 validés et 4 KO.
+2. Modèles validés : Qwen3.5-9B, Qwen3-4B, Qwen3-4B-Thinking et Qwen3-8B.
+3. Modèles KO : MiMo-V2.6-9B, Qwen2.5-7B, GLM-4-9B et Phi-3.5-mini.
+4. humanizer-12b reste classé séparément comme outil non-chat.
+
+**Conséquences** : `ETAT-PROJET.md` présente le catalogue final et
+les recommandations contextuelles. 102 décisions.
