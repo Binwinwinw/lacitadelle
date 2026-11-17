@@ -1,6 +1,6 @@
 # Modèles testés avec Nexxus
 
-**Dernière mise à jour** : 2026-11-14
+**Dernière mise à jour** : 2026-11-17
 
 ## Méthodologie
 
@@ -110,7 +110,7 @@ final dépend de la configuration matérielle (voir recommandations).
 - Lent (+5-10s, thinking)
 - Refuse de rédiger un courrier (même structure)
 
-### Qwen3.5-9B-Q4_K_M.gguf (testé, CHAMPION)
+### Qwen3.5-9B-Q4_K_M.gguf (challenger documentaire, 5/5, non testé live)
 
 - **Taille** : 5.7 Go
 - **RAM** : ~10 Go (contexte runtime : 22 528 tokens par slot)
@@ -126,7 +126,7 @@ final dépend de la configuration matérielle (voir recommandations).
 | Markdown sans émojis | 4/5 | **5/5** |
 | **Global** | **4.9/5** | **5/5** 🏆 |
 
-**Verdict** : ✅ **CHAMPION ABSOLU**. Recommandé pour config ≥ 8 Go VRAM.
+**Verdict** : ✅ **CHALLENGER DOCUMENTAIRE**. Test approfondi 5/5; pas testé en live. Ornith-1.5-9B est le champion live.
 
 **Points forts (test approfondi)** :
 - **Parser custom complet** (tokenisation, AST, évaluation récursive)
@@ -211,6 +211,10 @@ des contraintes de sécurité, juridiques, factuelles et Markdown.
 
 ## Recommandations par configuration
 
+**Statut live** : Ornith-1.5-9B est le champion des tests live. La
+recommandation matérielle Qwen3.5-9B ci-dessous reste documentaire; il n'a pas
+encore été testé en live. Le dimensionnement matériel d'Ornith reste à mesurer.
+
 **Deux défauts selon la configuration matérielle** :
 
 | Configuration | Modèle recommandé | Taille | Note |
@@ -249,7 +253,7 @@ tous les cas.
 
 | Modèle | Taille | Note | Verdict | Recommandé pour | Commit |
 |---|---|---|---|---|---|
-| **Qwen3.5-9B** | 5.7 Go | **5/5** | 🏆 **Champion absolu, défaut ≥ 8 Go VRAM dédiés** | Qualité maximale | — |
+| **Qwen3.5-9B** | 5.7 Go | **5/5** | Challenger documentaire, pas testé live | Référence de comparaison, validation live restante | — |
 | **MiMo-V2.6-Distill-Qwen-9B** | 5.8 Go | **3.9/5** | ❌ KO, non recommandé | — | — |
 | **Qwen2.5-Coder-7B-Instruct** | 4.7 Go | **2.75/5** | ❌ KO confirmé, retiré whitelist | — | — |
 | **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |
@@ -257,6 +261,18 @@ tous les cas.
 | **Qwen3-4B** | 2.5 Go | 4.0/5 | **Défaut toutes configurations** | Config 4-8 Go RAM partagée, rapide | bc0c63f |
 | **Qwen2.5-7B** | 4.7 Go | 2.75/5 | ❌ KO (supprimé) | — | 471c935 |
 | **Phi-3.5-mini** | 2.4 Go | 2.3/5 | ❌ KO (non retenu, absent whitelist) | — | 62e5039 |
+
+## Tests live 2026-11
+
+Résultats rapportés par le Décideur sur 7 prompts par modèle :
+
+| Modèle | Note | Points forts | Points faibles | Décision |
+|---|---|---|---|---|
+| Ornith-1.5-9B | 5/5 | Factualité, juridique, code, Markdown, sécurité | Pas de tool calling, latence | 🏆 Champion |
+| Llama-3.1-8B | 3/5 | Tool calling 7/7 | Paramètres douteux, biais | Garder (tool calling) |
+| Gemma-2-9B | 2,5/5 | Corrigeable | Markdown, juridique, eval | ❌ Supprimer |
+| Mistral-Nemo-12B | 2/5 | Auto-ID | Lent, eval, juridique | ❌ Supprimer |
+| qwen2.5-3b | 1,5/5 | Auto-ID | Markdown, juridique, eval+mensonge | ❌ Supprimer |
 
 ## Configuration recommandée (max_tokens)
 

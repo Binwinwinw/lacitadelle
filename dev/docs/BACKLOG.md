@@ -664,8 +664,8 @@ notamment pour une distribution EXE hors ligne.
 
 **Statut** : session modèles clôturée (9 testés, 4 validés chat, 1
 code only, 4 KO). Décision de défaut contextuel (Qwen3.5-9B /
-Qwen3-4B). Trois GO étaient déjà documentés et restent planifiés;
-dix GO sont nouveaux, soit 13 au total.
+Qwen3-4B). Trois GO étaient déjà documentés; douze GO sont maintenant
+planifiés, soit 15 au total.
 
 **GO planifiés** (détails, dépendances et propriétaires : voir TODO.md) :
 
@@ -691,9 +691,15 @@ dix GO sont nouveaux, soit 13 au total.
 12. **16-FIX-OTHER-PROJECTS-VENV** — 5-10 min par projet.
 13. **16-DOC-RELEASE-NOTES** — 30 min.
 14. **16-FEATURE-RESPONSE-TIME** — implémenté; validation manuelle restante.
+15. **MODELE-NETTOYAGE** — validé le 2026-11-17; migration v10 à planifier.
+    **Périmètre** : retirer qwen2.5-3b, Mistral-Nemo-12B et Gemma-2-9B de
+    `allowed_models`; garder Ornith, Llama-3.1-8B, Qwen3.5-9B et les Qwen3
+    non testés. **Dépendances** : migration v9 publiée.
+    **Questions ouvertes** : aucune. **Moment** : GO séparé après validation.
+    **Effort** : à estimer.
 
-**Effort total estimé** : ~10-15 jours de travail (répartis sur
-plusieurs sessions).
+**Effort total estimé** : ~10-15 jours de travail, hors MODELE-NETTOYAGE
+(effort à estimer; répartis sur plusieurs sessions).
 
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
 BACKLOG.md conserve le statut, les priorités et l'effort estimé sans

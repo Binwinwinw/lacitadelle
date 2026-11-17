@@ -2,6 +2,17 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-17] Ornith-1.5-9B champion live et nettoyage planifié
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `TODO.md`, `dev/docs/BACKLOG.md`, `AGENTS.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : documenter les tests live, choisir le champion et planifier le
+nettoyage ultérieur de la whitelist.
+**Impact** : Ornith champion live, Qwen3.5 challenger documentaire,
+3 modèles KO planifiés pour v10; whitelist inchangée; 110 décisions.
+
 ## [2026-11-17] Migration v9 — retrait Llama-3.2-3B de la whitelist
 
 **Commit** : en cours de rédaction.

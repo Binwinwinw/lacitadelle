@@ -2498,3 +2498,20 @@ Note globale : 5/5 (PARFAIT).
 4. Test approfondi validé comme protocole standard pour top candidats.
 
 **Conséquences** : catalogue complet avec champion identifié. 109 décisions.
+
+## [2026-11-17] Ornith-1.5-9B champion des tests live (5/5)
+
+**Contexte** : le Décideur rapporte un test live de 7 prompts par modèle.
+Ornith-1.5-9B obtient 5/5 et dépasse les modèles comparés en live.
+Qwen3.5-9B obtient 5/5 au test approfondi documenté, mais n'a pas été testé
+en live. Llama-3.1-8B reste utile pour le tool calling.
+
+**Décision(s)** :
+1. Ornith-1.5-9B devient le champion des tests live.
+2. Qwen3.5-9B reste challenger documentaire jusqu'à son test live.
+3. Garder Llama-3.1-8B pour le tool calling.
+4. Préparer en migration v10 le retrait de qwen2.5-3b,
+   Mistral-Nemo-12B et Gemma-2-9B de `allowed_models`.
+
+**Conséquences** : la whitelist n'est pas modifiée dans ce GO.
+Le nettoyage est planifié séparément. 110 décisions.

@@ -89,6 +89,10 @@ tâche terminée est supprimée ici; sa trace reste dans
   Décideur.
 - [ ] **16-FEATURE-ORCHESTRATION-LOG** : validation manuelle de la colonne
   et du filtre de modèle dans les logs admin. — Propriétaire : Décideur.
+- [ ] **MODELE-NETTOYAGE** — migration v10 : supprimer qwen2.5-3b,
+  Mistral-Nemo-12B et Gemma-2-9B de `allowed_models`. Garder Ornith
+  (champion), Llama-3.1-8B (tool calling), Qwen3.5-9B (challenger) et les
+  Qwen3 non testés. — Propriétaire : à planifier.
 - [ ] **16-CHAT-RAG-LOCAL** : base de connaissances locale (upload
   documents, recherche BM25, injection dans le prompt). Objectif :
   fiabiliser les faits couverts indépendamment du knowledge cutoff.
