@@ -297,6 +297,16 @@ async function sendMessage(content) {
 					}
 					thinkingLabel.remove();
 					assistantMessage.classList.remove("thinking", "streaming");
+					if (
+						Number.isFinite(event.duration_ms)
+						&& event.duration_ms >= 0
+					) {
+						const durationSpan = document.createElement("span");
+						durationSpan.className = "message-duration";
+						durationSpan.textContent =
+							`⏱️ ${(event.duration_ms / 1000).toFixed(1)}s`;
+						assistantMessage.appendChild(durationSpan);
+					}
 					showStatus("");
 					streamFinished = true;
 					return;

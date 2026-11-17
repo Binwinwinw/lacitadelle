@@ -17,7 +17,12 @@ import login_server
 
 
 def _prepare_db(db_path: Path) -> None:
-    citadelle_memory.init_db(db_path)
+    with patch.object(
+        citadelle_memory,
+        "migrate_to_v8",
+        side_effect=lambda *args, **kwargs: None,
+    ):
+        citadelle_memory.init_db(db_path)
     with citadelle_memory._connect(db_path) as conn:
         table = conn.execute(
             "SELECT name FROM sqlite_master "
@@ -25,6 +30,14 @@ def _prepare_db(db_path: Path) -> None:
         ).fetchone()
     assert table is not None
     citadelle_memory.migrate_to_v5(db_path)
+    citadelle_memory.migrate_to_v8(db_path)
+    citadelle_memory.migrate_to_v8(db_path)
+    with citadelle_memory._connect(db_path) as conn:
+        columns = [
+            row["name"]
+            for row in conn.execute("PRAGMA table_info(inference_metrics)")
+        ]
+    assert columns.count("model_name") == 1
 
 
 def _create_user(db_path: Path, username: str) -> int:
@@ -63,6 +76,7 @@ def test_record_inference_is_scoped_to_user():
             prompt_tokens=12,
             completion_tokens=4,
             db_path=db_path,
+            model_name="Qwen3-4B-Q4_K_M.gguf",
         )
         citadelle_memory.record_inference(
             bob_id,
@@ -77,21 +91,21 @@ def test_record_inference_is_scoped_to_user():
         with citadelle_memory._connect(db_path) as conn:
             alice_rows = conn.execute(
                 "SELECT user_id, session_id, duration_ms, status, "
-                "prompt_tokens, completion_tokens "
+                "prompt_tokens, completion_tokens, model_name "
                 "FROM inference_metrics WHERE user_id = ?",
                 (alice_id,),
             ).fetchall()
             bob_rows = conn.execute(
-                "SELECT user_id, session_id, duration_ms, status "
+                "SELECT user_id, session_id, duration_ms, status, model_name "
                 "FROM inference_metrics WHERE user_id = ?",
                 (bob_id,),
             ).fetchall()
 
         assert [tuple(row) for row in alice_rows] == [
-            (alice_id, alice_session, 37, "ok", 12, 4)
+            (alice_id, alice_session, 37, "ok", 12, 4, "Qwen3-4B-Q4_K_M.gguf")
         ]
         assert [tuple(row) for row in bob_rows] == [
-            (bob_id, None, 9, "error")
+            (bob_id, None, 9, "error", None)
         ]
 
 
@@ -184,7 +198,7 @@ def test_call_llamafile_records_usage_without_content_and_is_best_effort():
             with citadelle_memory._connect(db_path) as conn:
                 row = conn.execute(
                     "SELECT user_id, session_id, duration_ms, status, "
-                    "prompt_tokens, completion_tokens, timestamp "
+                    "prompt_tokens, completion_tokens, timestamp, model_name "
                     "FROM inference_metrics"
                 ).fetchone()
                 columns = {
@@ -203,6 +217,7 @@ def test_call_llamafile_records_usage_without_content_and_is_best_effort():
             assert row["prompt_tokens"] == 12
             assert row["completion_tokens"] == 5
             assert row["timestamp"]
+            assert row["model_name"] == login_server.extract_model_name()
             assert "prompt" not in columns
             assert "response" not in columns
 

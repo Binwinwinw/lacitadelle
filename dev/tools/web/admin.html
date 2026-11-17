@@ -123,6 +123,10 @@
                 <h2>Logs</h2>
                 <p id="logs-status" class="settings-status" role="status"
                    aria-live="polite"></p>
+                <label for="logs-model-filter">Filtrer par modèle</label>
+                <select id="logs-model-filter" class="indicator-window">
+                    <option value="">Tous les modèles</option>
+                </select>
                 <div class="admin-table-wrap">
                     <table class="admin-users-table logs-table">
                         <thead>
@@ -130,6 +134,7 @@
                                 <th>Horodatage</th>
                                 <th>Utilisateur</th>
                                 <th>Session</th>
+                                <th>Modèle</th>
                                 <th>Durée (ms)</th>
                                 <th>Statut</th>
                                 <th>Tokens (entrée / sortie)</th>
@@ -168,11 +173,13 @@
         const logsPanel = document.getElementById("logs-panel");
         const logsTbody = document.getElementById("logs-tbody");
         const logsStatus = document.getElementById("logs-status");
+        const logsModelFilter = document.getElementById("logs-model-filter");
         const indicatorWindow = document.getElementById("admin-indicator-window");
         const indicatorsStatus = document.getElementById("admin-indicators-status");
         let currentUsername = null;
         let logsInterval = null;
         let indicatorsInterval = null;
+        let currentLogs = [];
         const csrfToken = document.querySelector(
             'meta[name="csrf-token"]',
         ).content;
@@ -552,13 +559,40 @@
         }
 
         function renderLogsTable(logs) {
+            currentLogs = logs;
+            const selectedModel = logsModelFilter.value;
+            const modelNames = [...new Set(
+                logs
+                    .map((log) => log.model_name)
+                    .filter((name) => typeof name === "string" && name),
+            )].sort();
+            logsModelFilter.replaceChildren();
+            const allModelsOption = document.createElement("option");
+            allModelsOption.value = "";
+            allModelsOption.textContent = "Tous les modèles";
+            logsModelFilter.appendChild(allModelsOption);
+            for (const modelName of modelNames) {
+                const option = document.createElement("option");
+                option.value = modelName;
+                option.textContent = modelName;
+                logsModelFilter.appendChild(option);
+            }
+            logsModelFilter.value = modelNames.includes(selectedModel)
+                ? selectedModel
+                : "";
+            const visibleLogs = logsModelFilter.value
+                ? logs.filter(
+                    (log) => log.model_name === logsModelFilter.value,
+                )
+                : logs;
             logsTbody.replaceChildren();
-            for (const log of logs) {
+            for (const log of visibleLogs) {
                 const row = document.createElement("tr");
                 const cells = [
                     log.timestamp,
                     log.username,
                     log.session_title || "—",
+                    log.model_name || "—",
                     `${log.duration_ms}`,
                     log.status,
                     `${log.prompt_tokens ?? "—"} / ${log.completion_tokens ?? "—"}`,
@@ -725,6 +759,10 @@
         document.getElementById("logs-tab").addEventListener(
             "click",
             () => selectAdminTab("logs"),
+        );
+        logsModelFilter.addEventListener(
+            "change",
+            () => renderLogsTable(currentLogs),
         );
         indicatorWindow.addEventListener("change", loadIndicators);
         document.addEventListener("visibilitychange", () => {

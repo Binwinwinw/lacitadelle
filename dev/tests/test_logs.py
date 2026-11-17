@@ -27,9 +27,15 @@ def _api_get(opener, base_url, path, token=None):
 
 def _prepare_metrics(db_path: Path) -> None:
     citadelle_memory.migrate_to_v5(db_path)
+    citadelle_memory.migrate_to_v8(db_path)
 
 
-def _record_metric(db_path: Path, user_id: int, status: str = "ok") -> None:
+def _record_metric(
+    db_path: Path,
+    user_id: int,
+    status: str = "ok",
+    model_name: str | None = None,
+) -> None:
     citadelle_memory.record_inference(
         user_id,
         None,
@@ -38,6 +44,7 @@ def _record_metric(db_path: Path, user_id: int, status: str = "ok") -> None:
         prompt_tokens=8,
         completion_tokens=3,
         db_path=db_path,
+        model_name=model_name,
     )
 
 
@@ -59,8 +66,8 @@ def test_logs_tail_admin_sees_all():
         )
         alice_id = create_test_user(db_path, "alice", "secret123")
         bob_id = create_test_user(db_path, "bob", "secret123")
-        _record_metric(db_path, alice_id)
-        _record_metric(db_path, bob_id)
+        _record_metric(db_path, alice_id, model_name="Qwen3-4B.gguf")
+        _record_metric(db_path, bob_id, model_name="Qwen3.5-9B.gguf")
         token = login_as(opener, base_url, "admin", "secret123")
 
         with _api_get(
@@ -74,11 +81,20 @@ def test_logs_tail_admin_sees_all():
 
         assert len(logs) == 2
         assert {log["username"] for log in logs} == {"alice", "bob"}
+        assert {log["model_name"] for log in logs} == {
+            "Qwen3-4B.gguf",
+            "Qwen3.5-9B.gguf",
+        }
         assert all(log["id"] is not None for log in logs)
         with _api_get(opener, base_url, "/admin", token) as response:
             admin_page = response.read().decode("utf-8")
         assert 'id="logs-panel"' in admin_page
         assert 'id="logs-tbody"' in admin_page
+        assert 'id="logs-model-filter"' in admin_page
+        assert "<th>Modèle</th>" in admin_page
+        assert "logsModelFilter.addEventListener(" in admin_page
+        assert "logs.filter(" in admin_page
+        assert "log.model_name" in admin_page
         assert "setInterval(loadLogs, 5000)" in admin_page
 
 

@@ -220,7 +220,15 @@ def test_post_stream_true_returns_sse_headers_and_delta():
         assert 'data: {"status": "thinking"}' in body
         assert 'data: {"delta": "Bonjour"}' in body
         assert 'data: {"delta": "!"}' in body
-        assert 'data: {"done": true, "content": "Bonjour!"}' in body
+        events = [
+            json.loads(line[6:])
+            for line in body.splitlines()
+            if line.startswith("data: ")
+        ]
+        done_event = next(event for event in events if event.get("done") is True)
+        assert done_event["content"] == "Bonjour!"
+        assert isinstance(done_event["duration_ms"], int)
+        assert done_event["duration_ms"] >= 0
         assert "reasoning_content" not in body
         stored = citadelle_memory.get_messages_for_user(
             user_id,

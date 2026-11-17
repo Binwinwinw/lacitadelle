@@ -60,6 +60,7 @@ from citadelle_memory import (
     migrate_to_v4,
     migrate_to_v5,
     migrate_to_v6,
+    migrate_to_v8,
     record_inference,
     set_preferences,
     set_setting,
@@ -845,7 +846,8 @@ def handle_get_api_logs_tail(handler: BaseHTTPRequestHandler) -> None:
 
     query = (
         "SELECT im.id, im.timestamp, u.username, s.title AS session_title, "
-        "im.duration_ms, im.status, im.prompt_tokens, im.completion_tokens "
+        "im.model_name, im.duration_ms, im.status, im.prompt_tokens, "
+        "im.completion_tokens "
         "FROM inference_metrics AS im "
         "JOIN users AS u ON u.id = im.user_id "
         "LEFT JOIN sessions AS s ON s.id = im.session_id "
@@ -1397,7 +1399,7 @@ def handle_post_api_admin_users_create(handler: BaseHTTPRequestHandler) -> None:
     )
 
 
-def handle_post_api_admin_model(
+def _handle_admin_model_generic(
     handler: BaseHTTPRequestHandler,
     *,
     path_key: str = "model_path",
@@ -1408,7 +1410,7 @@ def handle_post_api_admin_model(
         "de chargement et le redémarrage du lot 11d."
     ),
 ) -> None:
-    """POST /api/admin/model : enregistre le chemin d'un GGUF existant."""
+    """Validates and stores a whitelisted model path."""
     admin_id = require_admin(handler)
     if admin_id is None:
         return
@@ -1602,7 +1604,7 @@ def handle_post_api_admin_model_use(
     handler: BaseHTTPRequestHandler,
 ) -> None:
     """POST /api/admin/model/use : sélectionne un modèle autorisé."""
-    handle_post_api_admin_model(
+    _handle_admin_model_generic(
         handler,
         path_key="path",
         path_required_message="path requis",
@@ -2005,9 +2007,11 @@ def call_llamafile(
     status = "error"
     prompt_tokens = None
     completion_tokens = None
+    model_name = None
     try:
+        model_name = extract_model_name()
         payload = {
-            "model": extract_model_name(),
+            "model": model_name,
             "messages": messages,
             "stream": stream,
         }
@@ -2126,6 +2130,7 @@ def call_llamafile(
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 db_path=MEMORY_DB_PATH,
+                model_name=model_name,
             )
         except Exception as exc:
             try:
@@ -2239,6 +2244,7 @@ def handle_post_message(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
             )
             return
+        start_time = time.monotonic()
         handler.send_response(HTTPStatus.OK)
         handler.send_header(
             "Content-Type",
@@ -2273,9 +2279,17 @@ def handle_post_message(
                 {"error": "Impossible d'enregistrer la réponse."},
             )
             return
+        duration_ms = max(
+            0,
+            int((time.monotonic() - start_time) * 1000),
+        )
         _send_sse_event(
             handler,
-            {"done": True, "content": response_text},
+            {
+                "done": True,
+                "content": response_text,
+                "duration_ms": duration_ms,
+            },
         )
         return
 
@@ -2512,8 +2526,6 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_api_admin_users_create(self)
             elif path == "/api/admin/model/use":
                 handle_post_api_admin_model_use(self)
-            elif path == "/api/admin/model":
-                handle_post_api_admin_model(self)
             elif path == "/api/settings/allowed_models":
                 handle_post_api_settings_allowed_models(self)
             elif path == "/api/llamafile/v1/chat/completions":
@@ -2569,6 +2581,7 @@ def main() -> int:
         migrate_to_v4()
         migrate_to_v5()
         migrate_to_v6()
+        migrate_to_v8()
         created, _, password, message = ensure_admin_exists()
     except (OSError, sqlite3.Error, ValueError, MemoryError) as exc:
         print(

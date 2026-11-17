@@ -375,6 +375,20 @@ def migrate_to_v7(
     return True
 
 
+def migrate_to_v8(db_path: Path | None = None) -> None:
+    """Ajoute le nom du modèle aux métriques d'inférence, sans perte de données."""
+    migrate_to_v5(db_path)
+    with _connect(db_path) as conn:
+        columns = {
+            row["name"]
+            for row in conn.execute("PRAGMA table_info(inference_metrics)")
+        }
+        if "model_name" not in columns:
+            conn.execute(
+                "ALTER TABLE inference_metrics ADD COLUMN model_name TEXT"
+            )
+
+
 def get_setting(
     key: str,
     default: str | None = None,
@@ -414,14 +428,15 @@ def record_inference(
     prompt_tokens: int | None = None,
     completion_tokens: int | None = None,
     db_path: Path | None = None,
+    model_name: str | None = None,
 ) -> None:
     """Enregistre uniquement les métadonnées non sensibles d'une inférence."""
     with _connect(db_path) as conn:
         conn.execute(
             "INSERT INTO inference_metrics "
             "(user_id, session_id, timestamp, duration_ms, status, "
-            "prompt_tokens, completion_tokens) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "prompt_tokens, completion_tokens, model_name) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 user_id,
                 session_id,
@@ -430,6 +445,7 @@ def record_inference(
                 status,
                 prompt_tokens,
                 completion_tokens,
+                model_name,
             ),
         )
 
@@ -441,6 +457,7 @@ def init_db(db_path: Path | None = None) -> None:
     migrate_to_v4(db_path)
     migrate_to_v5(db_path)
     migrate_to_v6(db_path)
+    migrate_to_v8(db_path)
 
 
 def get_preferences(
