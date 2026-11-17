@@ -22,7 +22,7 @@ def _admin(opener, base_url, db_path):
     return login_as(opener, base_url, "admin", "secret123")
 
 
-def test_e2e_full_workflow_admin_changes_model():
+def test_e2e_full_workflow_admin_uses_whitelisted_model():
     with api_test_context() as (base_url, opener, db_path):
         citadelle_memory.migrate_to_v6(db_path)
         token = _admin(opener, base_url, db_path)
@@ -46,9 +46,9 @@ def test_e2e_full_workflow_admin_changes_model():
                     ), api_post(
                         opener,
                         base_url,
-                        "/api/admin/model",
+                        "/api/admin/model/use",
                         token,
-                        {"model_path": expected_path},
+                        {"path": expected_path},
                     ) as response:
                         assert response.code == 200
                         result = json.loads(response.read())
@@ -86,7 +86,7 @@ def test_e2e_full_workflow_admin_changes_model():
                 assert "[security] Rollback modele:" in security_log.getvalue()
 
 
-def test_e2e_whitelist_blocks_unallowed():
+def test_e2e_model_use_whitelist_blocks_unallowed():
     with api_test_context() as (base_url, opener, db_path):
         citadelle_memory.migrate_to_v6(db_path)
         token = _admin(opener, base_url, db_path)
@@ -118,11 +118,11 @@ def test_e2e_whitelist_blocks_unallowed():
             ), api_post(
                 opener,
                 base_url,
-                "/api/admin/model",
+                "/api/admin/model/use",
                 token,
-                {"model_path": str(rejected_path)},
+                {"path": str(rejected_path)},
             ) as response:
-                assert response.code == 400
+                assert response.code == 403
                 assert "ce modèle n'est pas autorisé" in json.loads(
                     response.read()
                 )["error"].lower()
@@ -142,8 +142,8 @@ def test_e2e_whitelist_blocks_unallowed():
 
 def run_all():
     tests = [
-        test_e2e_full_workflow_admin_changes_model,
-        test_e2e_whitelist_blocks_unallowed,
+        test_e2e_full_workflow_admin_uses_whitelisted_model,
+        test_e2e_model_use_whitelist_blocks_unallowed,
     ]
     for test in tests:
         test()

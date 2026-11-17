@@ -26,20 +26,20 @@ def _get_model(opener, base_url, token=None):
     return open_no_redirect(opener, request)
 
 
-def _post_model(opener, base_url, token=None):
+def _post_model_use(opener, base_url, token=None):
     headers = {"Content-Type": "application/json"}
     if token is not None:
         headers["Cookie"] = f"{SESSION_COOKIE_NAME}={token}"
     request = Request(
-        f"{base_url}/api/admin/model",
-        data=json.dumps({"model_path": "model.gguf"}).encode("utf-8"),
+        f"{base_url}/api/admin/model/use",
+        data=json.dumps({"path": "model.gguf"}).encode("utf-8"),
         headers=headers,
         method="POST",
     )
     return open_no_redirect(opener, request)
 
 
-def test_settings_serves_model_form_to_authenticated_user():
+def test_settings_serves_model_whitelist_without_model_form():
     with api_test_context() as (base_url, opener, db_path):
         create_test_user(db_path, "alice", "secret123")
         token = login_as(opener, base_url, "alice", "secret123")
@@ -51,11 +51,10 @@ def test_settings_serves_model_form_to_authenticated_user():
         with opener.open(request, timeout=5) as response:
             page = response.read().decode("utf-8")
 
-        assert 'id="model-section"' in page
-        assert 'id="model-form"' in page
-        assert 'id="model-section" class="settings-section"' in page
-        assert 'aria-labelledby="model-heading" hidden>' in page
-        assert "modelSection.hidden = !isAdmin;" in page
+        assert 'id="model-section"' not in page
+        assert 'id="model-form"' not in page
+        assert "Changer de modèle" not in page
+        assert 'id="allowed-models-section"' in page
         assert '"/api/admin/model/use"' in page
         assert 'textContent = "Utiliser"' in page
         assert 'className = "model-active-badge"' in page
@@ -90,24 +89,24 @@ def test_get_model_setting_is_admin_only_and_returns_saved_path():
             }
 
 
-def test_post_model_still_requires_admin():
+def test_post_model_use_still_requires_admin():
     with api_test_context() as (base_url, opener, db_path):
         citadelle_memory.migrate_to_v6(db_path)
 
-        with _post_model(opener, base_url) as response:
+        with _post_model_use(opener, base_url) as response:
             assert response.code == 401
 
         create_test_user(db_path, "alice", "secret123")
         user_token = login_as(opener, base_url, "alice", "secret123")
-        with _post_model(opener, base_url, user_token) as response:
+        with _post_model_use(opener, base_url, user_token) as response:
             assert response.code == 403
 
 
 def run_all():
     tests = [
-        test_settings_serves_model_form_to_authenticated_user,
+        test_settings_serves_model_whitelist_without_model_form,
         test_get_model_setting_is_admin_only_and_returns_saved_path,
-        test_post_model_still_requires_admin,
+        test_post_model_use_still_requires_admin,
     ]
     for test in tests:
         test()

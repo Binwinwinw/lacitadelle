@@ -22,31 +22,42 @@
         </aside>
         <main class="chat-main settings-main">
             <h1>Réglages</h1>
-            <section class="settings-section" aria-labelledby="account-heading">
-                <h2 id="account-heading">Mon compte</h2>
-                <p>Nom d'utilisateur : <span id="settings-username">Chargement...</span></p>
-                <a href="/change-password" class="sidebar-link">Changer le mot de passe</a>
-            </section>
-            <section class="settings-section" aria-labelledby="preferences-heading">
-                <h2 id="preferences-heading">Préférences</h2>
-                <form id="preferences-form" class="settings-form">
-                    <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
-                    <label for="theme">Thème</label>
-                    <select id="theme" name="theme" required>
-                        <option value="light">Clair</option>
-                        <option value="dark">Sombre</option>
-                    </select>
-                    <label for="font-size">Taille du texte</label>
-                    <select id="font-size" name="font_size" required>
-                        <option value="small">Petite</option>
-                        <option value="normal">Normale</option>
-                        <option value="large">Grande</option>
-                    </select>
-                    <button type="submit" class="settings-save">Enregistrer</button>
-                </form>
-                <p id="settings-status" class="settings-status" role="status"
-                   aria-live="polite"></p>
-            </section>
+            <div class="settings-grid">
+                <section class="settings-section"
+                         aria-labelledby="account-heading">
+                    <h2 id="account-heading">Mon compte</h2>
+                    <p>Nom d'utilisateur :
+                        <span id="settings-username">Chargement...</span>
+                    </p>
+                    <a href="/change-password" class="sidebar-link">
+                        Changer le mot de passe
+                    </a>
+                </section>
+                <section class="settings-section"
+                         aria-labelledby="preferences-heading">
+                    <h2 id="preferences-heading">Préférences</h2>
+                    <form id="preferences-form" class="settings-form">
+                        <input type="hidden" name="csrf_token"
+                               value="{{CSRF_TOKEN}}">
+                        <label for="theme">Thème</label>
+                        <select id="theme" name="theme" required>
+                            <option value="light">Clair</option>
+                            <option value="dark">Sombre</option>
+                        </select>
+                        <label for="font-size">Taille du texte</label>
+                        <select id="font-size" name="font_size" required>
+                            <option value="small">Petite</option>
+                            <option value="normal">Normale</option>
+                            <option value="large">Grande</option>
+                        </select>
+                        <button type="submit" class="settings-save">
+                            Enregistrer
+                        </button>
+                    </form>
+                    <p id="settings-status" class="settings-status" role="status"
+                       aria-live="polite"></p>
+                </section>
+            </div>
             <section id="allowed-models-section" class="settings-section"
                      aria-labelledby="allowed-models-heading" hidden>
                 <h2 id="allowed-models-heading">Modèles autorisés</h2>
@@ -61,29 +72,6 @@
                 <ul id="allowed-models-list"></ul>
                 <p id="allowed-models-status" class="settings-status"
                    role="status" aria-live="polite"></p>
-            </section>
-            <section id="model-section" class="settings-section"
-                     aria-labelledby="model-heading" hidden>
-                <h2 id="model-heading">Changer de modèle</h2>
-                <p>Chemin GGUF configuré :
-                    <code id="model-current">(non chargé)</code>
-                </p>
-                <form id="model-form" class="settings-form">
-                    <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
-                    <label for="model-path">Chemin GGUF (absolu)</label>
-                    <input type="text" id="model-path" name="model_path"
-                           placeholder="Chemin vers un fichier GGUF" required>
-                    <button type="submit" class="settings-save">
-                        Enregistrer
-                    </button>
-                </form>
-                <p id="model-status" class="settings-status" role="status"
-                   aria-live="polite"></p>
-                <p id="model-load-status" class="settings-status"
-                   role="status" aria-live="polite">
-                    Pour appliquer le modèle configuré, fermez cette fenêtre et
-                    relancez lancer.bat.
-                </p>
             </section>
             <section id="user-indicators-section" class="settings-section"
                      aria-labelledby="user-indicators-heading" hidden>
@@ -139,12 +127,6 @@
         const themeSelect = document.getElementById("theme");
         const fontSizeSelect = document.getElementById("font-size");
         const adminLink = document.getElementById("admin-link");
-        const modelSection = document.getElementById("model-section");
-        const modelForm = document.getElementById("model-form");
-        const modelPathInput = document.getElementById("model-path");
-        const modelCurrent = document.getElementById("model-current");
-        const modelStatus = document.getElementById("model-status");
-        const modelLoadStatus = document.getElementById("model-load-status");
         const allowedModelsSection = document.getElementById(
             "allowed-models-section",
         );
@@ -232,7 +214,6 @@
                 const user = await response.json();
                 const isAdmin = user.role === "admin";
                 adminLink.hidden = !isAdmin;
-                modelSection.hidden = !isAdmin;
                 allowedModelsSection.hidden = !isAdmin;
                 userIndicatorsSection.hidden = isAdmin;
                 userLogsSection.hidden = isAdmin;
@@ -258,16 +239,14 @@
                     return;
                 }
                 if (!response.ok) {
-                    modelStatus.textContent =
-                        "Erreur de chargement du modèle configuré.";
+                    allowedModelsStatus.textContent =
+                        "Erreur de chargement du modèle actif.";
                     return;
                 }
                 const model = await response.json();
                 currentModelPath = model.current_model_path || "";
-                modelCurrent.textContent =
-                    model.current_model_path || "(non chargé)";
             } catch (error) {
-                modelStatus.textContent =
+                allowedModelsStatus.textContent =
                     `Erreur de chargement du modèle : ${error.message}`;
             }
         }
@@ -595,44 +574,6 @@
             }
         });
         userIndicatorWindow.addEventListener("change", loadIndicators);
-
-        modelForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            modelStatus.textContent = "";
-            const button = modelForm.querySelector('button[type="submit"]');
-            button.disabled = true;
-            try {
-                const response = await fetch("/api/admin/model", {
-                    method: "POST",
-                    headers: csrfHeaders({
-                        "Content-Type": "application/json",
-                    }),
-                    body: JSON.stringify({
-                        model_path: modelPathInput.value.trim(),
-                    }),
-                    credentials: "same-origin",
-                });
-                if (response.status === 401) {
-                    window.location.href = "/login";
-                    return;
-                }
-                const result = await response.json();
-                if (!response.ok) {
-                    modelStatus.textContent =
-                        result.error || "Erreur d'enregistrement du modèle.";
-                    return;
-                }
-                modelCurrent.textContent = result.model_path;
-                modelStatus.textContent = "Chemin enregistré.";
-                modelLoadStatus.textContent =
-                    "Modèle enregistré. Pour l'appliquer, fermez cette fenêtre " +
-                    "et relancez lancer.bat.";
-            } catch (error) {
-                modelStatus.textContent = `Erreur réseau : ${error.message}`;
-            } finally {
-                button.disabled = false;
-            }
-        });
 
         allowedModelsForm.addEventListener("submit", async (event) => {
             event.preventDefault();
