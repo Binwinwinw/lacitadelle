@@ -2,6 +2,17 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-17] Migration v9 — retrait Llama-3.2-3B de la whitelist
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tests/test_first_install_model.py`,
+`AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : retirer de façon reproductible le modèle Llama-3.2-3B, documenté KO.
+**Impact** : migration idempotente appelée au démarrage; test de préservation
+des autres modèles; suite validée à 245 tests.
+
 ## [2026-11-17] UX runtime, settings et logs admin enrichis
 
 **Commit** : en cours de rédaction.

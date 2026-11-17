@@ -140,6 +140,29 @@ def test_v7_preserves_an_existing_whitelist_and_current_model(
     ) == allowed_models
 
 
+def test_v9_removes_llama_and_preserves_other_models_idempotently(tmp_path):
+    db_path = tmp_path / "memory.db"
+    ornith_path = r"F:\models\Ornith-1.5-9B-Q4_K_M.gguf"
+    llama_path = r"F:\models\lLaMa-3.2-3B-Instruct-Q4_K_M.gguf"
+    citadelle_memory.migrate_to_v6(db_path)
+    citadelle_memory.set_setting(
+        "allowed_models",
+        json.dumps([ornith_path, llama_path]),
+        db_path=db_path,
+    )
+
+    assert citadelle_memory.migrate_to_v9(db_path)
+    expected_models = [ornith_path]
+    assert json.loads(
+        citadelle_memory.get_setting("allowed_models", db_path=db_path)
+    ) == expected_models
+
+    assert not citadelle_memory.migrate_to_v9(db_path)
+    assert json.loads(
+        citadelle_memory.get_setting("allowed_models", db_path=db_path)
+    ) == expected_models
+
+
 def test_current_model_gate_and_lancer_default_branch(tmp_path, monkeypatch):
     db_path = tmp_path / "memory.db"
     model_path = tmp_path / "current.gguf"

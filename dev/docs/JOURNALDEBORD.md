@@ -169,3 +169,4 @@
 [2026-11-15] Test amélioré révèle Qwen2.5-Coder-7B KO (2.75/5). Retiré whitelist. Test approfondi documenté. 108 décisions.
 [2026-11-15] Qwen3.5-9B : Champion absolu (5/5 au test approfondi). Parser custom, juridique rigoureux, Markdown précis. 109 décisions.
 [2026-11-17] GO 16-FIX-COMMIT-SCOPE-3COMMITS : environnement pytest réparé, 244 tests validés; changements UX/runtime et documentation répartis en trois commits.
+[2026-11-17] GO 16-WHITELIST-APPLY-V9-BIS : migration idempotente retire Llama-3.2-3B et préserve les autres modèles; test v9 ajouté, pytest 245 passed; migration de la DB locale après push.

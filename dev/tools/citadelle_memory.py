@@ -389,6 +389,37 @@ def migrate_to_v8(db_path: Path | None = None) -> None:
             )
 
 
+def migrate_to_v9(db_path: Path | None = None) -> bool:
+    """Retire Llama-3.2-3B de la whitelist (KO documenté)."""
+    migrate_to_v8(db_path)
+    raw_models = get_setting("allowed_models", db_path=db_path)
+    if raw_models is None:
+        return False
+    try:
+        models = json.loads(raw_models)
+    except json.JSONDecodeError:
+        return False
+    if not isinstance(models, list) or any(
+        not isinstance(model_path, str) for model_path in models
+    ):
+        return False
+
+    filtered_models = [
+        model_path
+        for model_path in models
+        if "llama-3.2-3b" not in model_path.lower()
+    ]
+    if len(filtered_models) == len(models):
+        return False
+
+    set_setting(
+        "allowed_models",
+        json.dumps(filtered_models),
+        db_path=db_path,
+    )
+    return True
+
+
 def get_setting(
     key: str,
     default: str | None = None,
@@ -458,6 +489,7 @@ def init_db(db_path: Path | None = None) -> None:
     migrate_to_v5(db_path)
     migrate_to_v6(db_path)
     migrate_to_v8(db_path)
+    migrate_to_v9(db_path)
 
 
 def get_preferences(
