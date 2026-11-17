@@ -4,7 +4,7 @@
 tâche terminée est supprimée ici; sa trace reste dans
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 
-**Dernière mise à jour** : 2026-11-14.
+**Dernière mise à jour** : 2026-11-17.
 
 ## Actif
 
@@ -111,6 +111,11 @@ tâche terminée est supprimée ici; sa trace reste dans
 - [ ] **16-FIX-WHITELIST-UX** : message précis pour les entrées
   invalides de la whitelist, au lieu de "Chaque modèle doit être un
   fichier GGUF existant". — Propriétaire : à planifier.
+- [ ] **UX-Whitelist-Date** — Ajouter colonne « Date d'ajout »
+  (informative) au tableau whitelist de l'application. Implémentation
+  dans un GO séparé. Priorité : basse. Fichier cible probable :
+  `dev/tools/web/admin.html` (tableau whitelist) + CSS. Pas de logique
+  métier associée. — Propriétaire : à planifier.
 - [ ] **16-FIX-FLAKY-TESTS** : identifier et corriger les tests
   intermittents (`test_migration_v3`, `test_api_messages`).
   — Propriétaire : à planifier.
