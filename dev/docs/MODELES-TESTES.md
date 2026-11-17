@@ -110,7 +110,7 @@ final dépend de la configuration matérielle (voir recommandations).
 - Lent (+5-10s, thinking)
 - Refuse de rédiger un courrier (même structure)
 
-### Qwen3.5-9B-Q4_K_M.gguf (challenger documentaire, 5/5, non testé live)
+### Qwen3.5-9B-Q4_K_M.gguf (co-champion, 5/5)
 
 - **Taille** : 5.7 Go
 - **RAM** : ~10 Go (contexte runtime : 22 528 tokens par slot)
@@ -126,7 +126,7 @@ final dépend de la configuration matérielle (voir recommandations).
 | Markdown sans émojis | 4/5 | **5/5** |
 | **Global** | **4.9/5** | **5/5** 🏆 |
 
-**Verdict** : ✅ **CHALLENGER DOCUMENTAIRE**. Test approfondi 5/5; pas testé en live. Ornith-1.5-9B est le champion live.
+**Verdict** : ✅ **CO-CHAMPION EX-AEQUO** avec Ornith-1.5-9B après test live. Ornith garde le titre principal pour l'auto-ID, les tests console et la structure.
 
 **Points forts (test approfondi)** :
 - **Parser custom complet** (tokenisation, AST, évaluation récursive)
@@ -211,9 +211,9 @@ des contraintes de sécurité, juridiques, factuelles et Markdown.
 
 ## Recommandations par configuration
 
-**Statut live** : Ornith-1.5-9B est le champion des tests live. La
-recommandation matérielle Qwen3.5-9B ci-dessous reste documentaire; il n'a pas
-encore été testé en live. Le dimensionnement matériel d'Ornith reste à mesurer.
+**Statut live** : Ornith-1.5-9B et Qwen3.5-9B sont co-champions ex-aequo.
+Ornith garde le titre principal pour l'auto-ID, les tests console et la
+structure. Le dimensionnement matériel d'Ornith reste à mesurer.
 
 **Deux défauts selon la configuration matérielle** :
 
@@ -253,7 +253,7 @@ tous les cas.
 
 | Modèle | Taille | Note | Verdict | Recommandé pour | Commit |
 |---|---|---|---|---|---|
-| **Qwen3.5-9B** | 5.7 Go | **5/5** | Challenger documentaire, pas testé live | Référence de comparaison, validation live restante | — |
+| **Qwen3.5-9B** | 5.7 Go | **5/5** | 🏆 Co-champion ex-aequo (test approfondi et live) | Qualité maximale; factualité et XSS défensif | — |
 | **MiMo-V2.6-Distill-Qwen-9B** | 5.8 Go | **3.9/5** | ❌ KO, non recommandé | — | — |
 | **Qwen2.5-Coder-7B-Instruct** | 4.7 Go | **2.75/5** | ❌ KO confirmé, retiré whitelist | — | — |
 | **Qwen3-4B-Thinking** | 2.5 Go | **4.4/5** | Alternatif précision | Config ≥ 6 Go RAM, précision factuelle | 80c402e |
@@ -269,6 +269,7 @@ Résultats rapportés par le Décideur sur 7 prompts par modèle :
 | Modèle | Note | Points forts | Points faibles | Décision |
 |---|---|---|---|---|
 | Ornith-1.5-9B | 5/5 | Factualité, juridique, code, Markdown, sécurité | Pas de tool calling, latence | 🏆 Champion |
+| Qwen3.5-9B | 5/5 | Factualité (12,8M agglo, INSEE), Markdown, juridique (refus citer L121-20), XSS défensif, code ast.parse | Latence test 1 (86s), tkinter.Tk hérité, pas de tests console | 🏆 Co-champion |
 | Llama-3.1-8B | 3/5 | Tool calling 7/7 | Paramètres douteux, biais | Garder (tool calling) |
 | Gemma-2-9B | 2,5/5 | Corrigeable | Markdown, juridique, eval | ❌ Supprimer |
 | Mistral-Nemo-12B | 2/5 | Auto-ID | Lent, eval, juridique | ❌ Supprimer |

@@ -2515,3 +2515,20 @@ en live. Llama-3.1-8B reste utile pour le tool calling.
 
 **Conséquences** : la whitelist n'est pas modifiée dans ce GO.
 Le nettoyage est planifié séparément. 110 décisions.
+
+## [2026-11-17] Qwen3.5-9B co-champion ex-aequo après test live (5/5)
+
+**Contexte** : le Décideur rapporte le test live de Qwen3.5-9B. Son résultat
+de 5/5 égale celui d'Ornith-1.5-9B. Qwen3.5-9B se distingue par la factualité
+(12,8M pour l'agglomération, INSEE) et l'analyse XSS défensive. Ornith conserve
+des avantages en auto-ID, tests console et structure.
+
+**Décision(s)** :
+1. Qwen3.5-9B est co-champion ex-aequo avec Ornith-1.5-9B; les deux modèles
+   sont gardés.
+2. Ornith conserve le titre principal pour l'auto-ID, les tests console et la
+   structure.
+3. Qwen3.5-9B est reconnu pour sa factualité et son analyse XSS défensive.
+
+**Conséquences** : le tableau des tests live reflète le co-championnat.
+La whitelist n'est pas modifiée. 111 décisions.

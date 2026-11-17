@@ -2,6 +2,17 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-17] Qwen3.5-9B co-champion après test live
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/MODELES-TESTES.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : documenter le test live de Qwen3.5-9B et son co-championnat
+ex-aequo avec Ornith-1.5-9B.
+**Impact** : les deux modèles sont gardés; Ornith conserve le titre principal;
+111 décisions; whitelist inchangée.
+
 ## [2026-11-17] Ornith-1.5-9B champion live et nettoyage planifié
 
 **Commit** : en cours de rédaction.
