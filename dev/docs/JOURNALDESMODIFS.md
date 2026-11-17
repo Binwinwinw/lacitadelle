@@ -2,6 +2,21 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-17] UX runtime, settings et logs admin enrichis
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/login_server.py`,
+`dev/tools/citadelle_memory.py`, `dev/tools/web/chat.js`,
+`dev/tools/web/admin.html`, `dev/tools/web/settings.html`,
+`dev/tools/web/style.css`, `dev/tests/test_chat_streaming.py`,
+`dev/tests/test_inference_metrics.py`, `dev/tests/test_logs.py`,
+`dev/tests/test_admin_model.py`, `dev/tests/test_e2e_model_change.py`,
+`dev/tests/test_settings_ui.py`, `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : afficher la durée des réponses, enrichir les métriques et les
+logs admin avec le modèle, et finaliser l'interface Settings responsive.
+**Impact** : UX et traçabilité mises à jour; 244 tests passent.
+
 ## [2026-11-15] Qwen3.5-9B champion absolu (5/5 test approfondi)
 
 **Commit** : en cours de rédaction.

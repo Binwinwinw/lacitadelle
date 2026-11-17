@@ -84,6 +84,11 @@ tâche terminée est supprimée ici; sa trace reste dans
 - [ ] **16-FEATURE-AUTO-MODEL-SELECTION** : détection du matériel au
   premier lancement et sélection Qwen3.5-9B si ≥ 8 Go VRAM, Qwen3-4B
   sinon. — Propriétaire : à planifier (V3, après UX).
+- [ ] **16-FEATURE-RESPONSE-TIME** : validation manuelle de l'affichage
+  discret de la durée sous chaque réponse du chat. — Propriétaire :
+  Décideur.
+- [ ] **16-FEATURE-ORCHESTRATION-LOG** : validation manuelle de la colonne
+  et du filtre de modèle dans les logs admin. — Propriétaire : Décideur.
 - [ ] **16-CHAT-RAG-LOCAL** : base de connaissances locale (upload
   documents, recherche BM25, injection dans le prompt). Objectif :
   fiabiliser les faits couverts indépendamment du knowledge cutoff.
@@ -100,9 +105,9 @@ tâche terminée est supprimée ici; sa trace reste dans
 
 ### Qualité et dette
 
-- [ ] **16-FIX-SETTINGS-SCROLL** : scroll vertical sur la liste des
-  modèles autorisés, boutons "Retirer" à gauche, noms courts et
-  tooltip du chemin complet. — Propriétaire : à planifier (session UX).
+- [ ] **16-FIX-SETTINGS-SCROLL** : validation manuelle du scroll vertical
+  sur la liste des modèles autorisés et de la mise en page responsive
+  sur écran large/mobile. — Propriétaire : Décideur.
 - [ ] **16-FIX-WHITELIST-UX** : message précis pour les entrées
   invalides de la whitelist, au lieu de "Chaque modèle doit être un
   fichier GGUF existant". — Propriétaire : à planifier.

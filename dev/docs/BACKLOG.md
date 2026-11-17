@@ -672,7 +672,7 @@ dix GO sont nouveaux, soit 13 au total.
 ### Priorité haute (UX)
 
 1. **16-FEATURE-MODEL-USE** — terminé; validation manuelle du Décideur le 2026-11-15.
-2. **16-FIX-SETTINGS-SCROLL** — 30 min.
+2. **16-FIX-SETTINGS-SCROLL** — mise en page implémentée; validation manuelle restante.
 
 ### Priorité moyenne (qualité)
 
@@ -690,6 +690,7 @@ dix GO sont nouveaux, soit 13 au total.
 11. **16-REFACTOR-LOGIN-SERVER** — 4-6 h.
 12. **16-FIX-OTHER-PROJECTS-VENV** — 5-10 min par projet.
 13. **16-DOC-RELEASE-NOTES** — 30 min.
+14. **16-FEATURE-RESPONSE-TIME** — implémenté; validation manuelle restante.
 
 **Effort total estimé** : ~10-15 jours de travail (répartis sur
 plusieurs sessions).

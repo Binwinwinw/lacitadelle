@@ -163,6 +163,9 @@
 [2026-11-15] GO 16-FEATURE-MODEL-ACTIVE-BADGE : badge "Actif" remplace le bouton "Utiliser" pour le modèle configuré; validation manuelle en attente.
 [2026-11-15] GO 16-FEATURE-REMOVE-CHANGER-MODEL : retrait de la section et de l'ancien POST /api/admin/model; whitelist conservée comme interface unique. Validation manuelle en attente.
 [2026-11-15] GO 16-FIX-SETTINGS-LAYOUT : Mon compte et Préférences regroupés en grille responsive; autres sections restent pleine largeur. Validation visuelle manuelle en attente.
+[2026-11-15] GO 16-FEATURE-RESPONSE-TIME : duration_ms ajouté au flux SSE et affichage discret sous la réponse assistant. Validation manuelle en attente.
+[2026-11-15] GO 16-FEATURE-ORCHESTRATION-LOG : model_name ajouté aux métriques et aux logs admin avec filtre par modèle. Validation manuelle en attente.
 [2026-11-15] UX : bouton "Utiliser" + badge "Actif" dans whitelist. Endpoint /api/admin/model/use. 107 décisions.
 [2026-11-15] Test amélioré révèle Qwen2.5-Coder-7B KO (2.75/5). Retiré whitelist. Test approfondi documenté. 108 décisions.
 [2026-11-15] Qwen3.5-9B : Champion absolu (5/5 au test approfondi). Parser custom, juridique rigoureux, Markdown précis. 109 décisions.
+[2026-11-17] GO 16-FIX-COMMIT-SCOPE-3COMMITS : environnement pytest réparé, 244 tests validés; changements UX/runtime et documentation répartis en trois commits.
