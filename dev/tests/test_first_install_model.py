@@ -163,6 +163,40 @@ def test_v9_removes_llama_and_preserves_other_models_idempotently(tmp_path):
     ) == expected_models
 
 
+def test_v10_removes_three_ko_models_and_preserves_champions_idempotently(
+    tmp_path,
+):
+    db_path = tmp_path / "memory.db"
+    ornith_path = r"F:\models\Ornith-1.5-9B-Q4_K_M.gguf"
+    qwen35_path = r"F:\models\Qwen3.5-9B-Q4_K_M.gguf"
+    llama31_path = r"F:\models\Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
+    models = [
+        ornith_path,
+        r"F:\models\qwen2.5-3b-instruct.gguf",
+        r"F:\models\Mistral-Nemo-12B-Instruct.gguf",
+        r"F:\models\Gemma-2-9B-it.gguf",
+        qwen35_path,
+        llama31_path,
+    ]
+    citadelle_memory.migrate_to_v6(db_path)
+    citadelle_memory.set_setting(
+        "allowed_models",
+        json.dumps(models),
+        db_path=db_path,
+    )
+
+    assert citadelle_memory.migrate_to_v10(db_path)
+    expected_models = [ornith_path, qwen35_path, llama31_path]
+    assert json.loads(
+        citadelle_memory.get_setting("allowed_models", db_path=db_path)
+    ) == expected_models
+
+    assert not citadelle_memory.migrate_to_v10(db_path)
+    assert json.loads(
+        citadelle_memory.get_setting("allowed_models", db_path=db_path)
+    ) == expected_models
+
+
 def test_current_model_gate_and_lancer_default_branch(tmp_path, monkeypatch):
     db_path = tmp_path / "memory.db"
     model_path = tmp_path / "current.gguf"

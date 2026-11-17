@@ -2532,3 +2532,17 @@ des avantages en auto-ID, tests console et structure.
 
 **Conséquences** : le tableau des tests live reflète le co-championnat.
 La whitelist n'est pas modifiée. 111 décisions.
+
+## [2026-11-17] Migration v10 — retrait de trois modèles KO
+
+**Contexte** : les tests live ont identifié qwen2.5-3b, Mistral-Nemo-12B et
+Gemma-2-9B comme KO, en dessous des co-champions Ornith-1.5-9B et
+Qwen3.5-9B.
+
+**Décision(s)** :
+1. Retirer ces trois modèles de `allowed_models` par la migration idempotente
+   v10.
+2. Préserver Ornith-1.5-9B, Qwen3.5-9B et Llama-3.1-8B.
+
+**Conséquences** : la whitelist existante est nettoyée au démarrage sans
+modifier la route admin; migration testée et idempotente. 112 décisions.

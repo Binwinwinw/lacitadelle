@@ -420,6 +420,38 @@ def migrate_to_v9(db_path: Path | None = None) -> bool:
     return True
 
 
+def migrate_to_v10(db_path: Path | None = None) -> bool:
+    """Retire les 3 modèles KO (qwen2.5-3b, Mistral-Nemo-12B, Gemma-2-9B) de la whitelist."""
+    migrate_to_v9(db_path)
+    raw_models = get_setting("allowed_models", db_path=db_path)
+    if raw_models is None:
+        return False
+    try:
+        models = json.loads(raw_models)
+    except json.JSONDecodeError:
+        return False
+    if not isinstance(models, list) or any(
+        not isinstance(model_path, str) for model_path in models
+    ):
+        return False
+
+    excluded = ("qwen2.5-3b", "mistral-nemo-12b", "gemma-2-9b")
+    filtered_models = [
+        model_path
+        for model_path in models
+        if not any(model_name in model_path.lower() for model_name in excluded)
+    ]
+    if len(filtered_models) == len(models):
+        return False
+
+    set_setting(
+        "allowed_models",
+        json.dumps(filtered_models),
+        db_path=db_path,
+    )
+    return True
+
+
 def get_setting(
     key: str,
     default: str | None = None,
@@ -490,6 +522,7 @@ def init_db(db_path: Path | None = None) -> None:
     migrate_to_v6(db_path)
     migrate_to_v8(db_path)
     migrate_to_v9(db_path)
+    migrate_to_v10(db_path)
 
 
 def get_preferences(

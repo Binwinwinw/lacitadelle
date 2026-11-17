@@ -172,3 +172,4 @@
 [2026-11-17] GO 16-WHITELIST-APPLY-V9-BIS : migration idempotente retire Llama-3.2-3B et préserve les autres modèles; test v9 ajouté, pytest 245 passed; migration de la DB locale après push.
 [2026-11-17] GO 16-ORNYTH-CHAMPION-AND-DOC : résultats live 7/7 prompts documentés; Ornith 5/5 champion, Qwen3.5 challenger, Llama-3.1 conservé pour tool calling; nettoyage v10 planifié. Whitelist inchangée.
 [2026-11-17] GO 16-QWEN35-CO-CHAMPION-DOC : test live Qwen3.5-9B noté 5/5; co-champion ex-aequo avec Ornith, qui conserve le titre principal; décision et documentation mises à jour. Whitelist inchangée.
+[2026-11-17] GO 16-WHITELIST-CLEANUP-V10 : migration idempotente retire qwen2.5-3b, Mistral-Nemo-12B et Gemma-2-9B, préserve Ornith/Qwen3.5/Llama-3.1; test ajouté, compteurs 246 tests / 112 décisions.

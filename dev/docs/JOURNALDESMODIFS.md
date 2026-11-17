@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-17] Migration v10 — retrait des trois modèles KO
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tests/test_first_install_model.py`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : retirer de façon reproductible qwen2.5-3b, Mistral-Nemo-12B et
+Gemma-2-9B de la whitelist, tout en préservant les modèles retenus.
+**Impact** : migration v10 appelée au démarrage; test d'idempotence;
+246 tests et 112 décisions.
+
 ## [2026-11-17] Qwen3.5-9B co-champion après test live
 
 **Commit** : en cours de rédaction.

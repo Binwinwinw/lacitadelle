@@ -62,6 +62,7 @@ from citadelle_memory import (
     migrate_to_v6,
     migrate_to_v8,
     migrate_to_v9,
+    migrate_to_v10,
     record_inference,
     set_preferences,
     set_setting,
@@ -2584,6 +2585,7 @@ def main() -> int:
         migrate_to_v6()
         migrate_to_v8()
         migrate_to_v9()
+        migrate_to_v10()
         created, _, password, message = ensure_admin_exists()
     except (OSError, sqlite3.Error, ValueError, MemoryError) as exc:
         print(
