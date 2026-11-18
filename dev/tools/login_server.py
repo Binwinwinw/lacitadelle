@@ -70,6 +70,7 @@ from citadelle_memory import (
 )
 from model_health import CURRENT_MODEL_FILE, DEFAULT_MODEL_PATH
 from paths import get_bundle_dir
+from workflow_runner import UnknownWorkflowError, run_workflow_by_name
 
 PROXY_HOST = "127.0.0.1"
 PROXY_PORT = 8081
@@ -1602,6 +1603,58 @@ def _handle_admin_model_generic(
     )
 
 
+def handle_post_api_workflow_run(handler: BaseHTTPRequestHandler) -> None:
+    """POST /api/workflow/run : exécute un workflow local pour un admin."""
+    if require_admin(handler) is None:
+        return
+    try:
+        content_length = int(handler.headers.get("Content-Length", "0"))
+        payload = json.loads(
+            _read_post_body(handler, content_length).decode("utf-8")
+        )
+    except (ValueError, UnicodeDecodeError):
+        error_response(handler, "Requête JSON invalide", HTTPStatus.BAD_REQUEST)
+        return
+    if not isinstance(payload, dict):
+        error_response(handler, "Requête JSON invalide", HTTPStatus.BAD_REQUEST)
+        return
+
+    workflow_name = payload.get("workflow")
+    path = payload.get("path")
+    prompt = payload.get("prompt")
+    if (
+        not isinstance(workflow_name, str)
+        or not workflow_name.strip()
+        or not isinstance(path, str)
+        or not path.strip()
+        or not isinstance(prompt, str)
+        or not prompt.strip()
+    ):
+        error_response(handler, "Champs workflow, path et prompt requis", HTTPStatus.BAD_REQUEST)
+        return
+
+    try:
+        result = run_workflow_by_name(
+            workflow_name.strip(),
+            path.strip(),
+            prompt,
+        )
+    except UnknownWorkflowError as exc:
+        error_response(handler, str(exc), HTTPStatus.NOT_FOUND)
+        return
+    except Exception as exc:
+        sys.stderr.write(
+            f"[workflow] Échec interne ({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Erreur interne lors de l'exécution du workflow",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+    json_response(handler, result)
+
+
 def handle_post_api_admin_model_use(
     handler: BaseHTTPRequestHandler,
 ) -> None:
@@ -2528,6 +2581,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_post_api_admin_users_create(self)
             elif path == "/api/admin/model/use":
                 handle_post_api_admin_model_use(self)
+            elif path == "/api/workflow/run":
+                handle_post_api_workflow_run(self)
             elif path == "/api/settings/allowed_models":
                 handle_post_api_settings_allowed_models(self)
             elif path == "/api/llamafile/v1/chat/completions":

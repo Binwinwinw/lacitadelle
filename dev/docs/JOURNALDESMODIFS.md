@@ -2,6 +2,20 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-18] GO 16-ARCH-WORKFLOW-API — route admin workflow
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/workflow_runner.py`,
+`dev/tools/login_server.py`, `dev/tools/packaging/build.spec`,
+`dev/tests/test_workflow_api.py`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : exposer les workflows locaux par une route API réservée aux
+administrateurs.
+**Impact** : `POST /api/workflow/run` valide le corps JSON et retourne
+`response`/`metadata`; erreurs 400, 404 et 500 gérées, auth 401/403 héritée.
+Six tests ajoutés; `pytest -q` : 273 passés. Build PyInstaller vérifié avec le
+module workflow inclus; DB, whitelist et modèles inchangés; 114 décisions.
+
 ## [2026-11-18] GO 16-ARCH-WORKFLOW-FIX-E2E — retrieval et timeout
 
 **Commit** : en cours de rédaction.

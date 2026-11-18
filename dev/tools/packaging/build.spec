@@ -8,7 +8,7 @@ TOOLS_DIR = PROJECT_ROOT / "dev" / "tools"
 
 analysis = Analysis(
     [str(TOOLS_DIR / "lancer.py")],
-    pathex=[str(TOOLS_DIR)],
+    pathex=[str(TOOLS_DIR), str(PROJECT_ROOT)],
     binaries=[],
     datas=[
         (str(TOOLS_DIR / "prompts"), "dev/tools/prompts"),
@@ -18,10 +18,12 @@ analysis = Analysis(
     hiddenimports=[
         "bootstrap",
         "citadelle_memory",
+        "dev.workflows.analyse_md",
         "login_server",
         "model_health",
         "paths",
         "security_files",
+        "workflow_runner",
     ],
     hookspath=[],
     hooksconfig={},
