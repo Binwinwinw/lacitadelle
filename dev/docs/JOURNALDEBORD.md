@@ -175,3 +175,4 @@
 [2026-11-17] GO 16-WHITELIST-CLEANUP-V10 : migration idempotente retire qwen2.5-3b, Mistral-Nemo-12B et Gemma-2-9B, préserve Ornith/Qwen3.5/Llama-3.1; test ajouté, compteurs 246 tests / 112 décisions.
 [2026-11-18] GO 16-GRAPHIFY-POC-DOC : décision AIWorkflow en Python, Graphify comme index de retrieval, Obsidian écarté; POC prioritaire et conception conditionnée à ses résultats. Documentation uniquement, aucun code ni DB touché.
 [2026-11-18] GO 16-ARCH-WORKFLOW-DESIGN-DOC : spécification complète du moteur AIWorkflow, des nœuds, de SQLite FTS5 et de l'intégration modèles; POC Graphify clos KO. Doc-only, aucun code, test ni DB modifié; 114 décisions, 246 tests. Prochaine étape : GO d'implémentation.
+[2026-11-18] GO 16-ARCH-WORKFLOW-IMPL : moteur, trois nœuds prioritaires, workflow d'analyse Markdown et 19 tests ajoutés; 265 tests passent. Whitelist, modèles et dépendances inchangés. Prochaine étape : validation du Décideur.

@@ -50,10 +50,17 @@ def check_server() -> bool:
     return False
 
 
-def chat_with_llamafile(messages: list[dict[str, str]]) -> str:
+def chat_with_llamafile(
+    messages: list[dict[str, str]],
+    model: str | None = None,
+) -> str:
     """Envoie une conversation non-streaming et retourne la réponse."""
     body = json.dumps(
-        {"model": MODEL_NAME, "messages": messages, "stream": False}
+        {
+            "model": model or MODEL_NAME,
+            "messages": messages,
+            "stream": False,
+        }
     ).encode("utf-8")
     request = urllib.request.Request(
         LLAMAFILE_URL,

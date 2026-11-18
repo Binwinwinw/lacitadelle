@@ -2,6 +2,21 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-18] GO 16-ARCH-WORKFLOW-IMPL — moteur et workflow Markdown
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/workflow_engine.py`,
+`dev/tools/nodes/extract_text.py`, `dev/tools/nodes/index_fts5.py`,
+`dev/tools/nodes/call_model.py`, `dev/workflows/analyse_md.py`,
+`dev/tools/client.py`, `dev/tools/security_files.py`,
+`dev/tests/test_workflow_engine.py`, `dev/tests/test_nodes.py`,
+`dev/tests/test_workflow_analyse_md.py`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : ajouter le moteur AIWorkflow, ses nœuds prioritaires et un exemple
+d'analyse Markdown avec retrieval FTS5.
+**Impact** : 19 tests ajoutés; `pytest -q` : 265 passés. Aucun changement de
+whitelist, de modèle ou de dépendance; 114 décisions.
+
 ## [2026-11-18] GO 16-ARCH-WORKFLOW-DESIGN-DOC — spécification AIWorkflow
 
 **Commit** : en cours de rédaction.

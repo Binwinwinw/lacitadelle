@@ -67,7 +67,11 @@ def classify_file(path: Path) -> str:
 
     try:
         with path.open("rb") as file:
-            header = file.read(8)
+            header_size = max(
+                len(magic)
+                for magic in (*CRITICAL_MAGIC_BYTES, *SENSITIVE_MAGIC_BYTES)
+            )
+            header = file.read(header_size)
     except OSError:
         return FilePolicy.SENSITIVE
 
