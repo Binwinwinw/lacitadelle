@@ -57,8 +57,12 @@ l'archive.
 - Authentification V3.1 : routes d'administration, HTTPS, CSRF et rate limiting.
 - Authentification V3.2 : multi-admin.
 - V2+ : détection GPU.
+- V4 (proposition conditionnelle au POC Graphify) : orchestrateur AIWorkflow
+  en Python, où le code gère les étapes et le tool calling; Graphify sert
+  d'index de connaissance pour le retrieval structuré de documents et de code.
+  Le périmètre d'intégration production reste à confirmer après le POC.
 - Pas de tool calling, d'agent PC ni de modification du code C++ de
-  llamafile dans le périmètre actuel.
+  llamafile dans le périmètre V3 actuel.
 
 ## 7. Décisions dérivées
 

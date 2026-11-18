@@ -2546,3 +2546,25 @@ Qwen3.5-9B.
 
 **Conséquences** : la whitelist existante est nettoyée au démarrage sans
 modifier la route admin; migration testée et idempotente. 112 décisions.
+
+## [2026-11-18] AIWorkflow et Graphify pour un futur retrieval structuré
+
+**Contexte** : un futur workflow devra pouvoir rechercher sur le Web et
+analyser des PDF, DOC, TXT, SQL et Markdown. Deux approches sont considérées :
+AIToolbox, où le LLM choisit les outils, et AIWorkflow, où le code orchestre
+les étapes. Le besoin est une orchestration plus fiable, testable, auditable
+et indépendante du modèle.
+
+**Décision(s)** :
+1. Retenir AIWorkflow : l'orchestrateur Python, et non le LLM, décide des
+   étapes et transitions et gère le tool calling.
+2. Retenir Graphify comme index de connaissance pour alimenter les workflows
+   en retrieval structuré depuis les documents et le code.
+3. Écarter Obsidian, qui n'a pas de rôle en production.
+4. Réaliser un POC Graphify sur des documents réels avant la conception
+   complète et l'intégration de production.
+
+**Conséquences** : la phase modèles est close; Ornith-1.5-9B et Qwen3.5-9B
+sont co-champions. Le tool calling natif de Llama-3.1-8B n'est pas requis
+pour l'orchestration. La proposition d'orchestration est ciblée V4,
+conditionnellement aux résultats du POC. 113 décisions.

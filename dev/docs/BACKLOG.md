@@ -664,8 +664,8 @@ notamment pour une distribution EXE hors ligne.
 
 **Statut** : session modèles clôturée (9 testés, 4 validés chat, 1
 code only, 4 KO). Décision de défaut contextuel (Qwen3.5-9B /
-Qwen3-4B). Trois GO étaient déjà documentés; douze GO sont maintenant
-planifiés, soit 15 au total.
+Qwen3-4B). Trois GO étaient déjà documentés; quatorze GO sont maintenant
+planifiés, soit 17 au total.
 
 **GO planifiés** (détails, dépendances et propriétaires : voir TODO.md) :
 
@@ -681,25 +681,40 @@ planifiés, soit 15 au total.
 5. **16-FEATURE-MODEL-USE-V2** — 4-6 h.
 6. **16-AGENTS-RULES-18** — 30 min.
 
+### Priorité haute (architecture et retrieval)
+
+7. **16-GRAPHIFY-POC** — validé le 2026-11-18. **Périmètre** : indexer un
+   échantillon réel PDF/MD/SQL et évaluer `query`, `path`, `explain`.
+   **Dépendances** : aucune. **Questions ouvertes** : critères d'acceptation
+   du retrieval à définir au POC. **Moment** : avant la conception AIWorkflow.
+   **Effort** : à estimer.
+8. **16-ARCH-WORKFLOW-DESIGN** — validé le 2026-11-18; bloqué par
+   16-GRAPHIFY-POC. **Périmètre** : étapes, transitions, plug-ins outils et
+   interface Graphify (MCP ou CLI), pour une cible proposée V4.
+   **Dépendances** : résultats du POC Graphify. **Questions ouvertes** :
+   décisions de conception après POC. **Moment** : après le POC.
+   **Effort** : à estimer.
+
 ### Priorité basse (évolutions)
 
-7. **16-FEATURE-MODEL-DRIFT-DETECTION** — 1-2 h.
-8. **16-FEATURE-AUTO-MODEL-SELECTION** — 1-2 jours.
-9. **16-CHAT-RAG-LOCAL** — 2-3 jours.
-10. **16-CHAT-WEB-ACCESS** — 1-2 jours, optionnel.
-11. **16-REFACTOR-LOGIN-SERVER** — 4-6 h.
-12. **16-FIX-OTHER-PROJECTS-VENV** — 5-10 min par projet.
-13. **16-DOC-RELEASE-NOTES** — 30 min.
-14. **16-FEATURE-RESPONSE-TIME** — implémenté; validation manuelle restante.
-15. **MODELE-NETTOYAGE** — validé le 2026-11-17; migration v10 à planifier.
+9. **16-FEATURE-MODEL-DRIFT-DETECTION** — 1-2 h.
+10. **16-FEATURE-AUTO-MODEL-SELECTION** — 1-2 jours.
+11. **16-CHAT-RAG-LOCAL** — 2-3 jours.
+12. **16-CHAT-WEB-ACCESS** — 1-2 jours, optionnel.
+13. **16-REFACTOR-LOGIN-SERVER** — 4-6 h.
+14. **16-FIX-OTHER-PROJECTS-VENV** — 5-10 min par projet.
+15. **16-DOC-RELEASE-NOTES** — 30 min.
+16. **16-FEATURE-RESPONSE-TIME** — implémenté; validation manuelle restante.
+17. **MODELE-NETTOYAGE** — validé le 2026-11-17; migration v10 à planifier.
     **Périmètre** : retirer qwen2.5-3b, Mistral-Nemo-12B et Gemma-2-9B de
     `allowed_models`; garder Ornith, Llama-3.1-8B, Qwen3.5-9B et les Qwen3
     non testés. **Dépendances** : migration v9 publiée.
     **Questions ouvertes** : aucune. **Moment** : GO séparé après validation.
     **Effort** : à estimer.
 
-**Effort total estimé** : ~10-15 jours de travail, hors MODELE-NETTOYAGE
-(effort à estimer; répartis sur plusieurs sessions).
+**Effort total estimé** : ~10-15 jours de travail, hors MODELE-NETTOYAGE,
+POC Graphify et conception AIWorkflow (efforts à estimer; répartis sur
+plusieurs sessions).
 
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
 BACKLOG.md conserve le statut, les priorités et l'effort estimé sans

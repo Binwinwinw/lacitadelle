@@ -2,6 +2,17 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-18] Décision AIWorkflow et POC Graphify
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `.memory/decisions.md`, `TODO.md`,
+`dev/docs/OBJECTIF.md`, `dev/docs/BACKLOG.md`, `AGENTS.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : retenir AIWorkflow et Graphify pour un futur retrieval structuré,
+écarter Obsidian et planifier un POC avant la conception complète.
+**Impact** : orchestration proposée pour V4 sous réserve du POC; aucun code,
+test, base de données ou intégration de production modifié; 113 décisions.
+
 ## [2026-11-17] Migration v10 — retrait des trois modèles KO
 
 **Commit** : en cours de rédaction.
