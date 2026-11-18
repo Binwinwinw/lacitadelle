@@ -71,28 +71,43 @@ class NodeOut(Node):
 
 
 class NodeModel(Node):
-    """Appelle le modèle local avec un prompt fixe ou construit du contexte."""
+    """Appelle le modèle local avec des clés de prompt et de réponse."""
 
     def __init__(
         self,
         name: str,
-        prompt: str | Callable[[SharedContext], str],
+        prompt_key: str,
+        response_key: str,
+        timeout: int = 60,
+        *,
         model_path: str | None = None,
         retry: int = 0,
     ) -> None:
         super().__init__(name, retry)
-        self.prompt = prompt
+        if not isinstance(prompt_key, str) or not prompt_key.strip():
+            raise ValueError("prompt_key doit être une chaîne non vide.")
+        if not isinstance(response_key, str) or not response_key.strip():
+            raise ValueError("response_key doit être une chaîne non vide.")
+        if isinstance(timeout, bool) or not isinstance(timeout, int) or timeout <= 0:
+            raise ValueError("timeout doit être un entier strictement positif.")
+        self.prompt_key = prompt_key
+        self.response_key = response_key
+        self.timeout = timeout
         self.model_path = model_path
 
     def execute(self, context: SharedContext) -> str:
-        """Envoie uniquement du texte au modèle et stocke la réponse."""
-        prompt = (
-            self.prompt(context) if callable(self.prompt) else self.prompt
-        )
+        """Envoie le texte de `prompt_key` et stocke la réponse sous `response_key`."""
+        prompt = context.get(self.prompt_key)
         if not isinstance(prompt, str):
-            raise TypeError("Le prompt du modèle doit être une chaîne.")
-        result = call_model(prompt, self.model_path)
-        context.set(self.name, result)
+            raise TypeError(
+                f"Le contexte {self.prompt_key!r} doit être une chaîne."
+            )
+        result = call_model(
+            prompt,
+            self.model_path,
+            timeout=self.timeout,
+        )
+        context.set(self.response_key, result)
         return result
 
 

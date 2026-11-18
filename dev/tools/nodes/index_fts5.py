@@ -84,6 +84,17 @@ def search_fts5(
         raise ValueError("top_n doit être un entier strictement positif.")
 
     terms = re.findall(r"\w+", query, flags=re.UNICODE)
+    # shortcut: strip a final s only; use a language-aware tokenizer for richer morphology.
+    terms = list(
+        dict.fromkeys(
+            variant
+            for term in terms
+            for variant in (
+                term,
+                term[:-1] if len(term) > 3 and term.endswith("s") else term,
+            )
+        )
+    )
     if not terms:
         return []
     match_query = " OR ".join(f'"{term}"' for term in terms)

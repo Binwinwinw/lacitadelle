@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 
-import workflow_engine
 from workflow_engine import (
     Node,
     NodeCondition,
@@ -40,23 +41,29 @@ def test_node_out_executes_and_stores_result():
     assert context.get("doubled") == 8
 
 
-def test_node_model_calls_model_and_stores_response(monkeypatch):
-    calls = []
-
-    def fake_call_model(prompt, model_path):
-        calls.append((prompt, model_path))
-        return "answer"
-
-    monkeypatch.setattr(workflow_engine, "call_model", fake_call_model)
-    context = SharedContext({"topic": "FTS5"})
+def test_node_model_passes_configured_timeout_to_http():
+    response = MagicMock()
+    response.__enter__.return_value = response
+    response.read.return_value = json.dumps(
+        {"choices": [{"message": {"content": "answer"}}]}
+    ).encode("utf-8")
+    context = SharedContext({"model_prompt": "Explain FTS5"})
     node = NodeModel(
+        "model",
+        "model_prompt",
         "answer",
-        lambda current: f"Explain {current.get('topic')}",
+        timeout=180,
         model_path="model.gguf",
     )
 
-    assert node.execute(context) == "answer"
-    assert calls == [("Explain FTS5", "model.gguf")]
+    with patch(
+        "client.urllib.request.urlopen",
+        return_value=response,
+    ) as urlopen:
+        assert node.execute(context) == "answer"
+
+    assert urlopen.call_args.kwargs["timeout"] == 180
+    assert json.loads(urlopen.call_args.args[0].data)["model"] == "model.gguf"
     assert context.get("answer") == "answer"
 
 

@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "workflows"))
 
 import workflow_engine
+import analyse_md as analyse_md_module
 from analyse_md import analyse_md
 
 
@@ -21,18 +22,28 @@ def test_analyse_md_extracts_indexes_searches_and_calls_model(
         "# Local retrieval\nAIWorkflow searches this document with FTS5.",
         encoding="utf-8",
     )
-    calls = []
+    model_calls = []
+    search_calls = []
 
-    def fake_call_model(prompt, model_path):
-        calls.append((prompt, model_path))
+    def fake_call_model(prompt, model_path, timeout):
+        model_calls.append((prompt, model_path, timeout))
         return "Analysis from the matching passage."
 
+    original_search = analyse_md_module.search_fts5
+
+    def record_search(conn, query, top_n=5):
+        search_calls.append(top_n)
+        return original_search(conn, query, top_n=top_n)
+
     monkeypatch.setattr(workflow_engine, "call_model", fake_call_model)
+    monkeypatch.setattr(analyse_md_module, "search_fts5", record_search)
 
     result = analyse_md(path, "Explain FTS5", model_path="current.gguf")
 
     assert result == "Analysis from the matching passage."
-    assert len(calls) == 1
-    assert "Explain FTS5" in calls[0][0]
-    assert "searches this document with FTS5" in calls[0][0]
-    assert calls[0][1] == "current.gguf"
+    assert search_calls == [20]
+    assert len(model_calls) == 1
+    assert "Explain FTS5" in model_calls[0][0]
+    assert "reprends la valeur exacte" in model_calls[0][0]
+    assert "searches this document with FTS5" in model_calls[0][0]
+    assert model_calls[0][1:] == ("current.gguf", 180)

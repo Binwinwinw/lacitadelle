@@ -2,6 +2,24 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-18] GO 16-ARCH-WORKFLOW-FIX-E2E — retrieval et timeout
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/workflow_engine.py`,
+`dev/tools/nodes/index_fts5.py`, `dev/tools/nodes/call_model.py`,
+`dev/tools/client.py`, `dev/workflows/analyse_md.py`,
+`dev/tests/test_workflow_engine.py`, `dev/tests/test_nodes.py`,
+`dev/tests/test_workflow_analyse_md.py`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : améliorer le retrieval des documents structurés et permettre un
+timeout adapté aux réponses longues du modèle local.
+**Impact** : top-N configurable (20 par défaut dans analyse Markdown), variantes
+singulier/pluriel simples en FTS5, timeout HTTP configurable (180 s par défaut)
+et consigne de fidélité aux passages. Deux tests ajoutés; `pytest -q` :
+267 passés. E2E Ornith : 8/8 sections Architecture; modèles champions
+Ornith/Qwen3.5 à 5/5, sans erreur sur le défaut. DB, whitelist et dépendances
+inchangées; 114 décisions.
+
 ## [2026-11-18] GO 16-ARCH-WORKFLOW-IMPL — moteur et workflow Markdown
 
 **Commit** : en cours de rédaction.

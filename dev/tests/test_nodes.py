@@ -107,6 +107,28 @@ def test_search_fts5_rejects_nonpositive_top_n():
     conn.close()
 
 
+def test_search_fts5_returns_at_most_requested_top_n():
+    conn = sqlite3.connect(":memory:")
+    for index in range(25):
+        index_fts5(conn, f"doc-{index}.md", f"needle passage {index}")
+
+    results = search_fts5(conn, "needle", top_n=20)
+
+    assert len(results) == 20
+    conn.close()
+
+
+def test_search_fts5_matches_plural_query_to_singular_term():
+    conn = sqlite3.connect(":memory:")
+    index_fts5(conn, "models.md", "Ornith is a champion with a score of 5/5.")
+
+    results = search_fts5(conn, "champions")
+
+    assert len(results) == 1
+    assert "Ornith" in results[0]["content"]
+    conn.close()
+
+
 @pytest.mark.parametrize(
     ("model_path", "expected_model"),
     [(None, "LLaMA_CPP"), ("model.gguf", "model.gguf")],
@@ -121,7 +143,11 @@ def test_call_model_posts_to_local_openai_compatible_api(
         {"choices": [{"message": {"content": "local answer"}}]}
     ).encode("utf-8")
     with patch("client.urllib.request.urlopen", return_value=response) as urlopen:
-        assert call_model("Summarize this", model_path) == "local answer"
+        assert call_model(
+            "Summarize this",
+            model_path,
+            timeout=33,
+        ) == "local answer"
 
     request = urlopen.call_args.args[0]
     payload = json.loads(request.data)
@@ -130,3 +156,4 @@ def test_call_model_posts_to_local_openai_compatible_api(
     assert payload["messages"] == [
         {"role": "user", "content": "Summarize this"}
     ]
+    assert urlopen.call_args.kwargs["timeout"] == 33

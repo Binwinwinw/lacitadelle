@@ -53,6 +53,7 @@ def check_server() -> bool:
 def chat_with_llamafile(
     messages: list[dict[str, str]],
     model: str | None = None,
+    timeout: int = HTTP_TIMEOUT,
 ) -> str:
     """Envoie une conversation non-streaming et retourne la réponse."""
     body = json.dumps(
@@ -74,7 +75,7 @@ def chat_with_llamafile(
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=HTTP_TIMEOUT) as response:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
             result = json.loads(response.read())
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace").strip()
