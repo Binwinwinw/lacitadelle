@@ -683,16 +683,16 @@ planifiés, soit 17 au total.
 
 ### Priorité haute (architecture et retrieval)
 
-7. **16-GRAPHIFY-POC** — validé le 2026-11-18. **Périmètre** : indexer un
-   échantillon réel PDF/MD/SQL et évaluer `query`, `path`, `explain`.
-   **Dépendances** : aucune. **Questions ouvertes** : critères d'acceptation
-   du retrieval à définir au POC. **Moment** : avant la conception AIWorkflow.
-   **Effort** : à estimer.
-8. **16-ARCH-WORKFLOW-DESIGN** — validé le 2026-11-18; bloqué par
-   16-GRAPHIFY-POC. **Périmètre** : étapes, transitions, plug-ins outils et
-   interface Graphify (MCP ou CLI), pour une cible proposée V4.
-   **Dépendances** : résultats du POC Graphify. **Questions ouvertes** :
-   décisions de conception après POC. **Moment** : après le POC.
+7. **16-GRAPHIFY-POC** — KO, clôturé le 2026-11-18. Le backend LLM requis
+   est absent et le réseau est interdit; Graphify n'est pas intégré.
+8. **16-ARCH-WORKFLOW-DESIGN** — **SPEC FAITE** le 2026-11-18; voir
+   [`ARCHITECTURE.md`](./ARCHITECTURE.md). Le moteur maison et SQLite FTS5
+   remplacent Graphify. Dépendance au POC levée.
+9. **16-ARCH-WORKFLOW-IMPL** — priorité haute. **Périmètre** : moteur
+   (`workflow_engine.py`), nœuds extraction, indexation FTS5 et appel modèle,
+   puis workflow d'analyse Markdown. **Dépendances** : spécification
+   16-ARCH-WORKFLOW-DESIGN (faite). **Questions ouvertes** : choisir la
+   bibliothèque PDF hors ligne. **Moment** : GO séparé après la spécification.
    **Effort** : à estimer.
 
 ### Priorité basse (évolutions)
@@ -713,8 +713,8 @@ planifiés, soit 17 au total.
     **Effort** : à estimer.
 
 **Effort total estimé** : ~10-15 jours de travail, hors MODELE-NETTOYAGE,
-POC Graphify et conception AIWorkflow (efforts à estimer; répartis sur
-plusieurs sessions).
+POC Graphify clos et implémentation AIWorkflow (efforts à estimer; répartis
+sur plusieurs sessions).
 
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
 BACKLOG.md conserve le statut, les priorités et l'effort estimé sans

@@ -2568,3 +2568,30 @@ et indépendante du modèle.
 sont co-champions. Le tool calling natif de Llama-3.1-8B n'est pas requis
 pour l'orchestration. La proposition d'orchestration est ciblée V4,
 conditionnellement aux résultats du POC. 113 décisions.
+
+## [2026-11-18] Spécification complète de l'architecture AIWorkflow
+
+**Contexte** : la spécification AIWorkflow est documentée dans
+`dev/docs/ARCHITECTURE.md`. Le POC Graphify est clos KO (backend LLM absent,
+réseau interdit). Le moteur prévu est maison (`Workflow`, `Node`,
+`SharedContext`), les outils sont des fonctions Python explicites, le retrieval
+utilise SQLite FTS5 et les modèles servent au raisonnement local texte en
+entrée/texte en sortie.
+
+**Décision(s)** :
+1. Retenir un moteur d'orchestration Python maison, sans framework lourd.
+2. Appeler explicitement les fonctions outils Python depuis les nœuds; ne pas
+   utiliser de tool calling natif du LLM.
+3. Retenir SQLite FTS5 pour le retrieval documentaire hors ligne.
+4. Utiliser Ornith-1.5-9B et Qwen3.5-9B comme modèles de raisonnement; les
+   appeler via `NodeModel`, en texte en entrée/texte en sortie.
+5. Placer les workflows dans `dev/workflows/` et les nœuds outils dans
+   `dev/tools/nodes/`.
+6. Prévoir un test par nœud et un test complet par workflow.
+7. Clore `16-ARCH-WORKFLOW-DESIGN` comme spécification faite; démarrer
+   l'implémentation dans un GO séparé.
+
+**Conséquences** : l'implémentation peut démarrer au GO suivant. Le POC
+Graphify ne bloque plus la conception; Graphify, Obsidian et le tool calling
+natif sont écartés. Cette décision remplace le choix Graphify et la condition
+de POC de la décision précédente du 2026-11-18. 114 décisions.

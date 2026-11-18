@@ -153,3 +153,115 @@ d'administration web.
 ## Distribution et outils développeur
 
 - La release GitHub v0.1.0 contenant l'ancien runtime regroupé est **OBSOLÈTE**; le décideur doit la déprécier manuellement.
+
+## AIWorkflow
+
+Spécification de conception préalable à l'implémentation. Cette section ne
+décrit pas des composants déjà livrés.
+
+### 1. Vue d'ensemble
+
+- **AIWorkflow** est une orchestration externe écrite en Python. Le code du
+  workflow choisit les étapes et leur ordre; le LLM n'orchestre pas le
+  processus.
+- Les modèles assurent uniquement le raisonnement local, sous la forme
+  **texte en entrée → texte en sortie**.
+- Les outils sont des fonctions Python appelées explicitement par les nœuds.
+  Les traitements déterministes restent séparés des accès explicites aux
+  fichiers, à SQLite, au modèle et, facultativement, au Web.
+- Le retrieval documentaire utilise **SQLite FTS5**, hors ligne, intégré à
+  SQLite et sans dépendance de recherche supplémentaire.
+- Aucun tool calling natif : le modèle ne reçoit ni catalogue d'outils ni
+  schémas de fonctions.
+
+### 2. Moteur d'orchestration (`dev/tools/workflow_engine.py`)
+
+- `Workflow` contient une liste ordonnée de nœuds et les exécute séquentiellement.
+- `Node` est la classe abstraite des nœuds; sa méthode `execute(context)` reçoit
+  le contexte partagé.
+- `SharedContext` est un dictionnaire partagé contenant les entrées, les sorties
+  intermédiaires et l'état d'exécution.
+- `NodeOut` appelle une fonction Python explicitement associée au nœud.
+- `NodeModel` appelle le modèle courant avec un prompt et transmet son texte de
+  réponse au contexte.
+- `NodeCondition` évalue une condition et choisit la suite du parcours parmi les
+  nœuds déclarés.
+- Chaque nœud peut définir sa politique de retry. Le moteur applique cette
+  politique; si les tentatives sont épuisées, il signale l'erreur et arrête le
+  workflow sans produire de résultat de succès de remplacement.
+- Le moteur contrôle les transitions et les erreurs. Il n'expose jamais les
+  outils au modèle et n'interprète pas la réponse du modèle comme un appel
+  d'outil.
+
+### 3. Nœuds outils (plug-ins)
+
+Les premières fonctions outils prévues sont :
+
+| Fonction | Rôle |
+| --- | --- |
+| `extract_text(path)` | Extrait le texte brut de PDF, Markdown ou TXT. La bibliothèque PDF reste à choisir; elle devra fonctionner hors ligne. |
+| `index_fts5(path, content)` | Découpe et indexe le contenu d'un document dans SQLite FTS5. |
+| `search_fts5(query)` | Recherche et retourne les passages les plus pertinents dans l'index FTS5. |
+| `call_model(prompt, model_path)` | Envoie un prompt au modèle sélectionné via l'API locale llamafile. |
+| `search_web(query)` | Recherche via une API à définir; optionnelle et dépendante du réseau. |
+| `query_sql(sql)` | Interroge la base SQLite de La Citadelle; l'accès est en lecture seule. |
+
+Chaque nœud devra avoir une signature claire, une docstring, une gestion
+explicite des erreurs et pouvoir être testé isolément. L'accès Web ne fait pas
+partie du parcours hors ligne et ne sera pas activé par défaut.
+
+### 4. Retrieval documentaire (SQLite FTS5)
+
+- Table virtuelle prévue : `documents_fts(content, path, metadata)`.
+- L'indexation découpe les documents en chunks dont la taille est configurable;
+  chaque chunk conserve le chemin source et ses métadonnées.
+- La recherche utilise `MATCH` et retourne un top-N de passages pertinents,
+  avec leur chemin source et leurs métadonnées.
+- L'indexation et la recherche n'appellent aucun LLM.
+- FTS5 est le choix retenu. Whoosh (Python pur) et LlamaIndex (si utilisable
+  hors ligne) sont des alternatives étudiées, non des dépendances du moteur;
+  elles ne seront réévaluées qu'en cas de besoin démontré.
+
+### 5. Intégration modèles
+
+- Modèles de raisonnement retenus : **Ornith-1.5-9B** et **Qwen3.5-9B**,
+  co-champions avec des résultats de 5/5.
+- **Llama-3.1-8B** reste optionnel pour des essais de tool calling natif si un
+  besoin dynamique le justifie; ce n'est pas une priorité.
+- Les appels passent par `NodeModel` et l'API llamafile compatible OpenAI déjà
+  en place.
+- Les modèles reçoivent du texte et retournent du texte. Le code Python effectue
+  les appels aux outils; aucun tool calling natif n'est requis.
+
+### 6. Associations et règles
+
+- Un workflow est défini dans un fichier Python sous `dev/workflows/`.
+- Chaque workflow déclare ses nœuds et leur ordre; les nœuds conditionnels
+  définissent les branches possibles.
+- Les nœuds outils sont placés sous `dev/tools/nodes/`.
+- Les appels aux modèles passent exclusivement par `NodeModel`, jamais par un
+  appel direct depuis un workflow.
+- Le workflow applique la politique de retry de chaque nœud; une erreur non
+  résolue arrête proprement l'exécution et reste observable.
+- Prévoir au minimum un test par nœud et un test d'exécution par workflow
+  complet.
+
+### 7. Workflows prioritaires (après la spécification)
+
+- **Analyse PDF** : extraction → indexation FTS5 → recherche → appel modèle →
+  formatage.
+- **Recherche Web** : recherche Web → appel modèle → formatage; workflow
+  facultatif nécessitant le réseau.
+- **Analyse SQL** : requête en lecture seule → appel modèle → formatage.
+- **Analyse Markdown** : extraction → indexation FTS5 → recherche → appel
+  modèle.
+
+### 8. Hors périmètre
+
+- **Graphify** : POC clôturé KO (backend LLM absent et réseau interdit); aucune
+  intégration prévue.
+- **Obsidian** : aucun rôle en production.
+- **Tool calling natif LLM** : non retenu, notamment au vu du manque de fiabilité
+  observé sur les modèles.
+- **Frameworks lourds** tels que LangChain ou LlamaIndex : écartés pour cette
+  conception, à réévaluer seulement si un besoin le justifie.

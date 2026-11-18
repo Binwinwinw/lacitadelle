@@ -75,14 +75,11 @@ tâche terminée est supprimée ici; sa trace reste dans
 
 ### Chat et modèles
 
-- [ ] **16-GRAPHIFY-POC** — POC Graphify : indexer un échantillon de
-  documents PDF, MD et SQL, tester `query`/`path`/`explain` et valider la
-  pertinence du retrieval. Décision de sortie : intégrer ou non.
-  **Priorité : haute** (débloque AIWorkflow). — Propriétaire : à planifier.
-- [ ] **16-ARCH-WORKFLOW-DESIGN** — concevoir l'orchestrateur AIWorkflow :
-  étapes, transitions, plug-ins outils et interface Graphify (MCP ou CLI).
-  **Bloqué par 16-GRAPHIFY-POC**. Cible : V4, après validation du POC.
-  — Propriétaire : à planifier.
+- [ ] **16-ARCH-WORKFLOW-IMPL** — implémenter le moteur
+  (`workflow_engine.py`), les trois nœuds prioritaires (extraction, indexation
+  FTS5, appel modèle) et un workflow exemple d'analyse Markdown.
+  **Priorité : haute. Dépendance : spécification faite dans
+  `dev/docs/ARCHITECTURE.md`.** — Propriétaire : à planifier.
 - [ ] **16-FEATURE-MODEL-USE-V2** : redémarrage automatique du proxy
   et de llamafile après sélection d'un modèle; progression, détection
   d'échec et rollback. — Propriétaire : à planifier (après V1).

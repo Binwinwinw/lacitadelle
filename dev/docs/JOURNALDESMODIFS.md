@@ -2,6 +2,17 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-18] GO 16-ARCH-WORKFLOW-DESIGN-DOC — spécification AIWorkflow
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/docs/ARCHITECTURE.md`, `.memory/decisions.md`,
+`TODO.md`, `dev/docs/BACKLOG.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`, `AGENTS.md`.
+**Raison** : documenter le moteur Python, ses nœuds, le retrieval SQLite FTS5
+et l'intégration des modèles avant toute implémentation.
+**Impact** : documentation uniquement; aucun code, test ni base de données
+modifié; 114 décisions et 246 tests.
+
 ## [2026-11-18] Décision AIWorkflow et POC Graphify
 
 **Commit** : en cours de rédaction.
