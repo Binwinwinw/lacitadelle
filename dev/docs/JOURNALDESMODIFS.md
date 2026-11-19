@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-19] GO 16-ARCH-WORKFLOW-UI-TESTS-BIS — tests headless du chat
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tests/test_workflow_chat.js`,
+`dev/tests/test_workflow_chat_html.py`, `README.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : ajouter des tests sans Playwright pour les mappings de workflow
+et les contrôles HTML du chat.
+**Impact** : un test pytest ajouté (287 passés), script Node natif validé;
+aucune dépendance, modification du frontend, DB ou whitelist.
+
 ## [2026-11-19] GO 16-DOCS-CLEANUP-BIS — état documentaire AIWorkflow
 
 **Commit** : en cours de rédaction.

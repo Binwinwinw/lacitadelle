@@ -2707,3 +2707,19 @@ chat sans élargir les droits ni l'accès aux fichiers.
 modifier la DB, la whitelist ou les workflows existants. La réponse est
 affichée dans la conversation courante mais n'est pas persistée en historique.
 117 décisions.
+
+## [2026-11-19] Tests headless AIWorkflow dans le chat
+
+**Contexte** : le chat permet de lancer les workflows par extension. Il faut
+versionner des tests de régression sans installer Playwright ni dépendances
+JavaScript supplémentaires; `jsdom` est absent et l'accès réseau est interdit.
+
+**Décision(s)** :
+1. Tester avec Node natif les mappings `.md`, `.pdf` et `.sql` en extrayant
+   le mapping et la fonction `detectWorkflow` de `chat.js`.
+2. Utiliser Python `html.parser` pour vérifier la présence du bouton, du
+   champ chemin et du sélecteur de workflow dans `chat.html`.
+3. Ne pas modifier le code de production ni installer Playwright ou `jsdom`.
+
+**Conséquences** : un test Python est ajouté (287 tests pytest); le test Node
+est exécuté séparément. 118 décisions.
