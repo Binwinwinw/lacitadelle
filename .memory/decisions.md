@@ -2595,3 +2595,21 @@ entrée/texte en sortie.
 Graphify ne bloque plus la conception; Graphify, Obsidian et le tool calling
 natif sont écartés. Cette décision remplace le choix Graphify et la condition
 de POC de la décision précédente du 2026-11-18. 114 décisions.
+
+## [2026-11-18] Interface admin pour tester AIWorkflow
+
+**Contexte** : le dispatcher et la route admin `POST /api/workflow/run` sont
+disponibles; il faut pouvoir les essayer manuellement depuis l'administration.
+
+**Décision(s)** :
+1. Ajouter à la page d'administration un formulaire workflow, chemin de fichier
+   et prompt.
+2. Appeler `POST /api/workflow/run` avec le jeton CSRF et afficher la réponse,
+   les métadonnées et les erreurs HTTP.
+3. Ne pas ajouter de framework de test UI; aucun framework headless n'est
+   configuré dans le dépôt.
+
+**Conséquences** : un administrateur peut lancer le workflow depuis l'UI.
+Aucun framework de test UI n'est configuré; le smoke test navigateur avec une
+réponse API simulée vérifie l'envoi CSRF, le chargement et l'affichage texte.
+Aucune modification de la DB ou de la whitelist; 115 décisions.

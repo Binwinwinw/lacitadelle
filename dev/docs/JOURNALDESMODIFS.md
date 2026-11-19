@@ -2,6 +2,20 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-18] GO 16-ARCH-WORKFLOW-UI-BIS — formulaire admin AIWorkflow
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/web/admin.html`,
+`dev/tools/web/style.css`, `.memory/decisions.md`, `TODO.md`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : permettre aux administrateurs de tester un workflow local depuis
+la page d'administration.
+**Impact** : formulaire analyse Markdown, POST avec CSRF, affichage texte de la
+réponse et des métadonnées, erreurs HTTP et état de chargement. Aucun framework
+de test UI n'est configuré; aucun test automatisé ajouté. Smoke test navigateur
+avec API simulée : envoi, chargement, affichage et neutralisation HTML vérifiés.
+`pytest -q` : 273 passés; 115 décisions; DB et whitelist inchangées.
+
 ## [2026-11-18] GO 16-ARCH-WORKFLOW-API — route admin workflow
 
 **Commit** : en cours de rédaction.

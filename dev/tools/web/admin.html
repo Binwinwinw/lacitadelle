@@ -85,6 +85,39 @@
                 <div id="create-user-result" class="settings-status"
                      role="status" aria-live="polite"></div>
             </section>
+            <section class="settings-section"
+                     aria-labelledby="workflow-heading">
+                <h2 id="workflow-heading">Workflow AIWorkflow</h2>
+                <form id="workflow-form" class="settings-form workflow-form">
+                    <label for="workflow-name">Workflow</label>
+                    <select id="workflow-name" name="workflow" required>
+                        <option value="analyse_md">analyse_md</option>
+                    </select>
+                    <label for="workflow-path">Chemin du fichier</label>
+                    <input id="workflow-path" name="path" type="text"
+                           placeholder="dev/docs/ARCHITECTURE.md" required>
+                    <label for="workflow-prompt">Prompt</label>
+                    <textarea id="workflow-prompt" name="prompt" rows="4"
+                              placeholder="Quelles sont les 8 sections ?"
+                              required></textarea>
+                    <button id="workflow-run" type="submit"
+                            class="settings-save">Exécuter</button>
+                </form>
+                <p id="workflow-status" class="settings-status" role="status"
+                   aria-live="polite"></p>
+                <div id="workflow-result" class="workflow-result" hidden>
+                    <div>
+                        <h3>Réponse</h3>
+                        <pre id="workflow-response"
+                             class="workflow-output"></pre>
+                    </div>
+                    <div>
+                        <h3>Métadonnées</h3>
+                        <pre id="workflow-metadata"
+                             class="workflow-output"></pre>
+                    </div>
+                </div>
+            </section>
             <nav id="logs-tabs" class="logs-tabs" role="tablist"
                  aria-label="Administration">
                 <button id="users-tab" type="button" role="tab"
@@ -176,6 +209,12 @@
         const logsModelFilter = document.getElementById("logs-model-filter");
         const indicatorWindow = document.getElementById("admin-indicator-window");
         const indicatorsStatus = document.getElementById("admin-indicators-status");
+        const workflowForm = document.getElementById("workflow-form");
+        const workflowRunButton = document.getElementById("workflow-run");
+        const workflowStatus = document.getElementById("workflow-status");
+        const workflowResult = document.getElementById("workflow-result");
+        const workflowResponse = document.getElementById("workflow-response");
+        const workflowMetadata = document.getElementById("workflow-metadata");
         let currentUsername = null;
         let logsInterval = null;
         let indicatorsInterval = null;
@@ -860,6 +899,70 @@
             } catch (error) {
                 createUserResult.textContent =
                     `Erreur réseau ou réponse invalide : ${error.message}`;
+            }
+        });
+
+        workflowForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            workflowResult.hidden = true;
+            workflowResponse.textContent = "";
+            workflowMetadata.textContent = "";
+            workflowStatus.textContent = "Exécution en cours...";
+            workflowRunButton.disabled = true;
+            try {
+                const response = await fetch("/api/workflow/run", {
+                    method: "POST",
+                    headers: csrfHeaders({
+                        "Content-Type": "application/json",
+                    }),
+                    body: JSON.stringify({
+                        workflow: document.getElementById("workflow-name").value,
+                        path: document.getElementById("workflow-path").value.trim(),
+                        prompt: document.getElementById("workflow-prompt").value.trim(),
+                    }),
+                    credentials: "same-origin",
+                });
+                let result = null;
+                try {
+                    result = await response.json();
+                } catch {
+                    // Report the HTTP status even when the response is not JSON.
+                }
+                if (!response.ok) {
+                    const message = result
+                        && typeof result.error === "string"
+                        ? result.error
+                        : "Réponse invalide";
+                    workflowStatus.textContent =
+                        `Erreur HTTP ${response.status} : ${message}`;
+                    return;
+                }
+                if (
+                    !result
+                    || typeof result !== "object"
+                    || Array.isArray(result)
+                    || typeof result.response !== "string"
+                    || !result.metadata
+                    || typeof result.metadata !== "object"
+                    || Array.isArray(result.metadata)
+                ) {
+                    workflowStatus.textContent =
+                        `Erreur HTTP ${response.status} : réponse workflow invalide.`;
+                    return;
+                }
+                workflowResponse.textContent = result.response;
+                workflowMetadata.textContent = JSON.stringify(
+                    result.metadata,
+                    null,
+                    2,
+                );
+                workflowResult.hidden = false;
+                workflowStatus.textContent = "Exécution terminée.";
+            } catch (error) {
+                workflowStatus.textContent =
+                    `Erreur réseau : ${error.message}`;
+            } finally {
+                workflowRunButton.disabled = false;
             }
         });
 
