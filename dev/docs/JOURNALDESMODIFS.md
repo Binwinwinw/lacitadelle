@@ -2,6 +2,20 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-19] GO 16-ARCH-WORKFLOW-CHAT — analyse documentaire dans le chat
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/web/chat.html`,
+`dev/tools/web/chat.js`, `dev/tools/workflow_runner.py`,
+`dev/tools/login_server.py`, `dev/tests/test_workflow_runner.py`,
+`dev/tests/test_workflow_api.py`, `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : permettre aux administrateurs de lancer les workflows documentaires
+depuis le chat, sans modifier les workflows ni élargir les droits d'accès.
+**Impact** : chemins confinés aux répertoires autorisés, fichiers SQL lus par
+le dispatcher, erreurs de chemin renvoyées en HTTP 400; 3 tests ajoutés nets,
+`pytest -q` : 286 passés. DB et whitelist inchangées.
+
 ## [2026-11-18] GO 16-ARCH-WORKFLOW-NODES-EXT — nœuds PDF/SQL/Web
 
 **Commit** : en cours de rédaction.

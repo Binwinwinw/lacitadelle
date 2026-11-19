@@ -70,7 +70,11 @@ from citadelle_memory import (
 )
 from model_health import CURRENT_MODEL_FILE, DEFAULT_MODEL_PATH
 from paths import get_bundle_dir
-from workflow_runner import UnknownWorkflowError, run_workflow_by_name
+from workflow_runner import (
+    UnknownWorkflowError,
+    WorkflowPathError,
+    run_workflow_by_name,
+)
 
 PROXY_HOST = "127.0.0.1"
 PROXY_PORT = 8081
@@ -1639,6 +1643,9 @@ def handle_post_api_workflow_run(handler: BaseHTTPRequestHandler) -> None:
             path.strip(),
             prompt,
         )
+    except WorkflowPathError as exc:
+        error_response(handler, str(exc), HTTPStatus.BAD_REQUEST)
+        return
     except UnknownWorkflowError as exc:
         error_response(handler, str(exc), HTTPStatus.NOT_FOUND)
         return

@@ -2,6 +2,8 @@
 
 let currentSessionId = null;
 let isSending = false;
+let isAdminUser = false;
+let isAnalyzingDocument = false;
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 function csrfHeaders(headers = {}) {
@@ -16,6 +18,21 @@ const sendBtn = document.getElementById("send-btn");
 const newSessionBtn = document.getElementById("new-session");
 const statusDiv = document.getElementById("status");
 const adminLink = document.getElementById("admin-link");
+const analyzeDocumentButton = document.getElementById("analyze-document-button");
+const workflowDialog = document.getElementById("workflow-dialog");
+const workflowForm = document.getElementById("workflow-form");
+const workflowType = document.getElementById("workflow-type");
+const workflowPath = document.getElementById("workflow-path");
+const workflowPrompt = document.getElementById("workflow-prompt");
+const workflowDialogStatus = document.getElementById("workflow-dialog-status");
+const workflowSubmitButton = document.getElementById("workflow-submit-button");
+const workflowCancelButton = document.getElementById("workflow-cancel-button");
+
+const workflowsByExtension = {
+	".md": "analyse_md",
+	".pdf": "analyse_pdf",
+	".sql": "analyse_sql",
+};
 
 function renderMarkdown(content) {
 	if (!window.marked || !window.DOMPurify) {
@@ -38,6 +55,15 @@ function renderMarkdown(content) {
 function showStatus(message, isError = false) {
 	statusDiv.textContent = message;
 	statusDiv.className = isError ? "status error" : "status";
+}
+
+function updateAnalyzeDocumentButton() {
+	analyzeDocumentButton.disabled =
+		!isAdminUser
+		|| currentSessionId === null
+		|| userInput.disabled
+		|| isSending
+		|| isAnalyzingDocument;
 }
 
 function createMessage(role, content) {
@@ -110,7 +136,10 @@ async function loadAdminLink() {
 			return;
 		}
 		const user = await response.json();
-		adminLink.hidden = user.role !== "admin";
+		isAdminUser = user.role === "admin";
+		adminLink.hidden = !isAdminUser;
+		analyzeDocumentButton.hidden = !isAdminUser;
+		updateAnalyzeDocumentButton();
 	} catch (error) {
 		showStatus(`Erreur réseau : ${error.message}`, true);
 	}
@@ -159,12 +188,14 @@ async function loadSessions() {
 }
 
 async function selectSession(sessionId) {
+	if (isAnalyzingDocument) return;
 	currentSessionId = sessionId;
 	for (const item of sessionsList.querySelectorAll("li[data-session-id]")) {
 		item.classList.toggle("active", Number(item.dataset.sessionId) === sessionId);
 	}
 	userInput.disabled = true;
 	sendBtn.disabled = true;
+	updateAnalyzeDocumentButton();
 	showMessagesPlaceholder("Chargement de la conversation...");
 	showStatus("Chargement...");
 
@@ -192,6 +223,7 @@ async function selectSession(sessionId) {
 		}
 		userInput.disabled = false;
 		sendBtn.disabled = false;
+		updateAnalyzeDocumentButton();
 		showStatus("");
 		userInput.focus();
 	} catch (error) {
@@ -201,11 +233,12 @@ async function selectSession(sessionId) {
 }
 
 async function sendMessage(content) {
-	if (currentSessionId === null || isSending) return;
+	if (currentSessionId === null || isSending || isAnalyzingDocument) return;
 
 	isSending = true;
 	userInput.disabled = true;
 	sendBtn.disabled = true;
+	updateAnalyzeDocumentButton();
 	const loading = createMessage("assistant loading", "Réponse en cours...");
 	let assistantMessage = null;
 	let streamedContent = "";
@@ -361,10 +394,127 @@ async function sendMessage(content) {
 			userInput.disabled = false;
 			sendBtn.disabled = false;
 		}
+		updateAnalyzeDocumentButton();
 	}
 }
 
+function detectWorkflow(path) {
+	const fileName = path.split(/[\\/]/).pop() || "";
+	const extensionIndex = fileName.lastIndexOf(".");
+	if (extensionIndex < 0) return null;
+	return workflowsByExtension[fileName.slice(extensionIndex).toLowerCase()] || null;
+}
+
+function showWorkflowError(message) {
+	workflowDialogStatus.textContent = message;
+	workflowDialogStatus.hidden = false;
+}
+
+analyzeDocumentButton.addEventListener("click", () => {
+	workflowDialogStatus.hidden = true;
+	workflowDialog.showModal();
+	workflowPath.focus();
+});
+
+workflowCancelButton.addEventListener("click", () => workflowDialog.close());
+
+workflowPath.addEventListener("input", () => {
+	const workflow = detectWorkflow(workflowPath.value.trim());
+	if (workflow) workflowType.value = workflow;
+});
+
+workflowForm.addEventListener("submit", async (event) => {
+	event.preventDefault();
+	if (
+		!isAdminUser
+		|| currentSessionId === null
+		|| isAnalyzingDocument
+		|| isSending
+	) return;
+
+	const path = workflowPath.value.trim();
+	const prompt = workflowPrompt.value.trim();
+	const workflow = detectWorkflow(path);
+	if (!workflow) {
+		showWorkflowError("Seuls les fichiers .md, .pdf et .sql sont pris en charge.");
+		return;
+	}
+	if (!prompt) {
+		showWorkflowError("Saisissez une question sur le document.");
+		return;
+	}
+	workflowType.value = workflow;
+	workflowDialogStatus.hidden = true;
+	isAnalyzingDocument = true;
+	workflowSubmitButton.disabled = true;
+	workflowCancelButton.disabled = true;
+	workflowSubmitButton.textContent = "Analyse en cours...";
+	userInput.disabled = true;
+	sendBtn.disabled = true;
+	newSessionBtn.disabled = true;
+	updateAnalyzeDocumentButton();
+
+	const loading = createMessage(
+		"assistant loading",
+		"Analyse du document en cours..."
+	);
+	messagesDiv.appendChild(loading);
+	messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+	try {
+		const response = await fetch("/api/workflow/run", {
+			method: "POST",
+			headers: csrfHeaders({ "Content-Type": "application/json" }),
+			body: JSON.stringify({ workflow, path, prompt }),
+			credentials: "same-origin",
+		});
+		const data = await response.json().catch(() => ({}));
+		if (!response.ok) {
+			if (response.status === 401) {
+				window.location.href = "/login";
+				return;
+			}
+			const errorMessage = data && typeof data.error === "string"
+				? data.error
+				: "Erreur inconnue.";
+			showWorkflowError(
+				`Erreur HTTP ${response.status} : ${errorMessage}`
+			);
+			return;
+		}
+		if (!data || typeof data.response !== "string") {
+			showWorkflowError("Réponse du workflow invalide.");
+			return;
+		}
+
+		loading.remove();
+		messagesDiv.appendChild(
+			createMessage("user", `Analyser ${path}\n${prompt}`)
+		);
+		messagesDiv.appendChild(createMessage("assistant", data.response));
+		messagesDiv.scrollTop = messagesDiv.scrollHeight;
+		workflowDialog.close();
+		workflowForm.reset();
+		showStatus("");
+	} catch (error) {
+		showWorkflowError(`Erreur réseau : ${error.message}`);
+	} finally {
+		loading.remove();
+		isAnalyzingDocument = false;
+		workflowSubmitButton.disabled = false;
+		workflowCancelButton.disabled = false;
+		workflowSubmitButton.textContent = "Analyser";
+		if (currentSessionId !== null) {
+			userInput.disabled = false;
+			sendBtn.disabled = false;
+		}
+		newSessionBtn.disabled = false;
+		updateAnalyzeDocumentButton();
+	}
+});
+
 async function createNewSession() {
+	if (isAnalyzingDocument) return;
 	newSessionBtn.disabled = true;
 	showStatus("Création de la session...");
 	try {

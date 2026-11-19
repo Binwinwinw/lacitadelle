@@ -2635,3 +2635,27 @@ interdit.
 **Conséquences** : les workflows PDF et SQL peuvent être sélectionnés par le
 dispatcher; les écritures SQL et les appels réseau ne sont pas activés.
 L'absence de `pypdf` reste signalée à l'exécution. 116 décisions.
+
+## [2026-11-19] Intégration AIWorkflow dans le chat
+
+**Contexte** : les workflows Markdown, PDF et SQL sont disponibles via une
+route réservée aux administrateurs. Il faut permettre leur lancement depuis le
+chat sans élargir les droits ni l'accès aux fichiers.
+
+**Décision(s)** :
+1. Ajouter dans le chat un formulaire qui détecte le workflow par extension,
+   envoie la requête avec le jeton CSRF et affiche la réponse comme message
+   assistant; le bouton est réservé aux administrateurs et nécessite une
+   session sélectionnée.
+2. Résoudre chaque chemin depuis le bundle et autoriser uniquement les fichiers
+   dans `dev/docs/`, `dev/tests/`, `dev/tools/` ou `dev/workflows/`; refuser
+   les sorties de périmètre et les liens symboliques qui y conduisent.
+3. Pour `analyse_sql`, lire le contenu du fichier `.sql` autorisé et le passer
+   au workflow existant; appliquer la politique de fichiers en rôle admin.
+4. Répondre HTTP 400 pour tout chemin non autorisé ou incompatible avec le
+   workflow.
+
+**Conséquences** : l'analyse peut être lancée dans une session de chat sans
+modifier la DB, la whitelist ou les workflows existants. La réponse est
+affichée dans la conversation courante mais n'est pas persistée en historique.
+117 décisions.

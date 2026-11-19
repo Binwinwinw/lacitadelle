@@ -14,7 +14,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 login_server = importlib.import_module("login_server")
-workflow_runner = importlib.import_module("workflow_runner")
 from _helpers import api_post, api_test_context, create_test_user, login_as
 
 
@@ -24,25 +23,6 @@ API_PATH = "/api/workflow/run"
 def _admin(opener, base_url, db_path):
     create_test_user(db_path, "admin", "secret123", role="admin")
     return login_as(opener, base_url, "admin", "secret123")
-
-
-def test_run_workflow_by_name_wraps_response_and_metadata(monkeypatch):
-    monkeypatch.setitem(
-        workflow_runner.WORKFLOW_REGISTRY,
-        "analyse_md",
-        lambda path, prompt: f"{path}: {prompt}",
-    )
-
-    result = workflow_runner.run_workflow_by_name(
-        "analyse_md",
-        "document.md",
-        "Summarize",
-    )
-
-    assert result == {
-        "response": "document.md: Summarize",
-        "metadata": {"workflow": "analyse_md"},
-    }
 
 
 def test_post_workflow_run_returns_response_for_admin():
@@ -152,20 +132,47 @@ def test_post_workflow_run_internal_error_returns_500():
 @pytest.mark.parametrize(
     ("workflow_name", "source"),
     [
-        ("analyse_pdf", "document.pdf"),
-        ("analyse_sql", "SELECT name FROM items"),
+        ("analyse_pdf", "dev/docs/document.pdf"),
+        ("analyse_sql", "dev/tests/query.sql"),
     ],
 )
 def test_post_workflow_run_dispatches_extended_workflows(
     workflow_name,
     source,
-    monkeypatch,
 ):
-    monkeypatch.setitem(
-        workflow_runner.WORKFLOW_REGISTRY,
-        workflow_name,
-        lambda value, prompt: f"{workflow_name}: {value} / {prompt}",
-    )
+    with api_test_context() as (base_url, opener, db_path):
+        token = _admin(opener, base_url, db_path)
+        expected = {
+            "response": f"{workflow_name}: {source} / Analyse",
+            "metadata": {"workflow": workflow_name},
+        }
+        with patch.object(
+            login_server,
+            "run_workflow_by_name",
+            return_value=expected,
+        ) as run_workflow:
+            with api_post(
+                opener,
+                base_url,
+                API_PATH,
+                token,
+                {
+                    "workflow": workflow_name,
+                    "path": source,
+                    "prompt": "Analyse",
+                },
+            ) as response:
+                assert response.code == 200
+                result = json.loads(response.read().decode("utf-8"))
+        run_workflow.assert_called_once_with(workflow_name, source, "Analyse")
+
+    assert result == expected
+
+
+def test_post_workflow_run_rejects_path_outside_allowed_directories(tmp_path):
+    outside_path = tmp_path / "document.md"
+    outside_path.write_text("# Private", encoding="utf-8")
+
     with api_test_context() as (base_url, opener, db_path):
         token = _admin(opener, base_url, db_path)
         with api_post(
@@ -174,15 +181,12 @@ def test_post_workflow_run_dispatches_extended_workflows(
             API_PATH,
             token,
             {
-                "workflow": workflow_name,
-                "path": source,
+                "workflow": "analyse_md",
+                "path": str(outside_path),
                 "prompt": "Analyse",
             },
         ) as response:
-            assert response.code == 200
-            result = json.loads(response.read().decode("utf-8"))
-
-    assert result == {
-        "response": f"{workflow_name}: {source} / Analyse",
-        "metadata": {"workflow": workflow_name},
-    }
+            assert response.code == 400
+            assert json.loads(response.read().decode("utf-8")) == {
+                "error": "Chemin non autorisé"
+            }
