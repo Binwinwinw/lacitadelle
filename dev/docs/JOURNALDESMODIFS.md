@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-19] GO 16-DOCS-CLEANUP-BIS — état documentaire AIWorkflow
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `README.md`, `dev/docs/ARCHITECTURE.md`,
+`dev/docs/MODELES-TESTES.md`, `dev/docs/BACKLOG.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : refléter la livraison des workflows et normaliser les champs
+Décision(s) des entrées historiques.
+**Impact** : documentation uniquement; 286 tests et 117 décisions inchangés;
+aucun changement de code, DB ou whitelist.
+
 ## [2026-11-19] GO 16-ARCH-WORKFLOW-CHAT — analyse documentaire dans le chat
 
 **Commit** : en cours de rédaction.

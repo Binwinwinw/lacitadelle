@@ -156,8 +156,8 @@ d'administration web.
 
 ## AIWorkflow
 
-Spécification de conception préalable à l'implémentation. Cette section ne
-décrit pas des composants déjà livrés.
+Cette section conserve la spécification initiale et décrit l'état actuel de
+l'implémentation AIWorkflow.
 
 ### 1. Vue d'ensemble
 
@@ -265,3 +265,30 @@ partie du parcours hors ligne et ne sera pas activé par défaut.
   observé sur les modèles.
 - **Frameworks lourds** tels que LangChain ou LlamaIndex : écartés pour cette
   conception, à réévaluer seulement si un besoin le justifie.
+
+### État d'implémentation (2026-11-19)
+
+- Le moteur maison, les nœuds FTS5 et `analyse_md` sont livrés.
+- Les nœuds PDF/SQL/Web et les workflows `analyse_pdf` et `analyse_sql` sont
+  enregistrés. Les trois workflows disponibles sont `analyse_md`,
+  `analyse_pdf` et `analyse_sql`.
+- `POST /api/workflow/run` et la page d'administration permettent aux admins
+  d'exécuter un workflow. Le chat dispose aussi d'un formulaire admin avec
+  détection par extension et affichage de la réponse comme message assistant.
+- Les chemins sont confinés à `dev/docs/`, `dev/tests/`, `dev/tools/` et
+  `dev/workflows/`; le dispatcher lit les fichiers `.sql` autorisés et le nœud
+  SQL n'accepte que `SELECT`.
+- La suite contient 286 tests au 2026-11-19.
+
+**Commits** : décision AIWorkflow `5f23c7e`; spécification `b3b6a80`; moteur
+et analyse Markdown `6561b47`; correction E2E retrieval `5df516e`; API
+`fc0575e`; UI admin `a5273c2`; nœuds et workflows PDF/SQL `d2e4ebf`; chat
+`916dc0a`.
+
+### Limites connues
+
+- `pypdf` n'est pas installé; l'extraction PDF signale clairement cette
+  absence à l'exécution.
+- `search_web` n'a pas d'API configurée et lève `NotImplementedError`.
+- FTS5 ne fournit pas de lemmatisation complète; la normalisation actuelle
+  ne couvre pas toutes les formes morphologiques du français.

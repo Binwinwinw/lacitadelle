@@ -664,8 +664,8 @@ notamment pour une distribution EXE hors ligne.
 
 **Statut** : session modèles clôturée (9 testés, 4 validés chat, 1
 code only, 4 KO). Décision de défaut contextuel (Qwen3.5-9B /
-Qwen3-4B). Trois GO étaient déjà documentés; quatorze GO sont maintenant
-planifiés, soit 17 au total.
+Qwen3-4B). La base AIWorkflow (spécification, moteur, workflows, API, UI admin
+et intégration chat) est livrée; les GO de suivi validés sont listés ci-dessous.
 
 **GO planifiés** (détails, dépendances et propriétaires : voir TODO.md) :
 
@@ -688,12 +688,31 @@ planifiés, soit 17 au total.
 8. **16-ARCH-WORKFLOW-DESIGN** — **SPEC FAITE** le 2026-11-18; voir
    [`ARCHITECTURE.md`](./ARCHITECTURE.md). Le moteur maison et SQLite FTS5
    remplacent Graphify. Dépendance au POC levée.
-9. **16-ARCH-WORKFLOW-IMPL** — priorité haute. **Périmètre** : moteur
-   (`workflow_engine.py`), nœuds extraction, indexation FTS5 et appel modèle,
-   puis workflow d'analyse Markdown. **Dépendances** : spécification
-   16-ARCH-WORKFLOW-DESIGN (faite). **Questions ouvertes** : choisir la
-   bibliothèque PDF hors ligne. **Moment** : GO séparé après la spécification.
-   **Effort** : à estimer.
+9. **16-ARCH-WORKFLOW-IMPL** — **LIVRÉ** : moteur, nœuds, workflows
+   `analyse_md`/`analyse_pdf`/`analyse_sql`, API, UI admin et intégration chat.
+   Commits : `6561b47`, `5df516e`, `fc0575e`, `a5273c2`, `d2e4ebf`,
+   `916dc0a`.
+
+**Suivis AIWorkflow validés** :
+
+- **16-ARCH-WORKFLOW-UI-TESTS** — priorité haute, à faire; validé le
+  2026-11-19.
+  **Dépendances** : intégration chat livrée (`916dc0a`). **Périmètre** : test
+  Node natif de la détection `.md`/`.pdf`/`.sql` et test Python de présence
+  des éléments HTML. **Questions ouvertes** : disponibilité de `jsdom` à
+  vérifier; aucune installation réseau. **Moment** : GO séparé.
+- **16-ARCH-WORKFLOW-RAG-IMPROVE** — priorité haute, à faire; validé le
+  2026-11-19.
+  **Dépendances** : index FTS5 et workflow Markdown livrés (`6561b47`,
+  `5df516e`). **Périmètre** : chunks par paragraphe, reranking BM25 avec
+  bonus de pertinence, normalisation de pluriels irréguliers.
+  **Questions ouvertes** : aucune dans le périmètre du GO.
+  **Moment** : GO séparé.
+- **16-DOCS-CLEANUP-BIS** — priorité haute, en cours depuis le 2026-11-19.
+  **Dépendances** : résultats des GO UI-TESTS et RAG-IMPROVE.
+  **Périmètre** : actualiser le décompte de tests du README après chaque GO
+  et clore la normalisation documentaire AIWorkflow.
+  **Questions ouvertes** : aucune. **Moment** : après chaque GO de suivi.
 
 ### Priorité basse (évolutions)
 
@@ -712,9 +731,9 @@ planifiés, soit 17 au total.
     **Questions ouvertes** : aucune. **Moment** : GO séparé après validation.
     **Effort** : à estimer.
 
-**Effort total estimé** : ~10-15 jours de travail, hors MODELE-NETTOYAGE,
-POC Graphify clos et implémentation AIWorkflow (efforts à estimer; répartis
-sur plusieurs sessions).
+**Effort total estimé** : ~10-15 jours de travail pour les tâches historiques
+listées, hors MODELE-NETTOYAGE, POC Graphify clos et AIWorkflow livré. Les
+suivis AIWorkflow restent sans estimation.
 
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
 BACKLOG.md conserve le statut, les priorités et l'effort estimé sans

@@ -1,6 +1,6 @@
 # Modèles testés avec Nexxus
 
-**Dernière mise à jour** : 2026-11-17
+**Dernière mise à jour** : 2026-11-19
 
 ## Méthodologie
 
@@ -262,7 +262,11 @@ tous les cas.
 | **Qwen2.5-7B** | 4.7 Go | 2.75/5 | ❌ KO (supprimé) | — | 471c935 |
 | **Phi-3.5-mini** | 2.4 Go | 2.3/5 | ❌ KO (non retenu, absent whitelist) | — | 62e5039 |
 
-## Tests live 2026-11
+## Bilan tests live
+
+Ornith-1.5-9B et Qwen3.5-9B sont co-champions (5/5). qwen2.5-3b,
+Mistral-Nemo-12B et Gemma-2-9B sont KO et retirés de la whitelist.
+Llama-3.1-8B reste conservé pour le tool calling (3/5).
 
 Résultats rapportés par le Décideur sur 7 prompts par modèle :
 

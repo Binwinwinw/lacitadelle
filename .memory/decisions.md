@@ -20,6 +20,10 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 4. Asset ajouté dans `llamafile_config.json` avec `required=false` (non téléchargé par `bootstrap.py`, réservé à `build_llamafile.py`).
 5. Le `.args` devra référencer le modèle avec le préfixe `/zip/` (obligatoire pour les fichiers embarqués dans un llamafile).
 
+**Décision(s)** : retenir le GGUF Qwen3-1.7B Q4_K_M depuis une URL
+HuggingFace épinglée, avec checksum vérifié, comme asset optionnel du
+pipeline `.llamafile`.
+
 **Conséquences** : les métadonnées HuggingFace indiquent une taille de 1 282 439 456 octets (`~1,28 Go` décimaux, `~1,19 Gio`); avec le runtime d'environ 44 Mo, le `.llamafile` final est estimé à environ 1,33 Go décimaux. `build_llamafile.py` pourra être implémenté une fois les 3 autres décisions (confirmation de la source exacte, nom/emplacement final, args détaillés) confirmées. Les args minimaux proposés sont `-m /zip/Qwen3-1.7B-Q4_K_M.gguf`, `--port 8080`, `-c 4096`, `--temp 0.7` et `-t auto`; la documentation actuelle indique `-t N` et ne documente pas `auto`, donc cette valeur reste à valider avant implémentation.
 
 ## [2026-10-17] Objectif v1 : Pocket Chat (llamafile + modèle embarqué, interface texte)
@@ -30,6 +34,9 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 
 **Décision** : v1 = fichier `.llamafile` unique, modèle 1B-3B embarqué, interface texte de llamafile. Pas de tool calling, pas de téléchargement de modèles dans l'app, pas de GUI graphique.
 
+**Décision(s)** : retenir pour la v1 un chat texte local utilisant llamafile,
+sans tool calling, GUI graphique ni téléchargement intégré de modèles.
+
 **Conséquences** : le succès de v1 se mesure par « un non-technique double-clique et obtient une conversation ». Tout le reste est hors périmètre v1.
 
 ## [2026-10-17] Python = fabrication uniquement
@@ -39,6 +46,9 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 **Contexte** : Python ne peut pas produire un binaire APE multi-OS. llamafile (C++/cosmocc) fournit ce binaire. La Citadelle a besoin d'un pipeline pour transformer un GGUF en `.llamafile` prêt à l'emploi.
 
 **Décision** : aucun code Python ne sera exécuté chez l'utilisateur final. Le pipeline Python prend un GGUF en entrée et produit un `.llamafile` exécutable.
+
+**Décision(s)** : réserver Python au pipeline de fabrication et ne livrer
+aucun runtime Python à l'utilisateur final.
 
 **Conséquences** : l'utilisateur final ne dépend pas de Python. Le pipeline Python vit côté fabrication (dev/tools, dev/scripts). Aucune dépendance Python ne doit fuiter dans l'artefact livré.
 
@@ -54,6 +64,10 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 
 **Document de cadrage** : `dev/docs/GIT_STRATEGY.md`.
 
+**Décision(s)** : retenir l'option C avec dépôt distant et `.gitignore`
+couvrant les dépendances, binaires et le dossier `main/`, qui ne doit pas
+être versionné.
+
 **Conséquences** : aucun fichier de `main/` ne sera versionné. Un script de bootstrap devra être créé avant tout clone sur une nouvelle machine. La mise sous Git effective (`git init`, création du dépôt distant, premier commit) est une tâche distincte, à exécuter sur instruction explicite du décideur.
 
 ## [2026-10-17] Compléments de mise sous Git
@@ -67,6 +81,10 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 3. Premier commit : tout le socle actuel (README, `AGENTS.md`, `.memory/`, `dev/docs/`, `.github/`, `.gitignore`). `main/` est exclu via `.gitignore`.
 4. RÈGLE NON-NÉGOCIABLE : `main/` ne doit JAMAIS apparaître sur GitHub. Le `.gitignore` garantit cette exclusion. Aucune exception sans décision explicite du décideur consignée dans ce fichier.
 
+**Décision(s)** : utiliser `main` comme branche par défaut et séparer
+l'initialisation locale du dépôt de la configuration distante et du push,
+qui exigent une instruction explicite.
+
 **Conséquences** : la mise sous Git est découpée en deux temps. Temps 1 (local) : `git init`, vérifications `git status`, `git add .`, commit. Temps 2 (réseau) : `git remote add origin`, `git push -u origin main`. Chaque temps est une tâche séparée, exécutée sur instruction explicite du décideur.
 
 ## [2026-10-17] Base llamafile : Option X (binaire pré-compilé upstream)
@@ -76,6 +94,9 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 **Contexte** : le pipeline v1 doit produire un `.llamafile` à partir d'un GGUF et d'un binaire llamafile de base. Trois options étaient documentées dans `dev/docs/BASE_LLAMAFILE.md` (X : binaire pré-compilé, Y : compilation depuis `main/`, Z : hybride).
 
 **Décision** : Option X retenue par le décideur le 2026-10-17. Le binaire llamafile sera téléchargé depuis les releases upstream (version à figer après vérification factuelle). `main/` reste en référence documentaire, jamais compilé pour la v1.
+
+**Décision(s)** : retenir les binaires précompilés des releases upstream,
+sans compiler le fork `main/` pour la v1.
 
 **Conséquences** : un script de téléchargement avec vérification de checksum SHA-256 sera nécessaire (voir `dev/tools/VENDOR_STRATEGY.md`). Le binaire téléchargé sera gitignoré, comme `main/`. Aucune compilation n'est requise pour la v1.
 
@@ -93,6 +114,9 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 4. **Détection GPU + bascule** : reportée en v2, documentée comme objectif futur.
 5. **Vendorisation** : binaires dans `dev/tools/vendor/llamafile/` (gitignoré), configuration dans `dev/tools/llamafile_config.json` (versionné), vérification SHA-256 obligatoire, échec → arrêt sans exécution.
 
+**Décision(s)** : utiliser llamafile 0.10.6 thin avec zipalign et vérification
+SHA-256; reporter la détection GPU.
+
 **Conséquences** : la prochaine étape est de créer `llamafile_config.json` puis `bootstrap.py`. Aucune compilation n'est requise. Le pipeline Python pourra assembler un `.llamafile` à partir du thin + zipalign + GGUF.
 
 ## [2026-10-17] Premier code : bootstrap.py en stdlib, structure squelette
@@ -105,6 +129,10 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 2. Config : `dev/tools/llamafile_config.json`, JSON plat avec version + dict d'assets.
 3. Structure : d'abord un squelette avec fonctions signature + docstrings + corps TODO, puis implémentation fonction par fonction avec tests.
 4. Comportement : téléchargement des assets required=true, vérification SHA-256 obligatoire, échec → arrêt propre (code non-zéro), aucune exécution du binaire téléchargé.
+
+**Décision(s)** : créer un bootstrap Python stdlib avec configuration JSON,
+vérification de checksum obligatoire et implémentation progressive des
+fonctions; ne jamais exécuter un asset téléchargé.
 
 **Conséquences** : la prochaine tâche implémentera `load_config()` (la plus simple, sans I/O réseau), puis `compute_sha256()` et `download()` séparément. Le décideur exécutera le script lui-même pour tester.
 
@@ -128,6 +156,10 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 10. Implémentation en 5 étapes, une par commit : `load_config`, `compute_sha256`+`verify_sha256`, `download`, `process_asset`, `main`.
 11. Non-objectifs v1 : pas de `--force`, pas de parallélisation, pas de reprise HTTP Range, pas d'exécution du binaire.
 
+**Décision(s)** : imposer au bootstrap un contrat strict de validation,
+réparation unique, erreurs explicites, délais bornés et étapes testées, sans
+retry en boucle ni exécution des binaires.
+
 **Conséquences** : la prochaine tâche implémentera `load_config()` seule, avec ses validations strictes. Tests unitaires à prévoir à chaque étape.
 
 ## [2026-10-17] Incident hacklm-memory : injection non autorisée dans copilot-instructions.md
@@ -141,6 +173,10 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 3. Un garde-fou sera ajouté dans `AGENTS.md` règle 6 pour mentionner explicitement `hacklm-memory` (temps 2, tâche suivante).
 4. Après chaque session, vérifier que `.github/copilot-instructions.md` n'a pas été réinjecté.
 
+**Décision(s)** : traiter hacklm-memory comme un outil intrusif, interdire
+ses modifications de `.memory/` et de `.github/copilot-instructions.md`, et
+vérifier ces fichiers à chaque session.
+
 **Conséquences** : la prochaine tâche (temps 2) renforcera `AGENTS.md` et mettra en place une vérification systématique du fichier Copilot. Si `hacklm-memory` réinjecte le bloc malgré tout, un garde-fou actif (hook Git ou script de pré-commit) sera nécessaire.
 
 ## [2026-10-17] Incident force-push : réécriture d'historique non autorisée
@@ -153,6 +189,10 @@ sans instruction explicite du décideur (voir AGENTS.md, règle non-négociable 
 2. Règle 8 ajoutée à `AGENTS.md` pour formaliser cette interdiction.
 3. L'historique réécrit (`4310706` → `aadbdeb`) est conservé en l'état. Aucune tentative de restauration n'est faite (risque de casser davantage).
 4. À l'avenir, si un commit doit être corrigé, créer un NOUVEAU commit par-dessus.
+
+**Décision(s)** : interdire amend, rebase et force-push sans autorisation
+explicite; toute correction doit être un nouveau commit, sans réécriture
+d'historique.
 
 **Conséquences** : l'historique Git est désormais protégé par la règle 8. Toute violation doit être signalée. Le commit `4310706` n'existe plus dans l'historique, mais son contenu a été intégré dans `aadbdeb` (les deux commits portent le même message et les mêmes changements).
 
@@ -175,6 +215,10 @@ compilation optionnelle, etc.) et deviennent obsolètes.
    dépendance upstream llamafile est retirée du worktree.
 4. Le dépôt mozilla-ai/llamafile reste la source d'inspiration du
    projet et sera mentionné explicitement dans le README (Temps 2).
+
+**Décision(s)** : conserver les références historiques à `main/` pour la
+traçabilité, mais les considérer obsolètes depuis le 2026-10-18 et ne plus
+utiliser ce dossier.
 
 **Conséquences** : les règles d'AGENTS.md et les documents
 (README, GIT_STRATEGY.md, OBJECTIF.md, BASE_LLAMAFILE.md,
@@ -2264,6 +2308,10 @@ Note globale : 4.4/5 (MEILLEUR des 5 modèles testés).
 3. **Décision finale du défaut DIFFÉRÉE** après test Qwen3.5-9B
    (dernier modèle du catalogue).
 4. Documenter dans MODELES-TESTES.md.
+
+**Décision(s)** : recommander provisoirement Qwen3-4B-Thinking pour la
+précision et conserver Qwen3-4B vanilla comme défaut; différer le choix final
+jusqu'au test Qwen3.5-9B.
 
 **Conséquences** : 3 modèles validés (rapide / précision / factuel),
 2 KO. 97 décisions. Décision finale après Qwen3.5-9B.

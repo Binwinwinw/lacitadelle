@@ -58,6 +58,24 @@ Create an account, log in, and select **+ New session** (**+ Nouvelle session**)
   the native launcher starts.
 - Regular users can chat and access only their own conversations.
 
+## AIWorkflow
+
+AIWorkflow runs local Python workflows for document analysis:
+
+- Workflows: `analyse_md`, `analyse_pdf`, and `analyse_sql`.
+- Interfaces: the admin API, the admin workflow page, and the admin-only
+  document action in chat.
+- The test suite contains **286 tests (état actuel au 2026-11-19)**. « Décompte
+  mis à jour après chaque GO (UI-TESTS, RAG). »
+
+See the [architecture](./dev/docs/ARCHITECTURE.md), [tested models](./dev/docs/MODELES-TESTES.md),
+and [backlog](./dev/docs/BACKLOG.md).
+
+## Models
+
+Ornith-1.5-9B and Qwen3.5-9B are co-champions, both scoring 5/5 in live tests.
+See the [tested models](./dev/docs/MODELES-TESTES.md) for results.
+
 ## Known limitations
 
 - The Python server is single-threaded: a slow request blocks subsequent
@@ -78,6 +96,10 @@ proxy. CORS is not a firewall, so local programs can still access loopback.
 Do not expose La Citadelle to a network or the public internet. The local
 version uses HTTP; production network access requires HTTPS and the additional
 protections described in the project security plan.
+
+AIWorkflow execution is admin-only. Document paths are confined to
+`dev/docs/`, `dev/tests/`, `dev/tools/`, and `dev/workflows/`; SQL workflows
+accept `SELECT` queries only.
 
 ## Stopping La Citadelle
 
