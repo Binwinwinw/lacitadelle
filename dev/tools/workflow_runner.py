@@ -12,10 +12,14 @@ if not getattr(sys, "frozen", False):
         sys.path.insert(0, project_root)
 
 from dev.workflows.analyse_md import analyse_md
+from dev.workflows.analyse_pdf import analyse_pdf
+from dev.workflows.analyse_sql import analyse_sql
 
 WorkflowFunction = Callable[[str, str], str]
 WORKFLOW_REGISTRY: dict[str, WorkflowFunction] = {
     "analyse_md": analyse_md,
+    "analyse_pdf": analyse_pdf,
+    "analyse_sql": analyse_sql,
 }
 
 

@@ -2613,3 +2613,25 @@ disponibles; il faut pouvoir les essayer manuellement depuis l'administration.
 Aucun framework de test UI n'est configuré; le smoke test navigateur avec une
 réponse API simulée vérifie l'envoi CSRF, le chargement et l'affichage texte.
 Aucune modification de la DB ou de la whitelist; 115 décisions.
+
+## [2026-11-18] Extension des nœuds outils AIWorkflow
+
+**Contexte** : les workflows doivent pouvoir analyser des PDF et des résultats
+SQLite, tandis que la recherche Web reste indisponible hors ligne. `pypdf`
+n'est pas installé dans l'environnement et l'accès réseau pour l'ajouter est
+interdit.
+
+**Décision(s)** :
+1. Ajouter `extract_pdf`; si `pypdf` manque, lever une erreur explicite sans
+   installer de dépendance.
+2. Autoriser `query_sql` uniquement pour les requêtes `SELECT`; ouvrir la base
+   Citadelle en lecture seule dans le workflow SQL par défaut.
+3. Ajouter `search_web` comme stub hors ligne qui lève
+   `NotImplementedError("API web non configurée (hors ligne)")`; aucune API
+   n'est configurée.
+4. Ajouter les workflows `analyse_pdf` et `analyse_sql` sans modifier
+   `analyse_md`.
+
+**Conséquences** : les workflows PDF et SQL peuvent être sélectionnés par le
+dispatcher; les écritures SQL et les appels réseau ne sont pas activés.
+L'absence de `pypdf` reste signalée à l'exécution. 116 décisions.

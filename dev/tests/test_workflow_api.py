@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
@@ -145,3 +147,42 @@ def test_post_workflow_run_internal_error_returns_500():
                 assert response.code == 500
                 result = json.loads(response.read().decode("utf-8"))
         assert "internal detail" not in result["error"]
+
+
+@pytest.mark.parametrize(
+    ("workflow_name", "source"),
+    [
+        ("analyse_pdf", "document.pdf"),
+        ("analyse_sql", "SELECT name FROM items"),
+    ],
+)
+def test_post_workflow_run_dispatches_extended_workflows(
+    workflow_name,
+    source,
+    monkeypatch,
+):
+    monkeypatch.setitem(
+        workflow_runner.WORKFLOW_REGISTRY,
+        workflow_name,
+        lambda value, prompt: f"{workflow_name}: {value} / {prompt}",
+    )
+    with api_test_context() as (base_url, opener, db_path):
+        token = _admin(opener, base_url, db_path)
+        with api_post(
+            opener,
+            base_url,
+            API_PATH,
+            token,
+            {
+                "workflow": workflow_name,
+                "path": source,
+                "prompt": "Analyse",
+            },
+        ) as response:
+            assert response.code == 200
+            result = json.loads(response.read().decode("utf-8"))
+
+    assert result == {
+        "response": f"{workflow_name}: {source} / Analyse",
+        "metadata": {"workflow": workflow_name},
+    }

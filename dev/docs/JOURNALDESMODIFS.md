@@ -2,6 +2,26 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-18] GO 16-ARCH-WORKFLOW-NODES-EXT — nœuds PDF/SQL/Web
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/nodes/extract_pdf.py`,
+`dev/tools/nodes/query_sql.py`, `dev/tools/nodes/search_web.py`,
+`dev/workflows/analyse_pdf.py`, `dev/workflows/analyse_sql.py`,
+`dev/tools/workflow_runner.py`, `dev/tests/test_nodes_pdf.py`,
+`dev/tests/test_nodes_sql.py`, `dev/tests/test_workflow_analyse_pdf.py`,
+`dev/tests/test_workflow_analyse_sql.py`, `dev/tests/test_workflow_api.py`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : étendre les outils et workflows locaux à l'analyse PDF et SQL;
+laisser la recherche Web explicitement désactivée hors ligne.
+**Impact** : pypdf absent, erreur claire sans installation; SQL limité à SELECT
+et base par défaut ouverte en lecture seule; Web lève NotImplementedError.
+Dix tests ajoutés; `pytest -q` : 283 passés. Build PyInstaller temporaire
+réussi pour les workflows PDF/SQL; DB et whitelist inchangées; 116 décisions.
+TODO inchangé : aucune tâche NODES-EXT active, conformément à la politique
+active-only.
+
 ## [2026-11-18] GO 16-ARCH-WORKFLOW-UI-BIS — formulaire admin AIWorkflow
 
 **Commit** : en cours de rédaction.
