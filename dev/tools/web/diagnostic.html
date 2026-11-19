@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{CSRF_TOKEN}}">
+    <title>La Citadelle - Diagnostic</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-layout">
+        <aside class="sidebar">
+            <h2>La Citadelle</h2>
+            <a href="/" class="sidebar-link">Retour au chat</a>
+            <a href="/admin" class="sidebar-link">Administration</a>
+            <form method="POST" action="/logout">
+                <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
+                <button type="submit" class="logout-btn">Déconnexion</button>
+            </form>
+        </aside>
+        <main class="chat-main settings-main">
+            <h1>Diagnostic GPU / runtime</h1>
+            <p id="diagnostic-status" class="status" role="status" aria-live="polite">
+                Chargement...
+            </p>
+            <section class="settings-section" aria-labelledby="gpu-heading">
+                <h2 id="gpu-heading">GPU</h2>
+                <div id="gpu-cards" class="indicator-cards"></div>
+                <p id="gpu-badge" role="status">État GPU : —</p>
+                <p id="gpu-layers">Layers offloaded : —</p>
+            </section>
+            <section class="settings-section" aria-labelledby="runtime-heading">
+                <h2 id="runtime-heading">Runtime</h2>
+                <p>Port 8080 : <strong id="runtime-port">—</strong></p>
+                <p>Modèle courant : <strong id="runtime-model">—</strong></p>
+                <p>Uptime : <strong id="runtime-uptime">—</strong></p>
+            </section>
+            <section class="settings-section" aria-labelledby="logs-heading">
+                <h2 id="logs-heading">Logs récents</h2>
+                <div class="indicator-heading">
+                    <label for="log-source">Source</label>
+                    <select id="log-source" class="indicator-window">
+                        <option value="llama">llama-server</option>
+                        <option value="login">login_server</option>
+                        <option value="app">app</option>
+                    </select>
+                    <label for="log-lines">Lignes</label>
+                    <input id="log-lines" type="number" min="1" max="1000" value="100">
+                    <button id="refresh-diagnostic" class="settings-save" type="button">
+                        Rafraîchir
+                    </button>
+                </div>
+                <p>
+                    <label>
+                        <input id="auto-refresh" type="checkbox" checked>
+                        Auto-refresh toutes les 5 secondes
+                    </label>
+                </p>
+                <textarea
+                    id="log-output"
+                    class="workflow-output"
+                    rows="18"
+                    readonly
+                    aria-label="Dernières lignes de log"></textarea>
+            </section>
+        </main>
+    </div>
+    <script>
+        const statusElement = document.getElementById("diagnostic-status");
+        const gpuCards = document.getElementById("gpu-cards");
+        const gpuBadge = document.getElementById("gpu-badge");
+        const gpuLayers = document.getElementById("gpu-layers");
+        const runtimePort = document.getElementById("runtime-port");
+        const runtimeModel = document.getElementById("runtime-model");
+        const runtimeUptime = document.getElementById("runtime-uptime");
+        const logSource = document.getElementById("log-source");
+        const logLines = document.getElementById("log-lines");
+        const logOutput = document.getElementById("log-output");
+        const refreshButton = document.getElementById("refresh-diagnostic");
+        const autoRefresh = document.getElementById("auto-refresh");
+        let isRefreshing = false;
+        let refreshTimer = null;
+
+        async function fetchJson(url) {
+            const response = await fetch(url, { credentials: "same-origin" });
+            if (response.status === 401) {
+                window.location.href = "/login";
+                throw new Error("Session expirée.");
+            }
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP ${response.status}`);
+            }
+            return response.json();
+        }
+
+        function formatUptime(seconds) {
+            if (!Number.isFinite(seconds) || seconds < 0) return "Inconnu";
+            const total = Math.floor(seconds);
+            const hours = Math.floor(total / 3600);
+            const minutes = Math.floor((total % 3600) / 60);
+            return `${hours} h ${minutes} min ${total % 60} s`;
+        }
+
+        function renderGpu(gpu, layers) {
+            gpuCards.replaceChildren();
+            if (!gpu.available) {
+                const message = document.createElement("p");
+                message.textContent = gpu.reason || "GPU indisponible";
+                gpuCards.appendChild(message);
+                gpuBadge.textContent = gpu.reason || "GPU indisponible";
+            } else {
+                for (const device of gpu.gpus || []) {
+                    const card = document.createElement("article");
+                    card.className = "indicator-card";
+                    const name = document.createElement("h3");
+                    name.textContent = device.name;
+                    const details = document.createElement("p");
+                    details.textContent =
+                        `VRAM ${device.vram_used_mb}/${device.vram_total_mb} MB — `
+                        + `${device.utilization_pct}%`;
+                    card.append(name, details);
+                    gpuCards.appendChild(card);
+                }
+                gpuBadge.textContent = "GPU détecté";
+            }
+
+            if (layers.offloaded === null || layers.total === null) {
+                gpuLayers.textContent = "Layers offloaded : inconnu";
+            } else {
+                const count = `${layers.offloaded}/${layers.total}`;
+                if (layers.offloaded > 0 && layers.offloaded === layers.total) {
+                    gpuLayers.textContent = `Layers offloaded : ${count} — GPU ✅`;
+                } else if (layers.offloaded === 0) {
+                    gpuLayers.textContent = `Layers offloaded : ${count} — CPU ⚠️`;
+                } else {
+                    gpuLayers.textContent = `Layers offloaded : ${count} — Partiel ⚠️`;
+                }
+            }
+        }
+
+        function renderRuntime(runtime) {
+            runtimePort.textContent = runtime.port_8080_open ? "Ouvert" : "Fermé";
+            runtimeModel.textContent = runtime.current_model || "Non configuré";
+            runtimeUptime.textContent = formatUptime(runtime.uptime_seconds);
+        }
+
+        async function refreshDiagnostic() {
+            if (isRefreshing) return;
+            isRefreshing = true;
+            refreshButton.disabled = true;
+            refreshButton.textContent = "Chargement...";
+            statusElement.className = "status";
+            statusElement.textContent = "Actualisation du diagnostic...";
+            try {
+                const [diagnostic, logs] = await Promise.all([
+                    fetchJson("/api/diagnostic"),
+                    fetchJson(
+                        `/api/diagnostic/logs?source=${encodeURIComponent(logSource.value)}`
+                        + `&lines=${encodeURIComponent(logLines.value)}`
+                    ),
+                ]);
+                renderGpu(diagnostic.gpu, diagnostic.llama_layers);
+                renderRuntime(diagnostic.runtime);
+                logOutput.textContent = logs.lines.join("\n");
+                statusElement.textContent = "Diagnostic actualisé.";
+            } catch (error) {
+                statusElement.className = "status error";
+                statusElement.textContent = error.message;
+            } finally {
+                isRefreshing = false;
+                refreshButton.disabled = false;
+                refreshButton.textContent = "Rafraîchir";
+            }
+        }
+
+        function updateAutoRefresh() {
+            if (refreshTimer !== null) clearInterval(refreshTimer);
+            refreshTimer = autoRefresh.checked
+                ? setInterval(refreshDiagnostic, 5000)
+                : null;
+        }
+
+        refreshButton.addEventListener("click", refreshDiagnostic);
+        autoRefresh.addEventListener("change", updateAutoRefresh);
+        updateAutoRefresh();
+        refreshDiagnostic();
+    </script>
+</body>
+</html>

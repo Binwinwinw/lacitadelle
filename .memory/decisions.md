@@ -2760,3 +2760,23 @@ a retourné des sections hors cible, tandis que les 294 tests pytest passent.
 **Conséquences** : l'amélioration RAG est livrable avec 294 tests passants,
 mais la limite d'inférence reste ouverte jusqu'au test live de suivi.
 120 décisions.
+
+## [2026-11-19] Diagnostic GPU, runtime et logs récents
+
+**Contexte** : le diagnostic local des performances dépendait de la console
+runtime et de commandes manuelles. Les admins et contributeurs ont besoin
+d'un état consultable depuis l'application, sans exposer les diagnostics aux
+utilisateurs réguliers.
+
+**Décision(s)** :
+1. Ajouter une page `/diagnostic` et deux routes API admin-only pour le statut
+   GPU (`nvidia-smi`), les couches llama.cpp offloadées, le runtime et les logs.
+2. Limiter les sources de logs à llama, login et application; masquer les
+   lignes contenant des indicateurs de secret avant de les retourner.
+3. Afficher les logs avec `textContent` et rafraîchir le diagnostic toutes les
+   cinq secondes lorsque l'option est activée.
+
+**Conséquences** : 15 tests ajoutés (309 passés); aucune modification de la DB
+ou de la whitelist. Si le fichier de logs ne contient pas la ligne
+`offloaded X/Y layers to GPU`, le nombre de couches reste inconnu.
+121 décisions.

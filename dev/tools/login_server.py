@@ -68,6 +68,13 @@ from citadelle_memory import (
     set_setting,
     verify_password,
 )
+from diagnostic import (
+    LOG_SOURCES,
+    get_gpu_status,
+    get_llama_gpu_layers,
+    get_recent_logs,
+    get_runtime_status,
+)
 from model_health import CURRENT_MODEL_FILE, DEFAULT_MODEL_PATH
 from paths import get_bundle_dir
 from workflow_runner import (
@@ -633,6 +640,13 @@ def handle_get_admin(handler: BaseHTTPRequestHandler) -> None:
     serve_static(handler, "admin.html")
 
 
+def handle_get_diagnostic(handler: BaseHTTPRequestHandler) -> None:
+    """GET /diagnostic : sert la page diagnostic aux administrateurs."""
+    if require_admin(handler) is None:
+        return
+    serve_static(handler, "diagnostic.html")
+
+
 def handle_get_api_me(handler: BaseHTTPRequestHandler) -> None:
     """GET /api/me : retourne le nom et le rôle de la session courante."""
     user_id = get_authenticated_user_id(handler)
@@ -974,6 +988,69 @@ def handle_get_api_indicators(handler: BaseHTTPRequestHandler) -> None:
             "avg_time_per_request_ms": average_duration,
         },
     )
+
+
+def handle_get_api_diagnostic(handler: BaseHTTPRequestHandler) -> None:
+    """GET /api/diagnostic : retourne l'état GPU et llamafile aux admins."""
+    if require_admin(handler) is None:
+        return
+    try:
+        status = {
+            "gpu": get_gpu_status(),
+            "llama_layers": get_llama_gpu_layers(),
+            "runtime": get_runtime_status(),
+        }
+    except Exception as exc:
+        sys.stderr.write(
+            f"[diagnostic] Échec interne ({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Erreur interne lors du diagnostic",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+    json_response(handler, status)
+
+
+def handle_get_api_diagnostic_logs(handler: BaseHTTPRequestHandler) -> None:
+    """GET /api/diagnostic/logs : retourne un tail filtré réservé aux admins."""
+    if require_admin(handler) is None:
+        return
+
+    params = parse_qs(urlparse(handler.path).query)
+    source = params.get("source", [""])[0]
+    raw_lines = params.get("lines", ["100"])[0]
+    try:
+        lines = int(raw_lines)
+    except ValueError:
+        error_response(
+            handler,
+            "Paramètre lines invalide",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+    if source not in LOG_SOURCES or not 1 <= lines <= 1000:
+        error_response(
+            handler,
+            "Paramètres source ou lines invalides",
+            HTTPStatus.BAD_REQUEST,
+        )
+        return
+
+    try:
+        recent_logs = get_recent_logs(source, lines)
+    except Exception as exc:
+        sys.stderr.write(
+            f"[diagnostic] Échec lecture des logs ({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Erreur interne lors de la lecture des logs",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+    json_response(handler, {"source": source, "lines": recent_logs})
 
 
 def count_active_admins(conn: sqlite3.Connection) -> int:
@@ -2485,6 +2562,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_settings(self)
             elif path == "/admin":
                 handle_get_admin(self)
+            elif path == "/diagnostic":
+                handle_get_diagnostic(self)
             elif path == "/":
                 handle_get_index(self)
             elif path == "/login.html":
@@ -2519,6 +2598,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_api_logs_tail(self)
             elif path == "/api/indicators":
                 handle_get_api_indicators(self)
+            elif path == "/api/diagnostic":
+                handle_get_api_diagnostic(self)
+            elif path == "/api/diagnostic/logs":
+                handle_get_api_diagnostic_logs(self)
             else:
                 match = SESSION_MSG_RE.match(path)
                 if match:

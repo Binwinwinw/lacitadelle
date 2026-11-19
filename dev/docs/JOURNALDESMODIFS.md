@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-19] GO 16-DIAGNOSTIC-LOGS-UI — diagnostic admin GPU/runtime
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/diagnostic.py`,
+`dev/tools/login_server.py`, `dev/tools/web/diagnostic.html`,
+`dev/tests/test_diagnostic.py`, `README.md`, `.memory/decisions.md`,
+`AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : afficher l'état GPU/runtime et fournir des extraits de logs
+filtrés depuis une page réservée aux admins.
+**Impact** : deux routes API, une page avec auto-refresh et logs assainis;
+15 tests ajoutés (`pytest -q` : 309 passés). DB et whitelist inchangées.
+
 ## [2026-11-19] GO 16-ARCH-WORKFLOW-RAG-IMPROVE-BIS — retrieval FTS5
 
 **Commit** : en cours de rédaction.
