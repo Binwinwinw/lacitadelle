@@ -19,7 +19,8 @@ def test_analyse_md_extracts_indexes_searches_and_calls_model(
 ):
     path = tmp_path / "notes.md"
     path.write_text(
-        "# Local retrieval\nAIWorkflow searches this document with FTS5.",
+        "# Local retrieval\nAIWorkflow searches this document with FTS5.\n\n"
+        "Unrelated paragraph should stay out of the retrieval result.",
         encoding="utf-8",
     )
     model_calls = []
@@ -46,4 +47,5 @@ def test_analyse_md_extracts_indexes_searches_and_calls_model(
     assert "Explain FTS5" in model_calls[0][0]
     assert "reprends la valeur exacte" in model_calls[0][0]
     assert "searches this document with FTS5" in model_calls[0][0]
+    assert "Unrelated paragraph" not in model_calls[0][0]
     assert model_calls[0][1:] == ("current.gguf", 180)

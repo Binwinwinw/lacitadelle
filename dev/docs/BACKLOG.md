@@ -680,6 +680,12 @@ et intégration chat) est livrée; les GO de suivi validés sont listés ci-dess
 4. **16-FIX-FLAKY-TESTS** — 2 h.
 5. **16-FEATURE-MODEL-USE-V2** — 4-6 h.
 6. **16-AGENTS-RULES-18** — 30 min.
+- **BACKLOG-ARCH-008 — E2E analyse_md** — priorité moyenne, à faire; validé
+  le 2026-11-19. **Dépendances** : amélioration RAG livrée.
+  **Périmètre** : tester les huit sections Architecture en live avec Ornith
+  (5/5, plus fiable) avant de valider 8/8.
+  **Questions ouvertes** : disponibilité du modèle et timeout d'inférence.
+  **Moment** : GO séparé de vérification E2E.
 
 ### Priorité haute (architecture et retrieval)
 

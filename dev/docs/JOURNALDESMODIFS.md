@@ -2,6 +2,20 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-19] GO 16-ARCH-WORKFLOW-RAG-IMPROVE-BIS — retrieval FTS5
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/nodes/index_fts5.py`,
+`dev/tests/test_nodes_fts5_improve.py`,
+`dev/tests/test_workflow_analyse_md.py`, `README.md`, `dev/docs/BACKLOG.md`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : améliorer la pertinence et la cohérence du retrieval local.
+**Impact** : chunks par paragraphe, reranking BM25 avec bonus d'expression,
+pluriels irréguliers ciblés; 7 tests ajoutés (294 passed). E2E live 8/8 non
+validé : Qwen3.5 timeout 180 s, Qwen3-4B sections hors cible; suivi dans
+`BACKLOG-ARCH-008`. Aucun changement de schéma DB, whitelist ou workflow.
+
 ## [2026-11-19] GO 16-ARCH-WORKFLOW-UI-TESTS-BIS — tests headless du chat
 
 **Commit** : en cours de rédaction.

@@ -65,8 +65,8 @@ AIWorkflow runs local Python workflows for document analysis:
 - Workflows: `analyse_md`, `analyse_pdf`, and `analyse_sql`.
 - Interfaces: the admin API, the admin workflow page, and the admin-only
   document action in chat.
-- The test suite contains **287 tests (état actuel au 2026-11-19)**. « Décompte
-  mis à jour (UI-TESTS). RAG à venir. »
+- The test suite contains **294 tests (état actuel au 2026-11-19)**. « Décompte
+  final (RAG amélioré). »
 
 See the [architecture](./dev/docs/ARCHITECTURE.md), [tested models](./dev/docs/MODELES-TESTES.md),
 and [backlog](./dev/docs/BACKLOG.md).

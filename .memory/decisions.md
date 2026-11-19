@@ -2723,3 +2723,40 @@ JavaScript supplémentaires; `jsdom` est absent et l'accès réseau est interdit
 
 **Conséquences** : un test Python est ajouté (287 tests pytest); le test Node
 est exécuté séparément. 118 décisions.
+
+## [2026-11-19] Amélioration du retrieval RAG SQLite FTS5
+
+**Contexte** : le workflow Markdown récupère jusqu'à 20 passages, mais le
+découpage actuel ignore les paragraphes et la normalisation FTS5 ne couvre
+pas plusieurs pluriels irréguliers.
+
+**Décision(s)** :
+1. Découper les documents en chunks par paragraphes, avec une limite de
+   500 caractères et découpage des paragraphes plus longs.
+2. Reranker les correspondances par score BM25 et bonus d'expression exacte
+   dans le nom du document ou le chunk, puis appliquer `top_n`.
+3. Normaliser une petite table de pluriels irréguliers en plus du suffixe
+   pluriel régulier.
+4. Garder la recherche et l'indexation hors ligne, sans changement de schéma
+   de base ni de workflow métier.
+
+**Conséquences** : sept tests RAG sont ajoutés et le test d'analyse Markdown
+vérifie l'isolation des paragraphes; 294 tests pytest passent. La couverture
+morphologique reste ciblée, pas une lemmatisation complète. 119 décisions.
+
+## [2026-11-19] Limite E2E live du workflow analyse_md
+
+**Contexte** : le gate live 8/8 sections n'a pas été reproduit après
+l'amélioration RAG. Qwen3.5-9B a dépassé le timeout de 180 secondes; Qwen3-4B
+a retourné des sections hors cible, tandis que les 294 tests pytest passent.
+
+**Décision(s)** :
+1. Commiter le RAG et ses tests; ne pas bloquer cette livraison sur le modèle.
+2. Documenter que le résultat live 8/8 n'est pas validé et ne pas le présenter
+   comme réussi.
+3. Créer `BACKLOG-ARCH-008`, priorité moyenne, pour réessayer avec Ornith
+   (5/5) ou un modèle plus rapide avant de valider le 8/8.
+
+**Conséquences** : l'amélioration RAG est livrable avec 294 tests passants,
+mais la limite d'inférence reste ouverte jusqu'au test live de suivi.
+120 décisions.
