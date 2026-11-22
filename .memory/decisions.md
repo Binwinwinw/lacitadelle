@@ -2815,3 +2815,24 @@ Qwen3-8B, Qwen3.5-9B, Ornith-1.5-9B et Granite-4.1-8B. Llama-3.1-8B n'était
 pas présent dans la whitelist avant ce GO et n'a pas été ajouté; aucun autre
 modèle n'a été modifié. Le schéma SQLite et les 311 tests restent inchangés.
 123 décisions.
+
+## [2026-11-22] V3.1 — Qwen3-8B retiré après évaluation
+
+**Contexte** : résultats V3.1 communiqués pour sept prompts : Ornith 6/7,
+Qwen3.5 5/7, Granite 4/7, Qwen3-4B 4/7, Qwen3-4B-Thinking 3/7 et
+Qwen3-8B 4/7 en 80,6 secondes. Qwen3-8B a échoué sur les critères juridiques,
+Internet non vérifié et formules interdites.
+
+**Décision(s)** :
+1. Retenir Ornith comme champion qualité, Qwen3.5 comme co-champion et Granite
+   comme champion vitesse.
+2. Retirer Qwen3-8B de `allowed_models`.
+3. Garder Qwen3-4B et Qwen3-4B-Thinking retirés; ne pas réajouter Qwen3-4B
+   dans ce GO.
+4. Les modèles finaux whitelistés sont Ornith-1.5-9B, Qwen3.5-9B et
+   Granite-4.1-8B.
+
+**Conséquences** : `allowed_models` contient ces trois modèles. Aucun autre
+modèle, schéma SQLite ou donnée n'a été modifié; les 311 tests ont passé au
+préflight.
+124 décisions.

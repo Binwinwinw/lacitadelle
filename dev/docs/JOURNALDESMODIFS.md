@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-22] GO 16-REMOVE-QWEN3-8B-FINAL — whitelist finale V3.1
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`;
+`citadelle_data/memory.db` (whitelist locale, non versionnée).
+**Raison** : retirer Qwen3-8B après son score V3.1 de 4/7 et ses erreurs
+juridique, Internet non vérifié et formules interdites.
+**Impact** : Qwen3-8B retiré; whitelist locale ramenée à Ornith, Qwen3.5 et
+Granite. Qwen3-4B reste absent selon la portée confirmée. 311 tests passés au
+préflight; schéma DB inchangé.
+
 ## [2026-11-22] GO 16-V3.1-FINAL-DOC — décision modèles et whitelist
 
 **Commit** : en cours de rédaction.
