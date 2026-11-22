@@ -2780,3 +2780,20 @@ utilisateurs réguliers.
 ou de la whitelist. Si le fichier de logs ne contient pas la ligne
 `offloaded X/Y layers to GPU`, le nombre de couches reste inconnu.
 121 décisions.
+
+## [2026-11-22] Analyse Markdown : document complet par défaut
+
+**Contexte** : le test direct d'Ornith avec le document Architecture complet
+retourne les huit titres AIWorkflow, contrairement au workflow `analyse_md`
+avec son retrieval FTS5, qui ne retourne qu'un titre attendu.
+
+**Décision(s)** :
+1. `analyse_md` envoie le document Markdown complet au modèle par défaut.
+2. Conserver `use_retrieval=False` par défaut et permettre `use_retrieval=True`
+   pour appliquer FTS5 aux documents de plus de 200 000 caractères.
+
+**Conséquences** : 311 tests passent; l'E2E live sur `ARCHITECTURE.md` retourne
+8/8 titres avec Ornith. Les documents courts conservent leurs sections dans le
+contexte modèle; les très gros documents peuvent limiter ce contexte aux
+passages FTS5. Aucun changement de schéma SQLite ou de whitelist.
+122 décisions.

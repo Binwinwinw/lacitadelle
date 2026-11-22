@@ -2,6 +2,19 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-22] GO 16-ARCH-WORKFLOW-ANALYSE-MD-FULL-CTX — document complet par défaut
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/workflows/analyse_md.py`,
+`dev/tests/test_workflow_analyse_md.py`, `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : le retrieval FTS5 live ne renvoyait qu'un titre attendu, tandis
+que l'appel direct avec le document complet retrouvait les huit titres.
+**Impact** : document complet par défaut, FTS5 opt-in via `use_retrieval=True`
+pour les documents de plus de 200 000 caractères; 2 tests ajoutés (311 passés)
+et E2E Ornith validé à 8/8 en 24,06 s. DB et whitelist inchangées.
+
 ## [2026-11-19] GO 16-DIAGNOSTIC-LOGS-UI — diagnostic admin GPU/runtime
 
 **Commit** : en cours de rédaction.

@@ -680,12 +680,11 @@ et intégration chat) est livrée; les GO de suivi validés sont listés ci-dess
 4. **16-FIX-FLAKY-TESTS** — 2 h.
 5. **16-FEATURE-MODEL-USE-V2** — 4-6 h.
 6. **16-AGENTS-RULES-18** — 30 min.
-- **BACKLOG-ARCH-008 — E2E analyse_md** — priorité moyenne, à faire; validé
-  le 2026-11-19. **Dépendances** : amélioration RAG livrée.
-  **Périmètre** : tester les huit sections Architecture en live avec Ornith
-  (5/5, plus fiable) avant de valider 8/8.
-  **Questions ouvertes** : disponibilité du modèle et timeout d'inférence.
-  **Moment** : GO séparé de vérification E2E.
+- **BACKLOG-ARCH-008 — E2E analyse_md** — terminé le 2026-11-22 (GO
+  16-ARCH-WORKFLOW-ANALYSE-MD-FULL-CTX). **Dépendances** : amélioration RAG
+  livrée. **Périmètre** : vérifier les huit sections Architecture avec Ornith.
+  **Résultat** : document complet (14 359 caractères), 8/8 titres avec le
+  nouveau mode `analyse_md`. **Moment** : terminé.
 
 ### Priorité haute (architecture et retrieval)
 
