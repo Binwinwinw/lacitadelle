@@ -2,6 +2,17 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-22] GO 16-V3.1-FINAL-DOC — décision modèles et whitelist
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`;
+`citadelle_data/memory.db` (whitelist locale, non versionnée).
+**Raison** : consigner le choix final des modèles après les comparatifs V3.1
+et retirer les deux variantes Qwen3-4B évaluées KO.
+**Impact** : deux entrées retirées de `allowed_models`, quatre modèles restants;
+311 tests passés au préflight; schéma DB inchangé.
+
 ## [2026-11-22] GO 16-FIX-V3-AND-TESTS — alignement du prompt V3
 
 **Commit** : en cours de rédaction.

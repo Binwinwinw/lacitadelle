@@ -2797,3 +2797,21 @@ avec son retrieval FTS5, qui ne retourne qu'un titre attendu.
 contexte modèle; les très gros documents peuvent limiter ce contexte aux
 passages FTS5. Aucun changement de schéma SQLite ou de whitelist.
 122 décisions.
+
+## [2026-11-22] V3.1 finale — modèles et whitelist
+
+**Contexte** : résultats comparatifs V3.1 communiqués pour sept prompts :
+Ornith 6/7, Qwen3.5 5/7, Qwen3-4B 4/7, Granite 4/7 et
+Qwen3-4B-Thinking 3/7. Les échecs juridiques et Markdown ont conduit à retirer
+les deux modèles Qwen3-4B de la whitelist.
+
+**Décision(s)** :
+1. Retenir Ornith comme modèle principal, Qwen3.5 comme co-champion et Granite
+   comme second choix.
+2. Retirer Qwen3-4B et Qwen3-4B-Thinking de `allowed_models`.
+
+**Conséquences** : la whitelist locale contient désormais quatre modèles :
+Qwen3-8B, Qwen3.5-9B, Ornith-1.5-9B et Granite-4.1-8B. Llama-3.1-8B n'était
+pas présent dans la whitelist avant ce GO et n'a pas été ajouté; aucun autre
+modèle n'a été modifié. Le schéma SQLite et les 311 tests restent inchangés.
+123 décisions.
