@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-22] GO 16-FIX-V3-AND-TESTS — alignement du prompt V3
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/prompts/system.txt`,
+`dev/tests/test_persona_nexxus.py`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : supprimer la répétition de `{model_name}` et aligner les
+assertions de persona sur les formulations et informations conservées par V3.
+**Impact** : le nom du modèle est injecté une fois; trois tests sont alignés
+sur le ton, les formules à éviter et l'URL locale; 311 tests passent. DB et
+whitelist inchangées.
+
 ## [2026-11-22] GO 16-ARCH-WORKFLOW-ANALYSE-MD-FULL-CTX — document complet par défaut
 
 **Commit** : en cours de rédaction.

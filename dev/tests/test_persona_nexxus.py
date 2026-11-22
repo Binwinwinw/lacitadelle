@@ -30,7 +30,8 @@ def test_system_prompt_substitutes_model_name():
         "alice",
         12,
     )
-    assert "- Modèle actif : Qwen3-4B-Q4_K_M.gguf" in prompt
+    assert "Le modèle actif est : Qwen3-4B-Q4_K_M.gguf" in prompt
+    assert prompt.count("Qwen3-4B-Q4_K_M.gguf") == 1
     assert "{model_name}" not in prompt
 
 
@@ -132,9 +133,15 @@ def test_can_never_read_critical_file(tmp_path):
 
 def test_prompt_forbids_flattery():
     prompt = PROMPT_FILE.read_text(encoding="utf-8")
-    assert "INTERDIT" in prompt
-    assert "Je suis ravi de vous aider" in prompt
-    assert "Quelle excellente question" in prompt
+    assert "N'emploie pas les formules suivantes :" in prompt
+    for phrase in (
+        "« Je suis ravi de vous aider »",
+        "« Quelle excellente question »",
+        "« Bonne question ! »",
+        "« Avec plaisir »",
+        "« N'hésitez pas »",
+    ):
+        assert phrase in prompt
     assert "Commence directement par la réponse" in prompt
 
 
@@ -147,5 +154,5 @@ def test_prompt_distinguishes_philosophy():
 def test_prompt_mentions_local_llamafile_api():
     prompt = PROMPT_FILE.read_text(encoding="utf-8")
     assert "llamafile" in prompt
+    assert "API llamafile compatible OpenAI" in prompt
     assert "http://127.0.0.1:8080" in prompt
-    assert "/v1/models" in prompt
