@@ -2,6 +2,17 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-23] GO 16-REMOVE-QWEN3-8B-FINAL — classement composite confirmé
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : confirmer le classement composite V3.1 et harmoniser la décision
+avec la réactivation antérieure du Qwen3-4B intégré comme modèle de rollback.
+**Impact** : Qwen3-8B reste absent de la whitelist; quatre modèles y figurent
+actuellement (Ornith, Qwen3.5, Granite, Qwen3-4B intégré). Aucun changement DB
+dans ce GO; 311 tests passés au préflight.
+
 ## [2026-11-22] GO 16-REMOVE-QWEN3-8B-FINAL — whitelist finale V3.1
 
 **Commit** : en cours de rédaction.

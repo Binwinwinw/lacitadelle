@@ -2836,3 +2836,45 @@ Internet non vérifié et formules interdites.
 modèle, schéma SQLite ou donnée n'a été modifié; les 311 tests ont passé au
 préflight.
 124 décisions.
+
+## [2026-11-22] Qwen3-4B réactivé comme modèle de rollback par défaut
+
+**Contexte** : le modèle par défaut compilé est
+`dev/tools/vendor/llamafile/Qwen3-4B-Q4_K_M.gguf`, mais il avait été retiré de
+`allowed_models`. Les chemins `current_model_path` et `previous_model_path`
+pointaient encore vers Qwen3-4B-Thinking, ce qui faisait échouer le rollback
+et le contrôle du modèle par défaut.
+
+**Décision(s)** :
+1. Réactiver le Qwen3-4B intégré dans `allowed_models`.
+2. Faire pointer `previous_model_path` vers le modèle par défaut pour les
+   prochains rollbacks; Qwen3-4B-Thinking reste retiré.
+
+**Conséquences** : la whitelist contient Ornith, Qwen3.5, Granite et le
+Qwen3-4B intégré; Qwen3-8B reste retiré. Le rollback effectif a enregistré
+Qwen3-4B comme `current_model_path` et dans le miroir `.current_model`.
+Aucun changement de code ni de schéma SQLite; les 311 tests ont passé au
+préflight.
+125 décisions.
+
+## [2026-11-23] Classement composite final des modèles V3.1
+
+**Contexte** : résultats V3.1 communiqués pour sept prompts avec latence :
+Ornith 6/7 en 50 s, Qwen3.5 5/7 en 33 s, Granite 4/7 en 12 s,
+Qwen3-4B 4/7 en 20 s et Qwen3-8B 4/7 en 80,6 s. Qwen3-8B a échoué sur
+la précision juridique, l'information Internet non vérifiée et une formule
+interdite.
+
+**Décision(s)** :
+1. Retenir Ornith comme champion qualité.
+2. Retenir Qwen3.5 comme co-champion équilibré.
+3. Retenir Granite comme champion vitesse.
+4. Garder le Qwen3-4B intégré comme second modèle équilibré et défaut de
+   rollback.
+5. Garder Qwen3-8B retiré de `allowed_models`.
+
+**Conséquences** : la whitelist courante contient Ornith-1.5-9B,
+Qwen3.5-9B, Granite-4.1-8B et le Qwen3-4B intégré. Qwen3-8B et
+Qwen3-4B-Thinking restent absents. Aucune nouvelle écriture DB n'était
+nécessaire pour ce GO; les 311 tests passent au préflight.
+126 décisions.
