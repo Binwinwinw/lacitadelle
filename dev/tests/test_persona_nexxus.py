@@ -54,7 +54,45 @@ def test_extract_model_name_from_settings():
         assert login_server.extract_model_name() == "test-model.gguf"
 
     with patch.object(login_server, "get_setting", return_value=None):
-        assert login_server.extract_model_name() == "Qwen3-4B-Q4_K_M.gguf"
+        with patch.object(
+            login_server,
+            "get_recommended_model",
+            return_value=None,
+        ):
+            assert login_server.extract_model_name() == "Qwen3-4B-Q4_K_M.gguf"
+    with patch.object(login_server, "get_setting", return_value=None):
+        with patch.object(
+            login_server,
+            "get_recommended_model",
+            return_value="/models/Ornith-1.5-9B-Q4_K_M.gguf",
+        ):
+            assert login_server.extract_model_name() == "Ornith-1.5-9B-Q4_K_M.gguf"
+
+
+def test_recommended_model_requires_whitelisted_existing_ornith(
+    tmp_path,
+    monkeypatch,
+):
+    model_path = tmp_path / "Ornith-1.5-9B-Q4_K_M.gguf"
+    model_path.write_bytes(b"ornith model")
+    monkeypatch.setattr(
+        login_server,
+        "_get_allowed_models",
+        lambda: [str(model_path)],
+    )
+
+    assert login_server.get_recommended_model() == str(model_path)
+
+    monkeypatch.setattr(login_server, "_get_allowed_models", lambda: [])
+    assert login_server.get_recommended_model() is None
+
+    monkeypatch.setattr(
+        login_server,
+        "_get_allowed_models",
+        lambda: [str(model_path)],
+    )
+    model_path.unlink()
+    assert login_server.get_recommended_model() is None
 
 
 def test_classify_file_public_extensions(tmp_path):

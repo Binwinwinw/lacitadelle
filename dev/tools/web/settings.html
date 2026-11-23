@@ -62,6 +62,8 @@
                      aria-labelledby="allowed-models-heading" hidden>
                 <h2 id="allowed-models-heading">Modèles autorisés</h2>
                 <p>Seuls les GGUF de cette liste peuvent être sélectionnés.</p>
+                <p id="recommended-model-badge" class="settings-status"
+                   role="status" aria-live="polite"></p>
                 <form id="allowed-models-form" class="settings-form">
                     <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
                     <label for="allowed-model-path">Chemin du fichier GGUF</label>
@@ -141,6 +143,9 @@
         );
         const allowedModelsStatus = document.getElementById(
             "allowed-models-status",
+        );
+        const recommendedModelBadge = document.getElementById(
+            "recommended-model-badge",
         );
         const userIndicatorsSection = document.getElementById(
             "user-indicators-section",
@@ -245,6 +250,10 @@
                 }
                 const model = await response.json();
                 currentModelPath = model.current_model_path || "";
+                recommendedModelBadge.textContent =
+                    model.recommended_model_path
+                        ? "Recommandé : Ornith-1.5-9B"
+                        : "Recommandé : Qwen3-4B (fallback)";
             } catch (error) {
                 allowedModelsStatus.textContent =
                     `Erreur de chargement du modèle : ${error.message}`;

@@ -236,6 +236,40 @@ def test_current_model_gate_and_lancer_default_branch(tmp_path, monkeypatch):
     assert lancer.select_model_path(proxy_log) == model_path.resolve()
 
 
+def test_default_model_prefers_whitelisted_local_ornith(tmp_path, monkeypatch):
+    ornith_path = tmp_path / "Ornith-1.5-9B-Q4_K_M.gguf"
+    fallback_path = tmp_path / "Qwen3-4B-Q4_K_M.gguf"
+    ornith_path.write_bytes(b"ornith model")
+    fallback_path.write_bytes(b"fallback model")
+    monkeypatch.setattr(lancer, "DEFAULT_MODEL", fallback_path)
+    monkeypatch.setattr(
+        lancer,
+        "get_setting",
+        lambda key: (
+            json.dumps([str(ornith_path)])
+            if key == "allowed_models"
+            else None
+        ),
+    )
+
+    assert lancer.get_default_model() == ornith_path
+
+    missing_ornith = tmp_path / "missing" / ornith_path.name
+    monkeypatch.setattr(
+        lancer,
+        "get_setting",
+        lambda key: (
+            json.dumps([str(missing_ornith)])
+            if key == "allowed_models"
+            else None
+        ),
+    )
+    assert lancer.get_default_model() == fallback_path
+
+    monkeypatch.setattr(lancer, "get_setting", lambda key: json.dumps([]))
+    assert lancer.get_default_model() == fallback_path
+
+
 def test_automatic_rollback_refuses_missing_previous_model(
     tmp_path,
     monkeypatch,

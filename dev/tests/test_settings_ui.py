@@ -55,6 +55,9 @@ def test_settings_serves_model_whitelist_without_model_form():
         assert 'id="model-form"' not in page
         assert "Changer de modèle" not in page
         assert 'id="allowed-models-section"' in page
+        assert 'id="recommended-model-badge"' in page
+        assert "recommended_model_path" in page
+        assert "Qwen3-4B (fallback)" in page
         assert '"/api/admin/model/use"' in page
         assert 'textContent = "Utiliser"' in page
         assert 'className = "model-active-badge"' in page
@@ -81,11 +84,21 @@ def test_get_model_setting_is_admin_only_and_returns_saved_path():
             "C:/models/model.gguf",
             db_path=db_path,
         )
+        ornith_path = (
+            Path(db_path).parent / "Ornith-1.5-9B-Q4_K_M.gguf"
+        )
+        ornith_path.write_bytes(b"ornith model")
+        citadelle_memory.set_setting(
+            "allowed_models",
+            json.dumps([str(ornith_path)]),
+            db_path=db_path,
+        )
 
         with _get_model(opener, base_url, admin_token) as response:
             assert response.code == 200
             assert json.loads(response.read()) == {
-                "current_model_path": "C:/models/model.gguf"
+                "current_model_path": "C:/models/model.gguf",
+                "recommended_model_path": str(ornith_path),
             }
 
 

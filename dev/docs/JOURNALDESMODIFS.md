@@ -2,6 +2,22 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-23] GO 16-WHITELIST-ROLLBACK-FIX-LOCAL-BIS — recommandation locale Ornith
+
+**Commit** : en cours de rédaction.
+**Fichiers modifiés** : `dev/tools/lancer.py`, `dev/tools/login_server.py`,
+`dev/tools/web/settings.html`, `dev/tests/test_first_install_model.py`,
+`dev/tests/test_persona_nexxus.py`, `dev/tests/test_settings_ui.py`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`;
+`citadelle_data/memory.db` (whitelist locale).
+**Raison** : recommander le modèle Ornith local sans le distribuer et conserver
+le Qwen3-4B intégré comme fallback de démarrage et de rollback.
+**Impact** : recommandation Ornith conditionnée à sa présence et sa whitelist;
+Qwen3.5 demeure local, Granite est retiré; le choix actif n'est pas forcé.
+Deux tests de régression ajoutés; `pytest -q` : 313 passés. Schéma DB et
+`llamafile_config.json` inchangés.
+
 ## [2026-11-23] GO 16-REMOVE-QWEN3-8B-FINAL — classement composite confirmé
 
 **Commit** : en cours de rédaction.

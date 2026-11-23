@@ -91,6 +91,7 @@ LLAMAFILE_PROXY_TIMEOUT = 60
 TOOLS_BUNDLE_DIR = get_bundle_dir() / "dev" / "tools"
 WEB_DIR = TOOLS_BUNDLE_DIR / "web"
 PROMPT_FILE = TOOLS_BUNDLE_DIR / "prompts" / "system.txt"
+ORNITH_MODEL_FILENAME = "Ornith-1.5-9B-Q4_K_M.gguf"
 MAX_CONTEXT_TOKENS = 8000  # 1 token ≈ 4 caractères
 FALLBACK_SYSTEM_PROMPT = (
     "Tu es Nexxus, l'assistant IA de La Citadelle. "
@@ -310,7 +311,7 @@ def get_active_username(user_id: int) -> str | None:
 
 
 def extract_model_name() -> str:
-    """Retourne le nom de fichier du modèle actif ou du modèle intégré."""
+    """Retourne le modèle actif, ou la recommandation locale/fallback."""
     try:
         current_model = get_setting(
             "current_model_path",
@@ -320,9 +321,15 @@ def extract_model_name() -> str:
         if "no such table: settings" not in str(exc).lower():
             raise
         current_model = None
-    if not isinstance(current_model, str) or not current_model.strip():
-        return Path(DEFAULT_MODEL_PATH).name
-    return Path(current_model).name
+    if isinstance(current_model, str) and current_model.strip():
+        return Path(current_model).name
+    try:
+        recommended_model = get_recommended_model()
+    except sqlite3.OperationalError as exc:
+        if "no such table: settings" not in str(exc).lower():
+            raise
+        recommended_model = None
+    return Path(recommended_model or DEFAULT_MODEL_PATH).name
 
 
 def load_system_prompt(
@@ -679,7 +686,8 @@ def handle_get_api_settings_model(handler: BaseHTTPRequestHandler) -> None:
             "current_model_path",
             db_path=MEMORY_DB_PATH,
         )
-    except sqlite3.Error as exc:
+        recommended_model_path = get_recommended_model()
+    except (sqlite3.Error, ValueError) as exc:
         sys.stderr.write(
             "[model] Model path setting could not be read "
             f"({type(exc).__name__})\n"
@@ -690,7 +698,13 @@ def handle_get_api_settings_model(handler: BaseHTTPRequestHandler) -> None:
             HTTPStatus.INTERNAL_SERVER_ERROR,
         )
         return
-    json_response(handler, {"current_model_path": model_path})
+    json_response(
+        handler,
+        {
+            "current_model_path": model_path,
+            "recommended_model_path": recommended_model_path,
+        },
+    )
 
 
 def _normalized_model_path(model_path: str) -> str:
@@ -707,6 +721,20 @@ def _get_allowed_models() -> list[str]:
     ):
         raise ValueError("allowed_models must be a JSON array of strings")
     return models
+
+
+def get_recommended_model() -> str | None:
+    """Retourne Ornith s'il est présent et explicitement whitelisté."""
+    for model_path in _get_allowed_models():
+        path = Path(model_path).expanduser()
+        if not path.is_absolute():
+            path = get_bundle_dir() / path
+        if (
+            path.name.casefold() == ORNITH_MODEL_FILENAME.casefold()
+            and path.is_file()
+        ):
+            return str(path.resolve())
+    return None
 
 
 def handle_get_api_settings_allowed_models(

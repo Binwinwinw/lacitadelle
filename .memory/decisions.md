@@ -2878,3 +2878,25 @@ Qwen3.5-9B, Granite-4.1-8B et le Qwen3-4B intégré. Qwen3-8B et
 Qwen3-4B-Thinking restent absents. Aucune nouvelle écriture DB n'était
 nécessaire pour ce GO; les 311 tests passent au préflight.
 126 décisions.
+
+## [2026-11-23] Ornith local recommandé, Qwen3-4B fallback intégré
+
+**Contexte** : Ornith et Qwen3.5 sont des modèles locaux sans URL épinglée ni
+SHA-256 fiable pour la distribution. Le Qwen3-4B est l'asset intégré de
+première installation et le fallback de rollback. La batterie stricte classe
+Ornith 4/7, Qwen3.5 5/7, Qwen3-4B 3/7 et Granite 3/7.
+
+**Décision(s)** :
+1. Recommander Ornith localement s'il existe et figure dans la whitelist;
+   sinon utiliser le Qwen3-4B intégré.
+2. Garder Qwen3-4B comme fallback et asset intégré.
+3. Garder Qwen3.5 local comme second modèle, sans le distribuer.
+4. Retirer Granite de la whitelist.
+5. Exposer la recommandation dans l'API des réglages et l'afficher dans
+   `settings.html` sans chargement automatique du modèle.
+
+**Conséquences** : la whitelist locale contient Ornith, Qwen3.5 et Qwen3-4B.
+`llamafile_config.json` reste inchangé; Ornith et Qwen3.5 ne sont pas inclus
+dans la distribution. Le Qwen3-4B demeure le fallback de démarrage et de
+rollback. 313 tests passent.
+127 décisions.

@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
+import json
 import os
 import platform
 import shlex
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -41,9 +43,10 @@ PROXY_LOG = (
     if IS_FROZEN
     else PROJECT_ROOT / "dist" / "proxy.log"
 )
-# Défaut : Qwen3-4B, compatible toutes configurations (4-8 Go RAM partagée).
-# Pour config ≥ 8 Go VRAM dédiés, utiliser Qwen3.5-9B via /settings.
+# Fallback intégré : Qwen3-4B, disponible lors d'une première installation.
+# Ornith local est préféré s'il existe et figure dans la whitelist.
 DEFAULT_MODEL_FILENAME = "Qwen3-4B-Q4_K_M.gguf"
+ORNITH_MODEL_FILENAME = "Ornith-1.5-9B-Q4_K_M.gguf"
 DEFAULT_MODEL = ASSETS_DIR / DEFAULT_MODEL_FILENAME if IS_FROZEN else (
     Path("dev") / "tools" / "vendor" / "llamafile" / DEFAULT_MODEL_FILENAME
 )
@@ -53,11 +56,49 @@ APP_URL = "http://localhost:8081"
 
 sys.path.insert(0, str(TOOLS_DIR))
 import bootstrap
+from citadelle_memory import get_setting
 import model_health
 
 
 class LauncherError(Exception):
     """Erreur de démarrage présentable à l'utilisateur."""
+
+
+def get_default_model() -> Path:
+    """Choisit Ornith s'il est présent et whitelisté, sinon le modèle intégré."""
+    try:
+        raw_models = get_setting("allowed_models")
+    except sqlite3.Error as exc:
+        raise LauncherError(
+            "Impossible de lire la whitelist des modèles."
+        ) from exc
+
+    if raw_models is not None:
+        try:
+            models = json.loads(raw_models)
+        except json.JSONDecodeError as exc:
+            raise LauncherError(
+                "La whitelist des modèles est invalide."
+            ) from exc
+        if not isinstance(models, list) or any(
+            not isinstance(model, str) or not model.strip() for model in models
+        ):
+            raise LauncherError("La whitelist des modèles est invalide.")
+        for model in models:
+            path = Path(model).expanduser()
+            if not path.is_absolute():
+                path = PROJECT_ROOT / path
+            if (
+                path.name.casefold() == ORNITH_MODEL_FILENAME.casefold()
+                and path.is_file()
+            ):
+                return path
+
+    return (
+        DEFAULT_MODEL
+        if DEFAULT_MODEL.is_absolute()
+        else PROJECT_ROOT / DEFAULT_MODEL
+    )
 
 
 def get_runtime_binary() -> Path:
@@ -123,11 +164,7 @@ def _read_current_model() -> Path | None:
 
 
 def _default_model(*, check_whitelist: bool, proxy_log: Path) -> Path:
-    model_path = (
-        DEFAULT_MODEL
-        if DEFAULT_MODEL.is_absolute()
-        else PROJECT_ROOT / DEFAULT_MODEL
-    )
+    model_path = get_default_model()
     if not model_path.is_file():
         raise LauncherError(f"Le modèle par défaut est introuvable : {model_path}")
     if check_whitelist and _run_model_health(
