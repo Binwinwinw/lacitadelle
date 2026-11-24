@@ -140,3 +140,15 @@ tâche terminée est supprimée ici; sa trace reste dans
 - [ ] **16-DOC-RELEASE-NOTES** : documenter dans RELEASE-NOTES.md les
   changements majeurs (modèles testés, choix du défaut, migration
   Python, etc.). — Propriétaire : à planifier.
+
+### Suites après clôture du périmètre Phase 16
+
+- [ ] **16-FICHIERS-CHAT-LIVE-TEST** : valider manuellement dans un navigateur
+  et avec un modèle local l’ajout `.md`, le suivi, le rechargement et le
+  retrait. — Propriétaire : Décideur.
+- [ ] **16-CLEANUP-DETTE** : cadrer les avertissements Ruff préexistants,
+  l’approximation du budget tokenizer et la gestion des logs. — Propriétaire :
+  à planifier.
+- [ ] **16-MULTIFORMAT** : cadrer des extracteurs pour PDF, documents
+  bureautiques et SQL comme texte (sans exécution). — Propriétaire :
+  à planifier.

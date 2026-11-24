@@ -2973,3 +2973,26 @@ documentaire et les contrôles UI sont implémentés. Quatorze tests ciblés son
 ajoutés; la suite complète passe à 327 tests. Aucun test live du modèle,
 benchmark de contexte ou accès à la DB utilisateur n’a été effectué. 129
 décisions.
+
+## [2026-11-24] Clôture du périmètre AIWorkflow et fichiers du chat
+
+**Contexte** : le GO 16-PHASE-CLOSE demande le bilan des livrables AIWorkflow,
+du premier incrément fichiers chat et de la sélection V3.1. Le décideur a
+précisé que la clôture porte sur le sous-périmètre AIWorkflow + fichiers chat;
+les autres tâches modèles/UX restent ouvertes.
+
+**Décision(s)** :
+1. Clôturer le sous-périmètre AIWorkflow et le premier incrément fichiers du
+   chat dans la Phase 16. Les workflows `analyse_md`, `analyse_pdf` et
+   `analyse_sql`, leur API/UI/chat/diagnostic/RAG et le parcours de fichiers
+   `.md` sont documentés dans `PHASE-CLOSE-BILAN.md`.
+2. Conserver la décision V3.1 #127 : Ornith défaut local recommandé,
+   Qwen3.5 second choix, Qwen3-4B fallback intégré. Cette clôture ne modifie
+   pas la whitelist et ne réinterprète pas les décisions historiques.
+3. Garder ouvertes les tâches de modèles/UX qui ne sont pas déclarées
+   terminées, et planifier séparément le test live fichiers chat, le nettoyage
+   de dettes et les formats supplémentaires.
+
+**Conséquences** : le périmètre clôturé compte 327 tests au préflight du
+2026-11-24 et 130 décisions datées. Le bilan conserve les limites de mesure
+des scores et du E2E; aucun benchmark ou test live n’est affirmé par ce GO.

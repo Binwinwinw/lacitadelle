@@ -660,12 +660,12 @@ notamment pour une distribution EXE hors ligne.
 - 16-CHAT-WEB-ACCESS (optionnel)
 - 16-AGENTS-RULES-18
 
-## Phase 16 — Modèles et UX (en cours)
+## Phase 16 — Modèles et UX (AIWorkflow + fichiers chat clôturés; autres tâches ouvertes)
 
-**Statut** : session modèles clôturée (9 testés, 4 validés chat, 1
-code only, 4 KO). Décision de défaut contextuel (Qwen3.5-9B /
-Qwen3-4B). La base AIWorkflow (spécification, moteur, workflows, API, UI admin
-et intégration chat) est livrée; les GO de suivi validés sont listés ci-dessous.
+**Statut du périmètre clôturé** : AIWorkflow et premier incrément fichiers
+chat sont terminés (décision #130); la sélection V3.1 est conservée selon la
+décision #127. Les autres travaux modèles/UX listés ci-dessous restent ouverts.
+La suite complète compte 327 tests.
 
 **GO planifiés** (détails, dépendances et propriétaires : voir TODO.md) :
 
@@ -700,24 +700,23 @@ et intégration chat) est livrée; les GO de suivi validés sont listés ci-dess
 
 **Suivis AIWorkflow validés** :
 
-- **16-ARCH-WORKFLOW-UI-TESTS** — priorité haute, à faire; validé le
-  2026-11-19.
+- **16-ARCH-WORKFLOW-UI-TESTS** — terminé le 2026-11-19 (commit `9c419f4`).
   **Dépendances** : intégration chat livrée (`916dc0a`). **Périmètre** : test
   Node natif de la détection `.md`/`.pdf`/`.sql` et test Python de présence
-  des éléments HTML. **Questions ouvertes** : disponibilité de `jsdom` à
-  vérifier; aucune installation réseau. **Moment** : GO séparé.
-- **16-ARCH-WORKFLOW-RAG-IMPROVE** — priorité haute, à faire; validé le
-  2026-11-19.
+  des éléments HTML. **Résultat** : script Node et test pytest livrés sans
+  dépendance `jsdom`.
+- **16-ARCH-WORKFLOW-RAG-IMPROVE** — terminé le 2026-11-19 (commit `ebd5efe`).
   **Dépendances** : index FTS5 et workflow Markdown livrés (`6561b47`,
   `5df516e`). **Périmètre** : chunks par paragraphe, reranking BM25 avec
-  bonus de pertinence, normalisation de pluriels irréguliers.
-  **Questions ouvertes** : aucune dans le périmètre du GO.
-  **Moment** : GO séparé.
-- **16-DOCS-CLEANUP-BIS** — priorité haute, en cours depuis le 2026-11-19.
+  bonus de pertinence, normalisation de pluriels irréguliers. **Résultat** :
+  7 tests ajoutés (294 passés); E2E complet `analyse_md` est ensuite validé
+  avec 8/8 titres dans BACKLOG-ARCH-008 (`2f4d34c`).
+- **16-DOCS-CLEANUP-BIS** — terminé le 2026-11-24.
   **Dépendances** : résultats des GO UI-TESTS et RAG-IMPROVE.
   **Périmètre** : actualiser le décompte de tests du README après chaque GO
-  et clore la normalisation documentaire AIWorkflow.
-  **Questions ouvertes** : aucune. **Moment** : après chaque GO de suivi.
+  et clore la normalisation documentaire AIWorkflow. **Résultat** : les
+  documents AIWorkflow ont été normalisés; README ne publie pas de compteur de
+  tests, et le nombre actuel est suivi dans AGENTS/ETAT-PROJET.
 
 ### Priorité basse (évolutions)
 
@@ -742,7 +741,7 @@ suivis AIWorkflow restent sans estimation.
 
 ### 16-FICHIERS-CHAT — premier incrément
 
-**Statut** : implémenté et testé le 2026-11-24 (GO 25).
+**Statut** : terminé le 2026-11-24 (GO 25; commit `fd34e82`).
 **Décisions actées** : 2026-11-24 (décisions #128 et #129).
 **Dépendances** : [spécification fonctionnelle](./SPEC-FICHIERS-CHAT.md) et
 validation des propositions techniques, terminées avant l’implémentation.
@@ -754,6 +753,40 @@ métier restent distincts. Quatorze tests dédiés; `327 passed`.
 **Questions ouvertes** : aucune dans ce premier incrément; les autres formats
 restent des évolutions distinctes.
 **Moment de traitement** : terminé dans le GO 25.
+
+### Suites validées après clôture du périmètre
+
+#### 16-FICHIERS-CHAT-LIVE-TEST
+
+**Statut** : validé le 2026-11-24; à planifier.
+**Dépendances** : premier incrément `.md` livré (GO 25).
+**Priorité** : haute.
+**Périmètre** : test manuel navigateur + modèle du téléversement, question,
+suivi, rechargement et retrait.
+**Questions ouvertes** : poste, navigateur et modèle local de validation.
+**Moment de traitement** : avant une validation de release fichiers chat.
+
+#### 16-CLEANUP-DETTE
+
+**Statut** : validé le 2026-11-24; à planifier.
+**Dépendances** : aucune.
+**Priorité** : moyenne.
+**Périmètre** : revoir les avertissements Ruff préexistants, l’approximation
+du budget tokenizer et la gestion des logs.
+**Questions ouvertes** : choix d’un tokenizer mesuré et règles de conservation
+des logs.
+**Moment de traitement** : GO technique séparé.
+
+#### 16-MULTIFORMAT
+
+**Statut** : validé le 2026-11-24; à planifier.
+**Dépendances** : premier incrément `.md` livré et test live planifié.
+**Priorité** : à déterminer.
+**Périmètre** : cadrer PDF, documents bureautiques et SQL comme texte; aucune
+exécution du contenu n’est incluse.
+**Questions ouvertes** : formats exacts, extracteurs, limites et messages
+d’erreur.
+**Moment de traitement** : GO séparé après validation du test live.
 
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
 BACKLOG.md conserve le statut, les priorités et l'effort estimé sans

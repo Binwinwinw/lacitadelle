@@ -2,6 +2,21 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-24] GO 16-PHASE-CLOSE — bilan AIWorkflow et fichiers du chat
+
+**Commit de référence audité** : `fd34e82` (HEAD observé au préflight; le
+commit de clôture est traçable dans l’historique Git).
+**Fichiers modifiés** : `dev/docs/PHASE-CLOSE-BILAN.md`,
+`.memory/decisions.md`, `TODO.md`, `dev/docs/BACKLOG.md`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/ROADMAP.md`, `dev/docs/ETAT-PROJET.md`.
+**Raison** : clore le sous-périmètre AIWorkflow + premier incrément fichiers
+chat, marquer les livrables vérifiés, conserver les dettes restantes et
+planifier les trois suites décidées.
+**Impact** : documentation seulement; préflight `327 passed in 81.38s`,
+compteur 130 décisions. Aucun code, DB utilisateur, whitelist, serveur ou
+modèle modifié/lancé.
+
 ## [2026-11-24] GO 25 — premier incrément fichiers du chat
 
 **Commit de référence audité** : `83305fe` (HEAD au préflight GO 25; le hash

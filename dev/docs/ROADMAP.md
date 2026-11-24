@@ -179,16 +179,18 @@ cohérente. Huit tests ajoutés; 202 tests passent.
 **Validation restante** : le Décideur doit tester les wrappers sur Windows,
 Linux et macOS avant la diffusion de l'archive.
 
-## État actuel (2026-11-05)
+## État actuel (2026-11-24)
 
 - Distribution : archive ZIP source-only pour Windows, Linux et macOS; aucun
   binaire n'est intégré.
-- Tests : 229.
-- Décisions : 76 actées.
+- Tests : 327 au préflight GO 16-PHASE-CLOSE.
+- Décisions : 130 actées.
 - Phase 11 : complète; Phase 13 implémentée, validation manuelle restante.
 - Phase 14-PERSONA-NEXXUS V1.1 : implémentée, validation manuelle restante.
 - Phase 15-PACKAGING-PYINSTALLER-V1 : exécutable Windows buildé localement;
   test sans Python et diffusion manuelle restants.
+- Phase 16 : le périmètre AIWorkflow + premier incrément fichiers chat est
+  clôturé; les tâches modèles/UX non terminées restent au backlog.
 - Règles : dix règles structurelles dans `AGENTS.md`.
 - Tâches à venir : voir `TODO.md` (local, gitignoré).
 
@@ -212,6 +214,32 @@ Validation manuelle sur un poste Windows sans Python en attente.
 
 **Validation restante** : lancer l'EXE sur un poste Windows sans Python, puis
 publier le binaire seulement après décision et vérification de signature/hash.
+
+## [Phase 16 — AIWorkflow et premier incrément fichiers chat] (2026-11-18 → 2026-11-24)
+
+**Statut** : périmètre livré et clôturé; les tâches modèles/UX non terminées
+ne sont pas incluses dans cette clôture et restent au backlog.
+
+**Objectif** : livrer l’orchestration documentaire locale AIWorkflow, vérifier
+son parcours Markdown complet et permettre d’attacher un document `.md` à une
+conversation avec un suivi persistant et isolé par compte.
+
+**Livrables** : moteur maison, workflows `analyse_md`/`analyse_pdf`/
+`analyse_sql`, API, UI admin/chat, diagnostic et retrieval SQLite FTS5;
+E2E `analyse_md` 8/8 titres sur `ARCHITECTURE.md` avec Ornith. Premier
+incrément fichiers chat : migration v11, upload et retrait `.md`, stockage par
+conversation, extraction UTF-8 et contrôles UI. La V3.1 modèles est conservée
+selon la décision #127.
+
+**Commits clés** : `6561b47`, `5df516e`, `fc0575e`, `a5273c2`, `d2e4ebf`,
+`916dc0a` (AIWorkflow); `9c419f4` (tests UI), `ebd5efe` (RAG),
+`2f4d34c` (E2E 8/8), `21d0f3f` (diagnostic), `7f22958` (V3.1 modèles) et
+`fd34e82` (fichiers du chat).
+
+**Vérification** : 327 tests passent; 14 tests dédiés couvrent le parcours
+fichiers chat. Aucun test live navigateur/modèle n’a été réalisé à la clôture.
+Voir [PHASE-CLOSE-BILAN.md](./PHASE-CLOSE-BILAN.md), les décisions #127–#130,
+le [BACKLOG](./BACKLOG.md) et le [journal de bord](./JOURNALDEBORD.md).
 
 ## Prochaines phases possibles (non clôturées)
 
