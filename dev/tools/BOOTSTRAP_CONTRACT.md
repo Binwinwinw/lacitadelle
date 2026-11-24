@@ -1,17 +1,27 @@
 # Contrat de `bootstrap.py`
 
+> **Statut : contrat courant.** `dev/tools/bootstrap.py` référence ce fichier.
+> Le manifeste [`llamafile_config.json`](./llamafile_config.json) fait foi pour
+> les identifiants, noms source, URL, SHA-256, destinations et indicateurs
+> `required`; ce document décrit le comportement du code, pas la disponibilité
+> distante des URLs.
+
 ## Rôle
 
 Télécharger et vérifier les assets listés dans `llamafile_config.json`.
 Le runtime llamafile-thin et le modèle GGUF sont des téléchargements séparés.
-Ne pas exécuter les assets. Ne pas installer de dépendance.
+Le GGUF est un asset distinct, pas un modèle incorporé au binaire runtime. Le
+manifeste actuel ne déclare pas Ornith ni Qwen3.5; le bootstrap ne les
+télécharge donc pas. Ne pas exécuter les assets. Ne pas installer de dépendance.
 
 ## Contrat de la configuration (`llamafile_config.json`)
 
 ### Structure racine
 
-Objet JSON avec les clés obligatoires : `version` (str non vide), `assets` (dict non vide).
-Clés optionnelles : `release_date` (str ISO 8601), `source` (str URL), `verified_on` (str ISO 8601).
+Objet JSON avec les clés obligatoires : `version` (str non vide), `assets`
+(dict non vide). `load_config()` valide ces champs racine. Les clés
+`release_date`, `source` et `verified_on` sont des métadonnées informatives :
+le bootstrap ne valide pas leur type ni leur format.
 
 ### Chaque asset (clé du dict `assets`)
 
@@ -27,10 +37,13 @@ La clé est un identifiant logique (ex. `runtime-universal`). Champs obligatoire
 
 Champs optionnels :
 
-- `purpose` : chaîne libre, informative.
+- `purpose` : métadonnée informative, non validée par le bootstrap.
 - `destination_by_os` : destinations exactes pour `Windows`, `Linux` et
   `Darwin` lorsqu'un asset dépend de l'OS.
-- `post_download` : actions documentées par OS (`rename`, `chmod_x`).
+- `post_download` : actions par OS parmi `rename` et `chmod_x`. Le bootstrap
+  valide ces valeurs; le code exécute `chmod_x` lorsqu'il est présent. Le nom
+  final vient de la destination du manifeste et la publication renomme le
+  temporaire vers cette destination; `rename` n'ajoute pas d'étape distincte.
 
 ### Validation
 
@@ -40,12 +53,27 @@ Toute violation lève `BootstrapError` avec un message indiquant :
 - le champ concerné,
 - la cause précise (ex. « sha256 doit faire 64 caractères, trouvé 63 »).
 
+## Assets du manifeste actuel
+
+Le manifeste actuellement présent contient deux entrées, toutes deux
+`required: true` :
+
+| Identifiant (`assets`) | Asset / destination source |
+|---|---|
+| `runtime-universal` | Runtime llamafile-thin; destinations par OS : `dist/llamafile.exe`, `dist/llamafile-linux` et `dist/llamafile-macos`. Le nom source, la version et les autres métadonnées restent dans le manifeste. |
+| `qwen3-4b-q4km` | `Qwen3-4B-Q4_K_M.gguf`, destination `dev/tools/vendor/llamafile/Qwen3-4B-Q4_K_M.gguf`. |
+
+Aucun asset n'est facultatif dans le manifeste actuel. L'identifiant
+`qwen3-1.7b-q4km` appartient à l'ancien modèle décrit dans les documents
+historiques; il n'est pas l'identifiant du modèle actuel.
+
 ## Contrat des chemins
 
 - `CONFIG_PATH` = `dev/tools/llamafile_config.json` (relatif à la racine du projet).
-- Le runtime unique `llamafile-0.10.6-thin` est publié dans `dist/` sous le
-  nom configuré pour Windows, Linux ou macOS. Sous Linux/macOS, il reçoit les
-  droits d'exécution.
+- Le runtime `runtime-universal` est publié sous la destination par OS du
+  manifeste. Sous Linux/macOS, il reçoit les droits d'exécution lorsque
+  `chmod_x` est configuré. Le nom source et la version amont restent définis
+  dans le manifeste.
 - `VENDOR_DIR` = `dev/tools/vendor/llamafile/`, destination du GGUF.
 - Dans le build PyInstaller one-file Windows, runtime et GGUF sont persistés
   dans `%APPDATA%\LaCitadelle\assets\`; les chemins source `dist/` et
@@ -59,8 +87,11 @@ Toute violation lève `BootstrapError` avec un message indiquant :
 ### Cycle par asset (avec mode réparateur)
 
 Pour chaque asset avec `required: true`, le bootstrap sélectionne la
-destination correspondant à l'OS détecté; `runtime-universal` va dans `dist/`
-et `qwen3-1.7b-q4km` dans `VENDOR_DIR`.
+destination correspondant à l'OS détecté. Pour le manifeste actuel,
+`runtime-universal` utilise la destination `dist/` adaptée à l'OS et
+`qwen3-4b-q4km` utilise `VENDOR_DIR` en développement. En mode PyInstaller,
+les deux assets vont dans le dossier utilisateur décrit dans le contrat des
+chemins.
 
 1. **Fichier final présent dans son répertoire de destination** :
    - Calculer son SHA-256.
@@ -78,7 +109,8 @@ et `qwen3-1.7b-q4km` dans `VENDOR_DIR`.
 
 ### Timeout réseau
 
-`urlopen(url, timeout=60)`.
+Le téléchargement appelle `urllib.request.urlopen(req, timeout=HTTP_TIMEOUT)`;
+`HTTP_TIMEOUT` vaut 60 secondes dans [`bootstrap.py`](./bootstrap.py).
 
 ### Gestion des erreurs HTTP
 
@@ -88,11 +120,19 @@ Traiter `HTTPError` **avant** `URLError` (car `HTTPError` hérite de `URLError`)
 
 Si une exception survient pendant le téléchargement, supprimer le fichier temporaire avant de propager.
 
+## Commande
+
+La commande directe est `python dev/tools/bootstrap.py`; le script ne définit
+pas d'option CLI et traite les assets requis du manifeste pour l'OS détecté.
+Il ne lance pas le runtime. L'installateur `dev/tools/install.py` appelle le
+bootstrap et ne lance `lancer.py` qu'après un succès.
+
 ## Contrat de sortie
 
 - Code **0** : tous les assets `required` sont téléchargés et vérifiés.
 - Code **1** : au moins un asset a échoué (téléchargement, checksum).
-- Code **2** : erreur de configuration (JSON invalide, schéma violé).
+- Code **2** : erreur de configuration (JSON invalide, schéma violé) ou système
+  d'exploitation non pris en charge.
 - **Aucun traceback** pour les `BootstrapError`. Message sur `stderr`, format : `ERREUR [<asset>] : <cause>`.
 - **Traceback autorisé** pour les exceptions non-`BootstrapError` (bugs de programmation).
 

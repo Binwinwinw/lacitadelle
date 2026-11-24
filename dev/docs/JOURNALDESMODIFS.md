@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-23] GO 20 — contrat de bootstrap aligné sur le manifeste
+
+**Commit de référence audité** : `8bfc32c` (HEAD avant le GO 20; ce n'est pas
+le commit de livraison de ce GO).
+**Fichiers modifiés** : `dev/tools/BOOTSTRAP_CONTRACT.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : identifier le contrat courant, corriger son identifiant d'asset
+GGUF et aligner la description des métadonnées, destinations et commandes sur
+le manifeste et le code actuels; préserver les documents historiques.
+**Impact** : documentation seulement; aucun changement fonctionnel. Aucun test,
+téléchargement ou lancement de service dans le GO 20.
+
 ## [2026-11-23] GO 19 — alignement documentaire README et CONTRIBUTING FR/EN
 
 **Commit de référence audité** : `216acde` (HEAD avant le GO 19; ce n'est pas
