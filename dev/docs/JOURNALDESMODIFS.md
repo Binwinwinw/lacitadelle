@@ -2,6 +2,20 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-23] GO 19 — alignement documentaire README et CONTRIBUTING FR/EN
+
+**Commit de référence audité** : `216acde` (HEAD avant le GO 19; ce n'est pas
+le commit de livraison de ce GO).
+**Fichiers modifiés** : `README.md`, `README.fr.md`, `CONTRIBUTING.md`,
+`CONTRIBUTING.fr.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : clarifier Qwen3-4B comme asset requis téléchargé séparément,
+Ornith et Qwen3.5 comme modèles locaux facultatifs, le défaut conditionnel et
+la distinction entre recommandation et modèle chargé; aligner les guides FR/EN.
+**Impact** : documentation seulement, aucun changement fonctionnel. Le résultat
+`313 passed in 75.29s` est cité comme historique du GO 18 (2026-11-23);
+aucun test n'a été exécuté dans le GO 19.
+
 ## [2026-11-23] GO 18 — point de reprise factuel
 
 **Commit de référence audité** : `7f22958` (HEAD observé avant ce GO; ce n'est

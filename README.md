@@ -11,8 +11,10 @@ La Citadelle is a local AI chat application. Your conversations are processed on
 1. When an official release includes the standalone executable, download
    `LaCitadelle.exe` and verify the published SHA-256 before running it.
 2. Double-click the executable. Python is not required.
-3. On first launch, an internet connection is required to download the
-   llamafile runtime and Qwen3 model (about 1.33 GB total).
+3. On first launch, an internet connection is required. The bootstrap
+   downloads and verifies the llamafile-thin runtime and the required
+   Qwen3-4B Q4_K_M GGUF as separate assets. The GGUF is not embedded in the
+   llamafile runtime binary.
 4. The runtime, model, database, and logs are stored under
    `%APPDATA%\LaCitadelle\`; the executable does not need write access to its
    installation folder.
@@ -36,7 +38,11 @@ Do not bypass the warning for an unverified copy.
 
 1. Download the latest archive from [GitHub Releases](https://github.com/Binwinwinw/lacitadelle/releases/latest) — the file is `lacitadelle-distribution.zip`.
 2. Unzip it into a folder where you have write access.
-3. Run the native installer: double-click `install.bat` on Windows, run `./install.sh` on Linux, or open `install.command` on macOS. The installer downloads the universal llamafile runtime (about 44 MB) and Qwen3 model (about 1.28 GB), verifies their checksums, and starts the application.
+3. Run the native installer: double-click `install.bat` on Windows, run
+   `./install.sh` on Linux, or open `install.command` on macOS. The bootstrap
+   downloads and verifies the universal llamafile-thin runtime and the
+   required Qwen3-4B Q4_K_M GGUF separately. The model is a separate asset,
+   not part of the runtime binary.
    On Linux, if needed, make the shell wrappers executable first:
    `chmod +x install.sh lancer.sh`. On macOS, if Gatekeeper blocks the first
    launch, control-click `install.command` and choose **Open**.
@@ -55,7 +61,8 @@ Create an account, log in, and select **+ New session** (**+ Nouvelle session**)
   `admin`; there is no separate superadmin role.
 - Admins can manage the allowed GGUF model paths and select the active model
   from **Settings** (**Paramètres**). A selected model is loaded the next time
-  the native launcher starts.
+  the native launcher starts. The recommendation shown in Settings does not
+  change the selected model or load it.
 - Regular users can chat and access only their own conversations.
 
 ## AIWorkflow
@@ -65,16 +72,31 @@ AIWorkflow runs local Python workflows for document analysis:
 - Workflows: `analyse_md`, `analyse_pdf`, and `analyse_sql`.
 - Interfaces: the admin API, the admin workflow page, and the admin-only
   document action in chat.
-- The test suite contains **309 tests (état actuel au 2026-11-19)**. « Décompte
-  mis à jour (DIAGNOSTIC). »
+- Document paths are confined to `dev/docs/`, `dev/tests/`, `dev/tools/`, and
+  `dev/workflows/`; SQL workflows accept `SELECT` queries only.
 
 See the [architecture](./dev/docs/ARCHITECTURE.md), [tested models](./dev/docs/MODELES-TESTES.md),
-and [backlog](./dev/docs/BACKLOG.md).
+the [project status](./dev/docs/ETAT-PROJET.md), and the
+[backlog](./dev/docs/BACKLOG.md).
 
 ## Models
 
-Ornith-1.5-9B and Qwen3.5-9B are co-champions, both scoring 5/5 in live tests.
-See the [tested models](./dev/docs/MODELES-TESTES.md) for results.
+The current bootstrap manifest requires the Qwen3-4B Q4_K_M GGUF and downloads
+it separately from the runtime. “Integrated” means this fallback asset is
+provided by the bootstrap; it is not embedded in the llamafile binary.
+
+Ornith-1.5-9B and Qwen3.5-9B are optional local models. The manifest does not
+download them automatically; each must be available locally and explicitly
+allowed by the local model whitelist. When the launcher needs a default, it
+chooses Ornith if its file exists and is allowlisted; otherwise it uses the
+Qwen3-4B fallback. A machine's whitelist is local configuration, not a model
+list shared with new installations.
+
+The recommendation in Settings is informational and distinct from the saved
+selection and the model currently loaded. A valid saved selection is loaded
+when the native launcher starts. See [project status](./dev/docs/ETAT-PROJET.md)
+and [tested models](./dev/docs/MODELES-TESTES.md); their evaluation dates and
+methodologies differ, so their scores are not directly comparable.
 
 ## Known limitations
 
@@ -122,9 +144,10 @@ shows proxy output, including the one-time administrator password.
 - **The browser does not open:** open `http://localhost:8081` manually after installation.
 - **A port is already in use:** close any earlier La Citadelle windows and
   retry. Do not expose the services on another network interface.
-- **The model is missing:** rerun the native installer to verify or download the
-  default runtime and model. An admin can select only an existing model in
-  the allowed-model list.
+- **The model is missing:** rerun the native installer to verify or download
+  the required runtime and Qwen3-4B asset. Ornith and Qwen3.5 are optional
+  local models and are not downloaded by the current manifest. An admin can
+  select only an existing model in the allowed-model list.
 - **The admin account is inaccessible:** stop the application and follow the
   isolated reset procedure in [`dev/docs/RUNBOOK.md`](./dev/docs/RUNBOOK.md).
 

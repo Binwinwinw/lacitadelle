@@ -16,8 +16,12 @@ cd lacitadelle
 python dev/tools/bootstrap.py
 ```
 
-The bootstrap downloads and verifies the universal runtime and Qwen3 GGUF
-model. It installs the runtime as `dist/llamafile.exe` on Windows,
+The bootstrap downloads and verifies the llamafile-thin runtime and the
+required Qwen3-4B Q4_K_M GGUF as separate assets. The model is not embedded in
+the runtime binary. Ornith and Qwen3.5 are optional local models; the current
+manifest does not download them automatically. The bootstrap installs the
+runtime as
+`dist/llamafile.exe` on Windows,
 `dist/llamafile-linux` on Linux, or `dist/llamafile-macos` on macOS. See
 [BOOTSTRAP_CONTRACT.md](./dev/tools/BOOTSTRAP_CONTRACT.md) for configuration,
 validation, download, and repair behavior.
@@ -28,7 +32,10 @@ validation, download, and repair behavior.
 python -m pytest
 ```
 
-The test suite currently contains 229 tests. The focused HTTP helper checks can also be run with:
+Last documented run: **313 tests passed on 2026-11-23 (GO 18)**. This is a
+historical result, not a test run for GO 19. See
+[ETAT-PROJET.md](./dev/docs/ETAT-PROJET.md) for the dated project status.
+The focused HTTP helper checks can also be run with:
 
 ```powershell
 python dev/tests/test_http_helpers.py
@@ -59,7 +66,7 @@ This creates `lacitadelle-distribution.zip` in the repository root. The archive 
 ## Repository structure
 
 - `dev/tools/` — Python application and distribution tools.
-- `dev/tests/` — pytest suite (229 tests).
+- `dev/tests/` — pytest suite.
 - `dev/docs/` — architecture, contracts, product scope, and project journals.
 - `.memory/` — project decisions and agent instructions.
 - `AGENTS.md` — agent workflow and repository rules.
@@ -72,6 +79,9 @@ This creates `lacitadelle-distribution.zip` in the repository root. The archive 
 - [.memory/decisions.md](./.memory/decisions.md)
 - [ARCHITECTURE.md](./dev/docs/ARCHITECTURE.md)
 - [OBJECTIF.md](./dev/docs/OBJECTIF.md)
+- [ETAT-PROJET.md](./dev/docs/ETAT-PROJET.md)
+- [MODELES-TESTES.md](./dev/docs/MODELES-TESTES.md) — historical evaluations;
+  dates and methodologies differ.
 
 ## Reporting bugs
 

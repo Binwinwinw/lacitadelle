@@ -16,8 +16,11 @@ cd lacitadelle
 python dev/tools/bootstrap.py
 ```
 
-Le bootstrap télécharge et vérifie le runtime universel et le modèle GGUF
-Qwen3. Il installe le runtime dans `dist/llamafile.exe` sous Windows,
+Le bootstrap télécharge et vérifie séparément le runtime llamafile-thin et le
+GGUF Qwen3-4B Q4_K_M requis. Le modèle n’est pas incorporé au binaire runtime.
+Ornith et Qwen3.5 sont des modèles locaux facultatifs que le manifeste actuel
+ne télécharge pas automatiquement. Le bootstrap installe le runtime dans
+`dist/llamafile.exe` sous Windows,
 `dist/llamafile-linux` sous Linux ou `dist/llamafile-macos` sous macOS.
 Consultez [BOOTSTRAP_CONTRACT.md](./dev/tools/BOOTSTRAP_CONTRACT.md) pour la
 configuration, la validation, le téléchargement et la réparation.
@@ -28,7 +31,10 @@ configuration, la validation, le téléchargement et la réparation.
 python -m pytest
 ```
 
-La suite contient actuellement 229 tests. Les tests ciblés des helpers HTTP peuvent aussi être lancés avec :
+Dernière exécution documentée : **313 tests passés le 2026-11-23 (GO 18)**.
+Il s’agit d’un résultat historique, pas d’une exécution des tests dans le
+GO 19. Consultez [ETAT-PROJET.md](./dev/docs/ETAT-PROJET.md) pour l’état daté
+du projet. Les tests ciblés des helpers HTTP peuvent aussi être lancés avec :
 
 ```powershell
 python dev/tests/test_http_helpers.py
@@ -60,7 +66,7 @@ Cette commande crée `lacitadelle-distribution.zip` à la racine du dépôt. L�
 ## Structure du dépôt
 
 - `dev/tools/` — application Python et outils de distribution.
-- `dev/tests/` — suite pytest (229 tests).
+- `dev/tests/` — suite pytest.
 - `dev/docs/` — architecture, contrats, périmètre produit et journaux du projet.
 - `.memory/` — décisions du projet et instructions des agents.
 - `AGENTS.md` — règles de travail des agents et du dépôt.
@@ -73,6 +79,9 @@ Cette commande crée `lacitadelle-distribution.zip` à la racine du dépôt. L�
 - [.memory/decisions.md](./.memory/decisions.md)
 - [ARCHITECTURE.md](./dev/docs/ARCHITECTURE.md)
 - [OBJECTIF.md](./dev/docs/OBJECTIF.md)
+- [ETAT-PROJET.md](./dev/docs/ETAT-PROJET.md)
+- [MODELES-TESTES.md](./dev/docs/MODELES-TESTES.md) — évaluations historiques;
+  les dates et méthodologies diffèrent.
 
 ## Signaler un bogue
 

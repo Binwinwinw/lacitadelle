@@ -11,8 +11,9 @@ La Citadelle est une application locale de chat avec une IA. Vos conversations s
 1. Lorsqu'une release officielle fournit l'exécutable autonome, téléchargez
    `LaCitadelle.exe` et vérifiez le SHA-256 publié avant de l'exécuter.
 2. Double-cliquez sur l'exécutable. Python n'est pas requis.
-3. Au premier lancement, une connexion Internet est nécessaire pour télécharger
-   llamafile et le modèle Qwen3 (environ 1,33 Go au total).
+3. Au premier lancement, une connexion Internet est nécessaire. Le bootstrap
+   télécharge et vérifie séparément le runtime llamafile-thin et le GGUF
+   Qwen3-4B Q4_K_M requis. Le GGUF n’est pas incorporé au binaire llamafile.
 4. Le runtime, le modèle, la base et les journaux sont stockés dans
    `%APPDATA%\LaCitadelle\`; le dossier de l'exécutable n'a pas besoin d'être
    accessible en écriture.
@@ -37,7 +38,11 @@ Ne contournez pas l'avertissement pour une copie non vérifiée.
 
 1. Téléchargez la dernière archive depuis les [releases GitHub](https://github.com/Binwinwinw/lacitadelle/releases/latest) : le fichier s’appelle `lacitadelle-distribution.zip`.
 2. Décompressez-la dans un dossier où vous avez le droit d’écrire.
-3. Lancez l’installateur natif : double-cliquez sur `install.bat` sous Windows, exécutez `./install.sh` sous Linux ou ouvrez `install.command` sous macOS. L’installateur télécharge le runtime llamafile universel (environ 44 Mo) et le modèle Qwen3 (environ 1,28 Go), vérifie leurs sommes de contrôle et démarre l’application.
+3. Lancez l’installateur natif : double-cliquez sur `install.bat` sous Windows,
+   exécutez `./install.sh` sous Linux ou ouvrez `install.command` sous macOS.
+   Le bootstrap télécharge et vérifie séparément le runtime llamafile-thin
+   universel et le GGUF Qwen3-4B Q4_K_M requis. Le modèle est un asset séparé,
+   pas une partie du binaire runtime.
    Sous Linux, si nécessaire, rendez les wrappers exécutables :
    `chmod +x install.sh lancer.sh`. Sous macOS, si Gatekeeper bloque le
    premier lancement, faites un clic droit sur `install.command` puis choisissez
@@ -57,9 +62,45 @@ Créez un compte, connectez-vous, puis choisissez **+ Nouvelle session** pour d�
   `admin` : il n’existe pas de rôle superadmin distinct.
 - Les admins peuvent gérer les chemins GGUF autorisés et choisir le modèle
   actif depuis **Paramètres**. Le modèle sélectionné sera chargé au prochain
-  démarrage du lanceur natif.
+  démarrage du lanceur natif. La recommandation affichée dans les réglages ne
+  change pas le modèle sélectionné et ne le charge pas.
 - Les utilisateurs peuvent discuter et accéder uniquement à leurs propres
   conversations.
+
+## AIWorkflow
+
+AIWorkflow exécute localement des workflows Python d’analyse documentaire :
+
+- Workflows : `analyse_md`, `analyse_pdf` et `analyse_sql`.
+- Interfaces : l’API admin, la page des workflows admin et l’action
+  documentaire réservée aux admins dans le chat.
+- Les chemins sont limités à `dev/docs/`, `dev/tests/`, `dev/tools/` et
+  `dev/workflows/`; les workflows SQL n’acceptent que des requêtes `SELECT`.
+
+Consultez l’[architecture](./dev/docs/ARCHITECTURE.md), les
+[modèles testés](./dev/docs/MODELES-TESTES.md), l’[état du projet](./dev/docs/ETAT-PROJET.md)
+et le [backlog](./dev/docs/BACKLOG.md).
+
+## Modèles
+
+Le manifeste actuel du bootstrap exige le GGUF Qwen3-4B Q4_K_M et le
+télécharge séparément du runtime. « Intégré » signifie que cet asset de
+fallback est fourni par le bootstrap; il n’est pas incorporé au binaire
+llamafile.
+
+Ornith-1.5-9B et Qwen3.5-9B sont des modèles locaux facultatifs. Le manifeste
+ne les télécharge pas automatiquement; chaque fichier doit déjà être présent
+et autorisé par la whitelist locale. Quand le lanceur doit choisir un défaut,
+il préfère Ornith si le fichier existe et figure dans la whitelist; sinon, il
+utilise le fallback Qwen3-4B. La whitelist d’une machine est une configuration
+locale, pas une liste de modèles fournie à chaque nouvelle installation.
+
+La recommandation dans les paramètres est informative et distincte du choix
+enregistré et du modèle effectivement chargé. Un choix enregistré valide est
+chargé au démarrage du lanceur natif. Consultez l’[état du projet](./dev/docs/ETAT-PROJET.md)
+et les [modèles testés](./dev/docs/MODELES-TESTES.md); leurs dates et
+méthodologies d’évaluation diffèrent, leurs scores ne sont donc pas directement
+comparables.
 
 ## Limites connues
 
@@ -103,8 +144,9 @@ initial visible une seule fois.
 - **Un port est déjà utilisé :** fermez les fenêtres d’une instance précédente,
   puis réessayez. N’exposez pas les services sur une autre interface réseau.
 - **Le modèle est introuvable :** relancez l’installateur natif pour vérifier ou
-  télécharger le moteur et le modèle par défaut. Un admin ne peut sélectionner
-  qu’un modèle existant dans la liste autorisée.
+  télécharger le runtime requis et l’asset Qwen3-4B. Ornith et Qwen3.5 sont des
+  modèles locaux facultatifs que le manifeste actuel ne télécharge pas.
+  Un admin ne peut sélectionner qu’un modèle existant dans la liste autorisée.
 - **Le compte admin est inaccessible :** arrêtez l’application et suivez la
   procédure de réinitialisation isolée dans
   [`dev/docs/RUNBOOK.md`](./dev/docs/RUNBOOK.md).
