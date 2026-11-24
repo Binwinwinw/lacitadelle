@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-23] GO 18 — point de reprise factuel
+
+**Commit de référence audité** : `7f22958` (HEAD observé avant ce GO; ce n'est
+pas le commit de livraison du GO 18).
+**Fichiers modifiés** : `dev/docs/ETAT-PROJET.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : remplacer le point de reprise obsolète par un relevé sourcé des
+modèles, tests, décisions, services, limites et écarts documentaires.
+**Impact** : documentation seulement; aucun changement code, configuration,
+DB, whitelist ou modèle actif. Le test du 2026-11-23 donne
+`313 passed in 75.29s`.
+
 ## [2026-11-23] GO 16-WHITELIST-ROLLBACK-FIX-LOCAL-BIS — recommandation locale Ornith
 
 **Commit** : en cours de rédaction.
