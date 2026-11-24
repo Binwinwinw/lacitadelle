@@ -660,12 +660,13 @@ notamment pour une distribution EXE hors ligne.
 - 16-CHAT-WEB-ACCESS (optionnel)
 - 16-AGENTS-RULES-18
 
-## Phase 16 — Modèles et UX (AIWorkflow + fichiers chat clôturés; autres tâches ouvertes)
+## Phase 16 — Clôture finale des livrables centraux; reports actifs
 
-**Statut du périmètre clôturé** : AIWorkflow et premier incrément fichiers
-chat sont terminés (décision #130); la sélection V3.1 est conservée selon la
-décision #127. Les autres travaux modèles/UX listés ci-dessous restent ouverts.
-La suite complète compte 327 tests.
+**Statut** : clôture finale le 2026-11-24 des livrables AIWorkflow, premier
+incrément Fichiers Chat et audit SQL, avec la sélection V3.1 conservée
+(décisions #127, #130–#132). Les tâches historiques modèles/UX non terminées
+restent des reports actifs; elles ne sont pas déclarées closes ici. La suite
+complète compte 331 tests.
 
 **GO planifiés** (détails, dépendances et propriétaires : voir TODO.md) :
 
@@ -758,13 +759,28 @@ restent des évolutions distinctes.
 
 #### 16-FICHIERS-CHAT-LIVE-TEST
 
-**Statut** : validé le 2026-11-24; à planifier.
+**Statut** : terminé le 2026-11-24 (GO 16-FICHIERS-CHAT-LIVE-TEST-BIS).
 **Dépendances** : premier incrément `.md` livré (GO 25).
-**Priorité** : haute.
+**Priorité** : haute; clôturée.
 **Périmètre** : test manuel navigateur + modèle du téléversement, question,
 suivi, rechargement et retrait.
-**Questions ouvertes** : poste, navigateur et modèle local de validation.
-**Moment de traitement** : avant une validation de release fichiers chat.
+**Résultat** : upload, résumé, reprise après rechargement, suivi, retrait,
+isolation inter-comptes et limites vérifiés; test modèle réussi après
+redémarrage du runtime.
+**Questions ouvertes** : aucune pour le parcours testé.
+**Moment de traitement** : terminé.
+
+#### 16-AUDIT-SQL
+
+**Statut** : terminé le 2026-11-24 (GO 16-AUDIT-SQL; commit `6e8ef08`).
+**Dépendances** : diagnostic #60 et décision d’occultation de `content`.
+**Priorité** : haute; clôturée.
+**Périmètre** : migration v12, audit des suppressions document/session et
+tests sur les sessions #62/#63.
+**Résultat** : les deux suppressions sont journalisées avec les bons
+`session_id` et `user_id` propriétaire. Aucun bug de ciblage n’a été reproduit;
+l’origine historique de l’écart #60 reste indéterminée.
+**Moment de traitement** : terminé; la DB a été restaurée au backup de départ.
 
 #### 16-CLEANUP-DETTE
 
@@ -780,13 +796,24 @@ des logs.
 #### 16-MULTIFORMAT
 
 **Statut** : validé le 2026-11-24; à planifier.
-**Dépendances** : premier incrément `.md` livré et test live planifié.
+**Dépendances** : premier incrément `.md` livré et test live terminé.
 **Priorité** : à déterminer.
 **Périmètre** : cadrer PDF, documents bureautiques et SQL comme texte; aucune
 exécution du contenu n’est incluse.
 **Questions ouvertes** : formats exacts, extracteurs, limites et messages
 d’erreur.
 **Moment de traitement** : GO séparé après validation du test live.
+
+#### 16-AUDIT-ACTOR
+
+**Statut** : validé le 2026-11-24; à planifier.
+**Dépendances** : audit SQL v12 livré.
+**Priorité** : moyenne.
+**Périmètre** : tracer l’acteur authentifié en plus du propriétaire de la
+ligne, y compris les suppressions directes ou par cascade.
+**Questions ouvertes** : contexte d’acteur SQLite ou journalisation applicative;
+les triggers seuls ne connaissent que `OLD.user_id`.
+**Moment de traitement** : GO technique séparé.
 
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
 BACKLOG.md conserve le statut, les priorités et l'effort estimé sans

@@ -3018,3 +3018,25 @@ vérifient l’audit, la cascade, l’occultation du contenu et l’idempotence.
 Après reproduction, la DB utilisateur a été restaurée depuis son backup; les
 événements #62/#63 ne restent donc pas dans la DB restaurée. 331 tests passent.
 131 décisions.
+
+## [2026-11-24] Clôture finale des livrables centraux de la Phase 16
+
+**Contexte** : le GO 16-PHASE-CLOSE-FINAL clôture AIWorkflow, le premier
+incrément Fichiers Chat, l’audit SQL v12 et la sélection V3.1. Les reproductions
+#62 et #63 ont vérifié le ciblage courant; elles ne reconstituent pas l’origine
+historique de l’écart #60.
+
+**Décision(s)** :
+1. Clôturer les livrables centraux AIWorkflow, Fichiers Chat, Audit SQL et
+   V3.1; conserver Ornith comme défaut local recommandé, Qwen3.5 comme second
+   choix et Qwen3-4B comme fallback.
+2. Accepter l’écart historique #60 comme non attribuable : aucun bug de
+   ciblage n’a été reproduit sur #62/#63; retrait manuel ou état UI périmé
+   restent des hypothèses, pas des faits établis.
+3. Reporter le nettoyage de dette, le multiformat et l’audit de l’acteur
+   authentifié. Les autres tâches non terminées restent des reports actifs.
+
+**Conséquences** : la phase est clôturée pour les livrables nommés; 331 tests
+passent et 132 décisions sont datées. La DB a été restaurée au backup de départ;
+le schéma v12 sera recréé au prochain démarrage. Aucun modèle ou whitelist n’a
+été modifié dans ce GO. 132 décisions.

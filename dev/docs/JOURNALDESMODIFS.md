@@ -2282,3 +2282,18 @@ le contenu documentaire, puis vérifier le ciblage sur les sessions #62 et #63.
 **Impact** : migration v12, deux triggers et quatre tests ajoutés; `331 passed`.
 Les événements de reproduction ont été vérifiés puis la DB restaurée au backup;
 aucun résultat n’est conservé dans la DB de l’utilisateur.
+
+## [2026-11-24] GO 16-PHASE-CLOSE-FINAL — Bilan final Phase 16
+
+**Commit** : identifiant consultable dans l’historique Git.
+
+**Fichiers modifiés** : `dev/docs/PHASE-FINAL-BILAN.md`,
+`.memory/decisions.md`, `TODO.md`, `dev/docs/BACKLOG.md`, `AGENTS.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/ROADMAP.md`, `dev/docs/ETAT-PROJET.md`.
+
+**Raison** : réunir le bilan final des livrables clos et reporter explicitement
+les dettes et améliorations non terminées.
+
+**Impact** : documentation de clôture mise à jour; préflight `331 passed`.
+Aucun code, DB ou whitelist modifié dans ce GO.

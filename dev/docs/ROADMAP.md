@@ -189,8 +189,8 @@ Linux et macOS avant la diffusion de l'archive.
 - Phase 14-PERSONA-NEXXUS V1.1 : implémentée, validation manuelle restante.
 - Phase 15-PACKAGING-PYINSTALLER-V1 : exécutable Windows buildé localement;
   test sans Python et diffusion manuelle restants.
-- Phase 16 : le périmètre AIWorkflow + premier incrément fichiers chat est
-  clôturé; les tâches modèles/UX non terminées restent au backlog.
+- Phase 16 : les livrables centraux AIWorkflow, Fichiers Chat, audit SQL et
+  V3.1 sont clôturés; les autres tâches restent des reports dans le backlog.
 - Règles : dix règles structurelles dans `AGENTS.md`.
 - Tâches à venir : voir `TODO.md` (local, gitignoré).
 
@@ -215,30 +215,33 @@ Validation manuelle sur un poste Windows sans Python en attente.
 **Validation restante** : lancer l'EXE sur un poste Windows sans Python, puis
 publier le binaire seulement après décision et vérification de signature/hash.
 
-## [Phase 16 — AIWorkflow et premier incrément fichiers chat] (2026-11-18 → 2026-11-24)
+## [Phase 16 — AIWorkflow, Fichiers Chat et Audit SQL] (2026-11-18 → 2026-11-24)
 
-**Statut** : périmètre livré et clôturé; les tâches modèles/UX non terminées
-ne sont pas incluses dans cette clôture et restent au backlog.
+**Statut** : clôture finale des livrables centraux; les tâches modèles/UX
+historiques non terminées restent des reports actifs dans TODO/BACKLOG.
 
-**Objectif** : livrer l’orchestration documentaire locale AIWorkflow, vérifier
-son parcours Markdown complet et permettre d’attacher un document `.md` à une
-conversation avec un suivi persistant et isolé par compte.
+**Objectif** : livrer l’orchestration documentaire locale AIWorkflow, le
+premier incrément fichiers `.md` isolé par compte, puis tracer les suppressions
+document/session sans conserver le contenu documentaire supprimé.
 
 **Livrables** : moteur maison, workflows `analyse_md`/`analyse_pdf`/
 `analyse_sql`, API, UI admin/chat, diagnostic et retrieval SQLite FTS5;
 E2E `analyse_md` 8/8 titres sur `ARCHITECTURE.md` avec Ornith. Premier
 incrément fichiers chat : migration v11, upload et retrait `.md`, stockage par
 conversation, extraction UTF-8 et contrôles UI. La V3.1 modèles est conservée
-selon la décision #127.
+selon la décision #127. Audit SQL : migration v12, `audit_log`, triggers sur
+les suppressions et quatre tests; `old_data` exclut le texte du document.
 
 **Commits clés** : `6561b47`, `5df516e`, `fc0575e`, `a5273c2`, `d2e4ebf`,
 `916dc0a` (AIWorkflow); `9c419f4` (tests UI), `ebd5efe` (RAG),
 `2f4d34c` (E2E 8/8), `21d0f3f` (diagnostic), `7f22958` (V3.1 modèles) et
-`fd34e82` (fichiers du chat).
+`fd34e82` (fichiers du chat), `28bb8b7` (clôture partielle) et `6e8ef08`
+(audit SQL).
 
-**Vérification** : 327 tests passent; 14 tests dédiés couvrent le parcours
-fichiers chat. Aucun test live navigateur/modèle n’a été réalisé à la clôture.
-Voir [PHASE-CLOSE-BILAN.md](./PHASE-CLOSE-BILAN.md), les décisions #127–#130,
+**Vérification** : 331 tests passent; 14 tests dédiés couvrent Fichiers Chat
+et quatre l’audit. Le test live #62 UI et #63 DELETE direct est correctement
+ciblé. L’écart historique #60 n’est pas attribué; aucun bug n’a été reproduit.
+Voir [PHASE-FINAL-BILAN.md](./PHASE-FINAL-BILAN.md), les décisions #127–#132,
 le [BACKLOG](./BACKLOG.md) et le [journal de bord](./JOURNALDEBORD.md).
 
 ## Prochaines phases possibles (non clôturées)

@@ -2,13 +2,13 @@
 
 **Mis à jour** : 2026-11-24
 
-**Commit de référence audité** : `fd34e82` (HEAD observé au préflight GO
-16-PHASE-CLOSE; ce n'est pas le commit de livraison de ce GO).
+**Dernier commit de code audité** : `6e8ef08` (audit SQL v12; HEAD observé
+au préflight GO 16-PHASE-CLOSE-FINAL, avant les changements documentaires).
 
-Ce point de reprise inclut la clôture du sous-périmètre AIWorkflow et premier
-incrément fichiers chat de la Phase 16. Les limites qui n’ont pas été mesurées
-en live sont signalées; aucun chemin absolu de DB ou de modèle local n’est
-publié ici.
+Ce point de reprise clôt les livrables centraux AIWorkflow, premier incrément
+Fichiers Chat, audit SQL et V3.1 de la Phase 16. Les autres tâches restent des
+reports actifs; les limites qui n’ont pas été mesurées en live sont signalées.
+Aucun chemin absolu de DB ou de modèle local n’est publié ici.
 
 ## Résumé
 
@@ -40,12 +40,12 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 
 ## Tests et décisions
 
-- **Tests mesurés dans ce GO** : `.\.venv\Scripts\python.exe -m pytest -q`
-  — `327 passed in 81.38s`, le 2026-11-24.
-- **Décisions datées** : 130 entrées, comptées dans
+- **Tests mesurés au préflight final** : `.\.venv\Scripts\python.exe -m pytest -q`
+  — `331 passed`, le 2026-11-24.
+- **Décisions datées** : 132 entrées, comptées dans
   [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-24. Le comptage
-  est calculé sur les titres `## [AAAA-MM-JJ]`; la décision #130 consigne la
-  clôture du périmètre AIWorkflow + fichiers chat.
+  est calculé sur les titres `## [AAAA-MM-JJ]`; la décision #132 consigne la
+  clôture finale des livrables centraux de la Phase 16.
 - **Décision modèle la plus récente** : Ornith recommandé s'il est local et
   whitelisté; Qwen3-4B reste le modèle intégré de fallback; Qwen3.5 reste local;
   Granite est retiré de la whitelist ([decisions.md](../../.memory/decisions.md#L2882)).
@@ -56,7 +56,7 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 |---|---|---|
 | llamafile | API locale sur `127.0.0.1:8080`. | Non vérifié. |
 | Proxy web Python | `HTTPServer` sur `127.0.0.1:8081`; authentification, webchat, API et relais vers llamafile. | Non vérifié. |
-| Données | Le schéma SQLite applicatif comprend comptes, sessions, messages, réglages et documents de conversation (migration v11). | Les GO 25 et 16-PHASE-CLOSE n’ont pas ouvert la DB utilisateur. |
+| Données | Le code inclut le stockage documentaire v11 et l’audit des suppressions v12; `old_data` omet le contenu documentaire. | La DB a été restaurée depuis le backup du test; v12 sera réappliquée au prochain démarrage. |
 
 Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/login_server.py#L86),
 [ARCHITECTURE.md](./ARCHITECTURE.md).
@@ -78,9 +78,13 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
   après rechargement. Les limites de contexte sont estimées; aucun benchmark
   ni test live de modèle n’a été exécuté dans le GO 25
   ([SPEC-FICHIERS-CHAT.md](./SPEC-FICHIERS-CHAT.md),
-  [décision #129](../../.memory/decisions.md#L2941)). Le périmètre AIWorkflow
-  + fichiers chat est clôturé par la décision #130; les tâches modèles/UX
-  restantes ne sont pas déclarées terminées.
+  [décision #129](../../.memory/decisions.md#L2941)). Le test live a ensuite
+  vérifié le parcours et les limites. La clôture finale des livrables centraux
+  est consignée par la décision #132; les autres tâches restent des reports.
+- L’audit v12 journalise les suppressions avec le propriétaire de la ligne,
+  pas nécessairement l’acteur. Le test #62 via UI et #63 par DELETE direct
+  cible les bonnes sessions; l’origine historique de l’écart #60 reste
+  indéterminée (décisions #131–#132).
 - Le chat général n'a pas de base RAG personnalisée ni d'accès web déclaré
   livré; un document attaché à une conversation ne constitue pas une
   bibliothèque générale. L'accès web figure encore comme proposition dans
@@ -111,10 +115,9 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
 
 ## Prochaines suites possibles
 
-1. Valider manuellement dans un navigateur et avec un modèle local le parcours
-   fichiers chat; aucun navigateur ni modèle n’a été lancé dans ces GO.
-2. Planifier le nettoyage des dettes Ruff/tokenizer/logs.
-3. Étudier les extensions multiformat après validation du test live.
+1. Planifier le nettoyage des dettes Ruff/tokenizer/logs.
+2. Étudier les extensions multiformat (PDF, bureautique, SQL comme texte).
+3. Étudier l’audit de l’acteur authentifié au-delà du propriétaire.
 
 ## Références de reprise
 
