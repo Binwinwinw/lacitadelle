@@ -673,7 +673,13 @@ complète compte 331 tests.
 ### Priorité haute (UX)
 
 1. **16-FEATURE-MODEL-USE** — terminé; validation manuelle du Décideur le 2026-11-15.
-2. **16-FIX-SETTINGS-SCROLL** — mise en page implémentée; validation manuelle restante.
+2. **16-FIX-SETTINGS-SCROLL** — clôturé le 2026-11-24 : défilement général
+   vérifié en session authentifiée à 1440×667 et 390×844; trois modèles et
+   leurs actions sont accessibles. Aucun débordement horizontal ni contenu
+   inaccessible observé; aucun défaut reproduit, aucun correctif nécessaire.
+   Essai statique précédent concluant avec 60 entrées factices; le cas
+   authentifié avec liste longue n’a pas été testé. Limite consignée dans les
+   journaux.
 
 ### Priorité moyenne (qualité)
 

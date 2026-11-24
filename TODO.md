@@ -109,9 +109,6 @@ tâche terminée est supprimée ici; sa trace reste dans
 
 ### Qualité et dette
 
-- [ ] **16-FIX-SETTINGS-SCROLL** : validation manuelle du scroll vertical
-  sur la liste des modèles autorisés et de la mise en page responsive
-  sur écran large/mobile. — Propriétaire : Décideur.
 - [ ] **16-FIX-WHITELIST-UX** : message précis pour les entrées
   invalides de la whitelist, au lieu de "Chaque modèle doit être un
   fichier GGUF existant". — Propriétaire : à planifier.

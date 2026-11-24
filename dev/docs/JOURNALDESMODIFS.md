@@ -2,6 +2,24 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-24] GO 16-SETTINGS-SCROLL-CLOTURE — validation consignée
+
+**Commit de référence audité** : `36427c4`. Ce n’est pas le commit de
+livraison de cette clôture.
+**Fichiers modifiés** : `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : clôturer la validation de la page Réglages sans correctif et
+conserver explicitement la limite du scénario authentifié avec une liste longue.
+**Impact** : documentation seulement. La validation live antérieure sur
+`127.0.0.1:8081/settings` a confirmé le défilement général en session
+authentifiée à 1440×667 et 390×844, avec trois modèles et leurs actions
+accessibles; aucun débordement horizontal ni contenu inaccessible n’a été
+observé. L’essai statique antérieur avec 60 entrées factices était concluant;
+la liste longue authentifiée n’a pas été testée. Aucun défaut n’a été reproduit
+et aucun correctif n’est nécessaire au vu des essais effectués. Aucun test
+pytest n’a été lancé dans ce GO.
+
 ## [2026-11-24] GO 16-PHASE16-RESTE — inventaire et priorisation
 
 **Commit de référence audité** : `4f58b12` (HEAD observé au préflight; le hash
