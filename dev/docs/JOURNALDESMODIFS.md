@@ -2,6 +2,19 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-24] GO 16-PHASE16-RESTE — inventaire et priorisation
+
+**Commit de référence audité** : `4f58b12` (HEAD observé au préflight; le hash
+de livraison est consultable dans l’historique Git).
+**Fichiers modifiés** : `dev/docs/PHASE16-RESTE.md`, `TODO.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : inventorier les tâches Phase 16 encore ouvertes, leur proposer
+une priorité et un ordre de GO séparés sans déclarer les tâches exécutées.
+**Impact** : documentation seulement; 19 tâches sont inventoriées, dont les
+validations UX manuelles, les évolutions modèles et la migration des
+environnements d’autres projets. Préflight : `338 passed`; aucun code, DB ou
+whitelist modifié.
+
 ## [2026-11-24] GO 16-CLEANUP-DETTE — Ruff, tokenizer et audit acteur
 
 **Commit de référence audité** : `8604df8` (HEAD observé au préflight; le hash

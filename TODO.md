@@ -143,6 +143,9 @@ tâche terminée est supprimée ici; sa trace reste dans
 
 ### Suites après clôture finale des livrables Phase 16
 
+**Phase 16** : AIWorkflow, Fichiers Chat, Audit SQL clôturés. Tâches restantes :
+voir [PHASE16-RESTE.md](dev/docs/PHASE16-RESTE.md).
+
 - [ ] **16-MULTIFORMAT** : cadrer des extracteurs pour PDF, documents
   bureautiques et SQL comme texte (sans exécution). — Propriétaire :
   à planifier.
