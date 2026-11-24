@@ -452,6 +452,27 @@ def migrate_to_v10(db_path: Path | None = None) -> bool:
     return True
 
 
+def migrate_to_v11(db_path: Path | None = None) -> None:
+    """Ajoute le stockage des documents attachés aux conversations."""
+    with _connect(db_path) as conn:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS conversation_documents ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "session_id INTEGER NOT NULL, "
+            "user_id INTEGER NOT NULL, "
+            "content TEXT NOT NULL, "
+            "metadata JSON NOT NULL, "
+            "created_at TEXT NOT NULL, "
+            "FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE, "
+            "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)"
+        )
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS "
+            "idx_conversation_documents_session_id "
+            "ON conversation_documents(session_id)"
+        )
+
+
 def get_setting(
     key: str,
     default: str | None = None,
@@ -523,6 +544,7 @@ def init_db(db_path: Path | None = None) -> None:
     migrate_to_v8(db_path)
     migrate_to_v9(db_path)
     migrate_to_v10(db_path)
+    migrate_to_v11(db_path)
 
 
 def get_preferences(
@@ -692,6 +714,84 @@ def delete_session(session_id: int, db_path: Path | None = None) -> None:
     """Supprime une session et tous ses messages (CASCADE)."""
     with _connect(db_path) as conn:
         conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+
+
+def add_conversation_document(
+    user_id: int,
+    session_id: int,
+    content: str,
+    metadata: dict[str, Any],
+    db_path: Path | None = None,
+) -> int | None:
+    """Enregistre le document seulement si la session appartient à l'utilisateur."""
+    if not isinstance(content, str) or not isinstance(metadata, dict):
+        raise TypeError("Le contenu et les métadonnées du document sont invalides.")
+    now = _utcnow()
+    with _connect(db_path) as conn:
+        owner = conn.execute(
+            "SELECT 1 FROM sessions WHERE id = ? AND user_id = ?",
+            (session_id, user_id),
+        ).fetchone()
+        if owner is None:
+            return None
+        cursor = conn.execute(
+            "INSERT INTO conversation_documents "
+            "(session_id, user_id, content, metadata, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (
+                session_id,
+                user_id,
+                content,
+                json.dumps(metadata, ensure_ascii=False),
+                now,
+            ),
+        )
+        conn.execute(
+            "UPDATE sessions SET updated_at = ? WHERE id = ?",
+            (now, session_id),
+        )
+        if cursor.lastrowid is None:
+            raise MemoryError_("Impossible de récupérer l'identifiant du document.")
+        return cursor.lastrowid
+
+
+def get_conversation_document_for_user(
+    user_id: int,
+    session_id: int,
+    db_path: Path | None = None,
+) -> dict[str, Any] | None:
+    """Retourne le document de la session seulement à son propriétaire."""
+    with _connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT d.* FROM conversation_documents d "
+            "JOIN sessions s ON s.id = d.session_id AND s.user_id = d.user_id "
+            "WHERE d.session_id = ? AND d.user_id = ? AND s.user_id = ?",
+            (session_id, user_id, user_id),
+        ).fetchone()
+        if row is None:
+            return None
+        document = dict(row)
+        document["metadata"] = json.loads(document["metadata"])
+        return document
+
+
+def delete_conversation_document_for_user(
+    user_id: int,
+    document_id: int,
+    db_path: Path | None = None,
+) -> bool:
+    """Supprime le document seulement depuis le compte propriétaire."""
+    with _connect(db_path) as conn:
+        cursor = conn.execute(
+            "DELETE FROM conversation_documents "
+            "WHERE id = ? AND user_id = ? AND EXISTS ("
+            "  SELECT 1 FROM sessions s "
+            "  WHERE s.id = conversation_documents.session_id "
+            "  AND s.user_id = conversation_documents.user_id"
+            ")",
+            (document_id, user_id),
+        )
+        return cursor.rowcount == 1
 
 
 def list_sessions_for_user(

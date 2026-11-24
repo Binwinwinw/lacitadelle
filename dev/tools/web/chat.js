@@ -1,9 +1,11 @@
 // Chat client pour La Citadelle V2
 
 let currentSessionId = null;
+let currentChatDocument = null;
 let isSending = false;
 let isAdminUser = false;
 let isAnalyzingDocument = false;
+let isManagingChatDocument = false;
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 function csrfHeaders(headers = {}) {
@@ -18,6 +20,10 @@ const sendBtn = document.getElementById("send-btn");
 const newSessionBtn = document.getElementById("new-session");
 const statusDiv = document.getElementById("status");
 const adminLink = document.getElementById("admin-link");
+const chatDocumentFile = document.getElementById("chat-document-file");
+const attachChatDocumentButton = document.getElementById("attach-chat-document");
+const chatDocumentName = document.getElementById("chat-document-name");
+const removeChatDocumentButton = document.getElementById("remove-chat-document");
 const analyzeDocumentButton = document.getElementById("analyze-document-button");
 const workflowDialog = document.getElementById("workflow-dialog");
 const workflowForm = document.getElementById("workflow-form");
@@ -63,7 +69,33 @@ function updateAnalyzeDocumentButton() {
 		|| currentSessionId === null
 		|| userInput.disabled
 		|| isSending
-		|| isAnalyzingDocument;
+		|| isAnalyzingDocument
+		|| isManagingChatDocument;
+}
+
+function updateChatDocumentControls() {
+	const hasDocument = currentChatDocument !== null;
+	const busy =
+		currentSessionId === null
+		|| userInput.disabled
+		|| isSending
+		|| isAnalyzingDocument
+		|| isManagingChatDocument;
+	attachChatDocumentButton.hidden = hasDocument;
+	attachChatDocumentButton.disabled = busy;
+	chatDocumentFile.disabled = busy || hasDocument;
+	chatDocumentName.hidden = !hasDocument;
+	if (hasDocument) {
+		const fileName = currentChatDocument.metadata.file_name;
+		const partial = currentChatDocument.metadata.characters > 6000;
+		chatDocumentName.textContent = partial
+			? `Document : ${fileName} (réponses basées sur des extraits)`
+			: `Document : ${fileName}`;
+	} else {
+		chatDocumentName.textContent = "";
+	}
+	removeChatDocumentButton.hidden = !hasDocument;
+	removeChatDocumentButton.disabled = busy;
 }
 
 function createMessage(role, content) {
@@ -188,14 +220,16 @@ async function loadSessions() {
 }
 
 async function selectSession(sessionId) {
-	if (isAnalyzingDocument) return;
+	if (isAnalyzingDocument || isManagingChatDocument) return;
 	currentSessionId = sessionId;
+	currentChatDocument = null;
 	for (const item of sessionsList.querySelectorAll("li[data-session-id]")) {
 		item.classList.toggle("active", Number(item.dataset.sessionId) === sessionId);
 	}
 	userInput.disabled = true;
 	sendBtn.disabled = true;
 	updateAnalyzeDocumentButton();
+	updateChatDocumentControls();
 	showMessagesPlaceholder("Chargement de la conversation...");
 	showStatus("Chargement...");
 
@@ -214,6 +248,13 @@ async function selectSession(sessionId) {
 		}
 
 		const data = await response.json();
+		currentChatDocument =
+			data.document
+			&& Number.isSafeInteger(data.document.id)
+			&& data.document.metadata
+			&& typeof data.document.metadata.file_name === "string"
+				? data.document
+				: null;
 		messagesDiv.replaceChildren();
 		for (const message of data.messages || []) {
 			messagesDiv.appendChild(createMessage(message.role, message.content));
@@ -224,21 +265,128 @@ async function selectSession(sessionId) {
 		userInput.disabled = false;
 		sendBtn.disabled = false;
 		updateAnalyzeDocumentButton();
+		updateChatDocumentControls();
 		showStatus("");
 		userInput.focus();
 	} catch (error) {
 		showStatus(`Erreur réseau : ${error.message}`, true);
 		showMessagesPlaceholder("Impossible de charger cette conversation.");
+		updateChatDocumentControls();
+	}
+}
+
+async function uploadChatDocument(file) {
+	if (
+		!file
+		|| currentSessionId === null
+		|| currentChatDocument !== null
+		|| isSending
+		|| isAnalyzingDocument
+		|| isManagingChatDocument
+	) return;
+
+	isManagingChatDocument = true;
+	updateAnalyzeDocumentButton();
+	updateChatDocumentControls();
+	showStatus("Téléversement du document...");
+	const form = new FormData();
+	form.append("session_id", String(currentSessionId));
+	form.append("file", file, file.name);
+
+	try {
+		const response = await fetch("/api/chat/upload", {
+			method: "POST",
+			headers: csrfHeaders(),
+			body: form,
+			credentials: "same-origin",
+		});
+		const data = await response.json().catch(() => ({}));
+		if (response.status === 401) {
+			window.location.href = "/login";
+			return;
+		}
+		if (!response.ok) {
+			showStatus(data.error || "Erreur de téléversement du document.", true);
+			return;
+		}
+		if (
+			!Number.isSafeInteger(data.document_id)
+			|| !data.metadata
+			|| typeof data.metadata.file_name !== "string"
+		) {
+			showStatus("Réponse de téléversement du document invalide.", true);
+			return;
+		}
+		currentChatDocument = {
+			id: data.document_id,
+			metadata: data.metadata,
+		};
+		showStatus(`Document joint : ${data.metadata.file_name}`);
+	} catch (error) {
+		showStatus(`Erreur réseau : ${error.message}`, true);
+	} finally {
+		isManagingChatDocument = false;
+		chatDocumentFile.value = "";
+		updateAnalyzeDocumentButton();
+		updateChatDocumentControls();
+	}
+}
+
+async function removeChatDocument() {
+	if (
+		currentChatDocument === null
+		|| isSending
+		|| isAnalyzingDocument
+		|| isManagingChatDocument
+	) return;
+
+	isManagingChatDocument = true;
+	updateAnalyzeDocumentButton();
+	updateChatDocumentControls();
+	try {
+		const response = await fetch(
+			`/api/chat/document/${currentChatDocument.id}`,
+			{
+				method: "DELETE",
+				headers: csrfHeaders(),
+				credentials: "same-origin",
+			}
+		);
+		const data = await response.json().catch(() => ({}));
+		if (response.status === 401) {
+			window.location.href = "/login";
+			return;
+		}
+		if (!response.ok) {
+			showStatus(data.error || "Erreur de retrait du document.", true);
+			return;
+		}
+		currentChatDocument = null;
+		showStatus(
+			"Document retiré; les messages restent dans l’historique."
+		);
+	} catch (error) {
+		showStatus(`Erreur réseau : ${error.message}`, true);
+	} finally {
+		isManagingChatDocument = false;
+		updateAnalyzeDocumentButton();
+		updateChatDocumentControls();
 	}
 }
 
 async function sendMessage(content) {
-	if (currentSessionId === null || isSending || isAnalyzingDocument) return;
+	if (
+		currentSessionId === null
+		|| isSending
+		|| isAnalyzingDocument
+		|| isManagingChatDocument
+	) return;
 
 	isSending = true;
 	userInput.disabled = true;
 	sendBtn.disabled = true;
 	updateAnalyzeDocumentButton();
+	updateChatDocumentControls();
 	const loading = createMessage("assistant loading", "Réponse en cours...");
 	let assistantMessage = null;
 	let streamedContent = "";
@@ -395,6 +543,7 @@ async function sendMessage(content) {
 			sendBtn.disabled = false;
 		}
 		updateAnalyzeDocumentButton();
+		updateChatDocumentControls();
 	}
 }
 
@@ -429,6 +578,7 @@ workflowForm.addEventListener("submit", async (event) => {
 		!isAdminUser
 		|| currentSessionId === null
 		|| isAnalyzingDocument
+		|| isManagingChatDocument
 		|| isSending
 	) return;
 
@@ -453,6 +603,7 @@ workflowForm.addEventListener("submit", async (event) => {
 	sendBtn.disabled = true;
 	newSessionBtn.disabled = true;
 	updateAnalyzeDocumentButton();
+	updateChatDocumentControls();
 
 	const loading = createMessage(
 		"assistant loading",
@@ -510,11 +661,12 @@ workflowForm.addEventListener("submit", async (event) => {
 		}
 		newSessionBtn.disabled = false;
 		updateAnalyzeDocumentButton();
+		updateChatDocumentControls();
 	}
 });
 
 async function createNewSession() {
-	if (isAnalyzingDocument) return;
+	if (isAnalyzingDocument || isManagingChatDocument) return;
 	newSessionBtn.disabled = true;
 	showStatus("Création de la session...");
 	try {
@@ -557,7 +709,15 @@ userInput.addEventListener("keydown", (event) => {
 });
 
 newSessionBtn.addEventListener("click", createNewSession);
+attachChatDocumentButton.addEventListener("click", () => {
+	if (!attachChatDocumentButton.disabled) chatDocumentFile.click();
+});
+chatDocumentFile.addEventListener("change", () => {
+	uploadChatDocument(chatDocumentFile.files[0]);
+});
+removeChatDocumentButton.addEventListener("click", removeChatDocument);
 
+updateChatDocumentControls();
 loadPreferences();
 loadAdminLink();
 loadSessions();

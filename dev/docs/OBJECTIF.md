@@ -61,6 +61,11 @@ l'archive.
   en Python, où le code gère les étapes et le tool calling; Graphify sert
   d'index de connaissance pour le retrieval structuré de documents et de code.
   Le périmètre d'intégration production reste à confirmer après le POC.
+- Fichiers du chat (cible V4 proposée) : premier incrément avec un document
+  `.md` par conversation, distinct d'AIWorkflow et de Graphify; règles
+  fonctionnelles validées par la décision #128, choix techniques et première
+  implémentation consignés dans la décision #129. Les formats autres que `.md`
+  restent des évolutions distinctes.
 - Pas de tool calling, d'agent PC ni de modification du code C++ de
   llamafile dans le périmètre V3 actuel.
 

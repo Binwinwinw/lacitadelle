@@ -2900,3 +2900,76 @@ Ornith 4/7, Qwen3.5 5/7, Qwen3-4B 3/7 et Granite 3/7.
 dans la distribution. Le Qwen3-4B demeure le fallback de démarrage et de
 rollback. 313 tests passent.
 127 décisions.
+
+## [2026-11-24] Fichiers Markdown rattachés aux conversations
+
+**Contexte** : le GO 24-BIS a clarifié le premier incrément de gestion des
+fichiers du chat. L’utilisateur doit pouvoir poursuivre l’analyse après
+rechargement; les décisions ci-dessous proviennent de cette clarification et
+ne sont pas attribuées aux décisions historiques.
+
+**Décision(s)** :
+1. Chaque compte accède uniquement aux documents de ses propres conversations.
+   Le rôle `admin` ne donne aucun accès automatique aux documents d’autres
+   comptes.
+2. La classification reste une protection supplémentaire : `public` est
+   autorisé selon les droits sur la conversation; `sensible` est réservé à
+   l’admin dans sa propre conversation; `critique` est refusé à tous.
+   « Public » ne signifie pas partagé entre comptes.
+3. Le fichier original est temporaire; le texte extrait est conservé avec son
+   propriétaire et sa conversation pour les questions ultérieures, y compris
+   après rechargement.
+4. Le retrait supprime le contenu documentaire conservé et interdit sa
+   réinjection. Les questions et réponses enregistrées restent dans
+   l’historique et peuvent conserver des informations dérivées; l’interface
+   signale que le document est indisponible, sans promesse d’effacement
+   complet des données dérivées.
+5. La suppression d’une conversation supprime également le contenu
+   documentaire qui lui est rattaché.
+6. Le premier incrément prend en charge un document Markdown `.md` par
+   conversation. Les autres formats sont des évolutions distinctes, pas des
+   abandons. AIWorkflow et les profils métier ne sont pas modifiés.
+7. Les seuils et paramètres techniques doivent être proposés et approuvés
+   avant développement; leur présence dans la spécification ne vaut pas
+   validation.
+
+**Conséquences** : [SPEC-FICHIERS-CHAT.md](../dev/docs/SPEC-FICHIERS-CHAT.md)
+est validée fonctionnellement pour le premier incrément. Le comportement lors
+d’un nouvel ajout si un document est déjà attaché et les paramètres techniques
+restent à arbitrer. L’implémentation n’est pas autorisée. 128 décisions.
+
+## [2026-11-24] Implémentation des documents Markdown dans le chat
+
+**Contexte** : le GO 25 autorise l’implémentation du premier incrément défini
+par la décision #128 et la spécification fichiers du chat. Le Décideur a
+explicitement accepté les limites proposées, le stockage SQLite avec retrieval
+FTS5 isolé au document et le refus d’un second document tant que le premier
+n’est pas retiré.
+
+**Décision(s)** :
+1. Limiter le fichier à 256 KiB, le texte UTF-8 extrait à 200 000 caractères,
+   le contenu documentaire transmis à environ 1 500 tokens (6 000 caractères)
+   et le budget estimé entrée + réponse à 8 000 tokens, dont jusqu’à 1 024
+   pour la réponse. Le calcul de tokens demeure approximatif.
+2. Conserver contenu et métadonnées dans SQLite, dans la table
+   `conversation_documents` liée au propriétaire et à la conversation; un
+   index unique sur la conversation impose un document au plus. Utiliser FTS5
+   dans une connexion mémoire propre au seul document courant pour les
+   documents qui dépassent le budget d’injection complète.
+3. Recevoir un `.md` via une route authentifiée et protégée par CSRF;
+   vérifier la propriété de la conversation, classifier le fichier et
+   décoder en UTF-8 strict. Le fichier original passe par un répertoire
+   temporaire nettoyé après succès ou erreur.
+4. Réutiliser le texte conservé dans les demandes suivantes, et après
+   rechargement. En cas de retrait, supprimer le document sans retirer les
+   messages; supprimer une conversation supprime le document par cascade.
+5. Si un document est déjà attaché, refuser le nouvel ajout sans remplacer
+   l’ancien.
+6. Ne pas modifier AIWorkflow, ses chemins autorisés, les profils métier ni la
+   whitelist de modèles.
+
+**Conséquences** : la migration v11, les routes d’ajout/retrait, l’injection
+documentaire et les contrôles UI sont implémentés. Quatorze tests ciblés sont
+ajoutés; la suite complète passe à 327 tests. Aucun test live du modèle,
+benchmark de contexte ou accès à la DB utilisateur n’a été effectué. 129
+décisions.

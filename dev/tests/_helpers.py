@@ -146,6 +146,7 @@ def api_test_context():
             patch.object(citadelle_memory, "DB_PATH", db_path),
         ):
             citadelle_memory.migrate_to_v3(db_path)
+            citadelle_memory.migrate_to_v11(db_path)
             login_server.SESSIONS.clear()
             login_server.MUST_CHANGE.clear()
             login_server.CSRF_TOKENS.clear()

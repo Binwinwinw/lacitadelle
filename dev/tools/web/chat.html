@@ -37,6 +37,30 @@
                     placeholder="Votre message..."
                     rows="2"
                     disabled></textarea>
+                <input
+                    id="chat-document-file"
+                    type="file"
+                    accept=".md,text/markdown"
+                    hidden>
+                <div class="chat-document-controls">
+                    <button
+                        type="button"
+                        id="attach-chat-document"
+                        disabled>
+                        Joindre un .md
+                    </button>
+                    <span
+                        id="chat-document-name"
+                        role="status"
+                        aria-live="polite"
+                        hidden></span>
+                    <button
+                        type="button"
+                        id="remove-chat-document"
+                        hidden>
+                        Retirer
+                    </button>
+                </div>
                 <button
                     type="button"
                     id="analyze-document-button"

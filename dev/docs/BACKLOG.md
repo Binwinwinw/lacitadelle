@@ -740,6 +740,21 @@ et intégration chat) est livrée; les GO de suivi validés sont listés ci-dess
 listées, hors MODELE-NETTOYAGE, POC Graphify clos et AIWorkflow livré. Les
 suivis AIWorkflow restent sans estimation.
 
+### 16-FICHIERS-CHAT — premier incrément
+
+**Statut** : implémenté et testé le 2026-11-24 (GO 25).
+**Décisions actées** : 2026-11-24 (décisions #128 et #129).
+**Dépendances** : [spécification fonctionnelle](./SPEC-FICHIERS-CHAT.md) et
+validation des propositions techniques, terminées avant l’implémentation.
+**Priorité** : haute.
+**Périmètre** : un document Markdown `.md` par conversation, contenu textuel
+conservé avec son propriétaire et la conversation; retrait documentaire et
+suppression de conversation selon la spécification. AIWorkflow et les profils
+métier restent distincts. Quatorze tests dédiés; `327 passed`.
+**Questions ouvertes** : aucune dans ce premier incrément; les autres formats
+restent des évolutions distinctes.
+**Moment de traitement** : terminé dans le GO 25.
+
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
 BACKLOG.md conserve le statut, les priorités et l'effort estimé sans
 répéter les détails des GO.

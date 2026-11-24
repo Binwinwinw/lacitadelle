@@ -2,6 +2,54 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-24] GO 25 — premier incrément fichiers du chat
+
+**Commit de référence audité** : `83305fe` (HEAD au préflight GO 25; le hash
+de livraison est inscrit dans l’historique Git).
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`, `TODO.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/OBJECTIF.md`, `dev/docs/ETAT-PROJET.md`,
+`dev/docs/SPEC-FICHIERS-CHAT.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tools/nodes/extract_text.py`,
+`dev/tools/web/chat.html`, `dev/tools/web/chat.js`,
+`dev/tools/web/style.css`, `dev/tests/_helpers.py`,
+`dev/tests/test_chat_documents.py`.
+**Raison** : livrer l’ajout, la lecture continue, le retrait et l’isolation
+d’un document Markdown par conversation selon les décisions #128 et #129.
+**Impact** : migration v11 et parcours chat documenté; 14 tests ajoutés,
+`327 passed in 78.28s`. Aucun changement AIWorkflow ou whitelist; aucune DB
+utilisateur, aucun serveur ni modèle live n’a été utilisé. Un commit unique
+est autorisé après le gate pytest.
+
+## [2026-11-24] GO 24-BIS — spécification fonctionnelle fichiers du chat
+
+**Commit de référence audité** : `83305fe` (HEAD observé au préflight; aucun
+commit de livraison de ce GO).
+**Fichiers modifiés** : `dev/docs/SPEC-FICHIERS-CHAT.md`,
+`.memory/decisions.md`, `AGENTS.md`, `TODO.md`, `dev/docs/OBJECTIF.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : stabiliser les règles fonctionnelles du premier incrément,
+consigner la décision #128, enregistrer les suivis requis et proposer une
+réalisation technique et des limites chiffrées à arbitrer.
+**Impact** : documentation; 313 tests au préflight (`313 passed in 70.77s`),
+aucun code, test, configuration, DB ou whitelist modifiés. Les paramètres
+techniques restent en attente; implémentation non autorisée. Aucun commit.
+
+## [2026-11-24] GO 23 — brouillon de spécification fichiers du chat
+
+**Commit de référence audité** : `83305fe` (HEAD observé avant le GO 23; ce
+n'est pas un commit de livraison de ce GO).
+**Fichiers modifiés** : `dev/docs/SPEC-FICHIERS-CHAT.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : consigner les besoins clarifiés, proposer une continuité sur le
+contenu extrait après rechargement et distinguer l'existant AIWorkflow des
+idées de fichiers du chat et métier.
+**Impact** : brouillon documentaire non validé; original temporaire proposé,
+contenu rattaché à la conversation proposé, aucun choix de stockage technique.
+Aucune implémentation.
+Aucun test, accès DB/réseau ou lancement de service dans ce GO.
+
 ## [2026-11-23] GO 20 — contrat de bootstrap aligné sur le manifeste
 
 **Commit de référence audité** : `8bfc32c` (HEAD avant le GO 20; ce n'est pas

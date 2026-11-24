@@ -1,13 +1,13 @@
 # État du projet La Citadelle
 
-**Mis à jour** : 2026-11-23
+**Mis à jour** : 2026-11-24
 
-**Commit de référence audité** : `7f22958` (HEAD observé au préflight GO 18;
+**Commit de référence audité** : `83305fe` (HEAD observé au préflight GO 25;
 ce n'est pas le commit de livraison de ce GO).
 
-Ce point de reprise distingue les mesures effectuées le 2026-11-23 des
-informations historiques et des propositions encore en attente. Les chemins
-absolus de la DB locale et des modèles externes ne sont pas publiés ici.
+Ce point de reprise distingue le résultat de tests du GO 25 des observations
+historiques et des limites qui n’ont pas été mesurées en live. Aucun chemin
+absolu de DB ou de modèle local n’est publié ici.
 
 ## Résumé
 
@@ -40,11 +40,11 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 ## Tests et décisions
 
 - **Tests mesurés dans ce GO** : `.\.venv\Scripts\python.exe -m pytest -q`
-  — `313 passed in 75.29s (0:01:15)`, le 2026-11-23.
-- **Décisions datées** : 127 entrées, comptées dans
-  [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-23. Le comptage
-  est calculé sur les titres `## [AAAA-MM-JJ]`; aucune décision n'a été ajoutée
-  dans ce GO.
+  — `327 passed in 78.28s (0:01:18)`, le 2026-11-24.
+- **Décisions datées** : 129 entrées, comptées dans
+  [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-24. Le comptage
+  est calculé sur les titres `## [AAAA-MM-JJ]`; la décision #129 consigne
+  l’implémentation du premier incrément fichiers chat.
 - **Décision modèle la plus récente** : Ornith recommandé s'il est local et
   whitelisté; Qwen3-4B reste le modèle intégré de fallback; Qwen3.5 reste local;
   Granite est retiré de la whitelist ([decisions.md](../../.memory/decisions.md#L2882)).
@@ -55,7 +55,7 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 |---|---|---|
 | llamafile | API locale sur `127.0.0.1:8080`. | Non vérifié. |
 | Proxy web Python | `HTTPServer` sur `127.0.0.1:8081`; authentification, webchat, API et relais vers llamafile. | Non vérifié. |
-| Données | SQLite locale pour comptes, sessions, messages et réglages; seuls les trois réglages modèle demandés ont été lus en mode `ro`. | Aucune écriture DB. |
+| Données | Le schéma SQLite applicatif comprend comptes, sessions, messages, réglages et documents de conversation (migration v11). | Le GO 25 a utilisé uniquement des bases temporaires de tests; la DB utilisateur n’a pas été ouverte. |
 
 Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/login_server.py#L86),
 [ARCHITECTURE.md](./ARCHITECTURE.md).
@@ -72,8 +72,15 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
   le [BACKLOG.md](./BACKLOG.md#L691) indique que le POC Graphify est KO et
   l'implémentation Python AIWorkflow livrée. Graphify n'est pas intégré; ne pas
   présenter la proposition Graphify comme une fonctionnalité disponible.
+- Le premier incrément de fichiers du chat accepte un `.md` attaché à une
+  conversation, conserve le texte extrait par propriétaire et permet le suivi
+  après rechargement. Les limites de contexte sont estimées; aucun benchmark
+  ni test live de modèle n’a été exécuté dans le GO 25
+  ([SPEC-FICHIERS-CHAT.md](./SPEC-FICHIERS-CHAT.md),
+  [décision #129](../../.memory/decisions.md#L2941)).
 - Le chat général n'a pas de base RAG personnalisée ni d'accès web déclaré
-  livré. Ces éléments figurent encore comme propositions dans
+  livré; un document attaché à une conversation ne constitue pas une
+  bibliothèque générale. L'accès web figure encore comme proposition dans
   [TODO.md](../../TODO.md#L96) et [TODO.md](../../TODO.md#L102). Le retrieval
   FTS5 d'AIWorkflow est limité à ses workflows documentaires et ne constitue
   pas une base de connaissances générale du chat.
@@ -84,10 +91,9 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
 
 ## Écarts documentaires restant à traiter
 
-- [README.md](../../README.md) affiche 309 tests et un placeholder de diagnostic;
-  [CONTRIBUTING.md](../../CONTRIBUTING.md) et
-  [CONTRIBUTING.fr.md](../../CONTRIBUTING.fr.md) affichent 229 tests. Le résultat
-  actuel mesuré dans ce GO est 313.
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) et
+  [CONTRIBUTING.fr.md](../../CONTRIBUTING.fr.md) consignent encore le résultat
+  historique de 313 tests (GO 18); le GO 25 en mesure 327.
 - [MODELES-TESTES.md](./MODELES-TESTES.md) est daté du 2026-11-19, décrit une
   ancienne batterie à cinq critères et conserve Qwen3-4B comme défaut.
 - [JOURNALDESMODIFS.md](./JOURNALDESMODIFS.md) contient des entrées historiques
@@ -103,12 +109,12 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
 
 ## Prochaines suites possibles
 
-1. Réconcilier les compteurs et les modèles décrits dans les README, CONTRIBUTING
-   et MODELES-TESTES; préserver la distinction entre batteries historiques.
-2. Clarifier dans un GO séparé le statut produit d'AIWorkflow et aligner
-   OBJECTIF, architecture et backlog.
-3. Réviser les tâches modèle obsolètes de TODO et BACKLOG après validation par
-   le décideur; ne pas les déclarer terminées sur la seule base de la DB locale.
+1. Valider manuellement l’interface et le suivi de document avec un navigateur
+   et un modèle local; aucun navigateur ni modèle n’a été lancé au GO 25.
+2. Réconcilier les descriptions de modèles historiques dans CONTRIBUTING et
+   MODELES-TESTES sans confondre les batteries rapportées.
+3. Traiter séparément les autres dettes TODO/BACKLOG; ne pas les déclarer
+   terminées sur la seule base de la DB locale.
 
 ## Références de reprise
 

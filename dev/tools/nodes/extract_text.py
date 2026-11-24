@@ -4,11 +4,55 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from security_files import can_read
+from security_files import can_read, classify_file
+
+MAX_MARKDOWN_BYTES = 256 * 1024
+MAX_MARKDOWN_CHARS = 200_000
 
 
 class ExtractTextError(ValueError):
     """Erreur d'extraction ou de format de document."""
+
+
+class DocumentLimitError(ExtractTextError):
+    """Un document dépasse une limite d'import."""
+
+
+def extract_markdown_document(
+    path: str | Path,
+    user_role: str,
+) -> tuple[str, dict[str, str | int]]:
+    """Lit un Markdown téléversé après contrôle des limites et de la politique."""
+    source = Path(path)
+    if not source.is_file():
+        raise FileNotFoundError(f"Fichier introuvable : {source}")
+    if source.suffix.lower() != ".md":
+        raise ExtractTextError("Seuls les fichiers .md sont pris en charge.")
+
+    size_bytes = source.stat().st_size
+    if size_bytes > MAX_MARKDOWN_BYTES:
+        raise DocumentLimitError("Le fichier dépasse la limite de 256 KiB.")
+
+    classification = classify_file(source)
+    allowed, reason = can_read(source, user_role)
+    if not allowed:
+        raise PermissionError(reason)
+
+    try:
+        content = source.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise ExtractTextError("Le fichier Markdown doit être encodé en UTF-8.") from exc
+    if not content.strip() or "\x00" in content:
+        raise ExtractTextError("Le fichier est vide ou contient des données binaires.")
+    if len(content) > MAX_MARKDOWN_CHARS:
+        raise DocumentLimitError("Le document dépasse 200 000 caractères.")
+
+    return content, {
+        "file_name": source.name,
+        "classification": classification,
+        "size_bytes": size_bytes,
+        "characters": len(content),
+    }
 
 
 def extract_text(path: str | Path) -> str:

@@ -346,6 +346,21 @@ html[data-theme="light"] .message.assistant .message-duration {
   resize: vertical;
 }
 
+.chat-document-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+#chat-document-name {
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .chat-form button {
   padding: 0.75rem 1.5rem;
   background: #4a9eff;
