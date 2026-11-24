@@ -2996,3 +2996,25 @@ les autres tâches modèles/UX restent ouvertes.
 **Conséquences** : le périmètre clôturé compte 327 tests au préflight du
 2026-11-24 et 130 décisions datées. Le bilan conserve les limites de mesure
 des scores et du E2E; aucun benchmark ou test live n’est affirmé par ce GO.
+
+## [2026-11-24] Audit SQLite des suppressions de documents
+
+**Contexte** : le diagnostic #60 a confirmé l’absence de journal SQL
+permettant d’attribuer une suppression historique. La reproduction live doit
+tracer les lignes supprimées sans conserver le texte documentaire.
+
+**Décision(s)** :
+1. Ajouter la migration v12 avec `audit_log` et des triggers `AFTER DELETE`
+   sur `conversation_documents` et `sessions`.
+2. `user_id` représente le propriétaire de la ligne supprimée; il ne prétend
+   pas identifier l’acteur pour une suppression directe SQL ou indirecte.
+   `old_data` conserve les métadonnées mais exclut le champ `content`.
+3. Les reproductions #62 par l’UI et #63 par DELETE direct enregistrent les
+   bons `session_id` et `user_id`; aucun défaut de ciblage n’est démontré.
+   L’origine historique de l’absence de document sur #60 reste indéterminable.
+
+**Conséquences** : la migration v12 s’exécute au démarrage; quatre tests ajoutés
+vérifient l’audit, la cascade, l’occultation du contenu et l’idempotence.
+Après reproduction, la DB utilisateur a été restaurée depuis son backup; les
+événements #62/#63 ne restent donc pas dans la DB restaurée. 331 tests passent.
+131 décisions.

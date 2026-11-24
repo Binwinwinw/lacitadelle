@@ -2266,3 +2266,19 @@ en remplaçant le shell avec `exec` et en isolant le runtime du terminal.
 **Impact** : trois tests couvrent le lancement Unix et Windows; la suite
 complète compte 221 tests. Archive régénérée, source-only et non publiée;
 validation manuelle macOS en attente.
+
+## [2026-11-24] GO 16-AUDIT-SQL — Audit des suppressions SQLite
+
+**Commit** : identifiant consultable dans l’historique Git.
+
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tests/test_audit_log.py`,
+`.memory/decisions.md`, `AGENTS.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+
+**Raison** : tracer les suppressions de documents et de sessions sans archiver
+le contenu documentaire, puis vérifier le ciblage sur les sessions #62 et #63.
+
+**Impact** : migration v12, deux triggers et quatre tests ajoutés; `331 passed`.
+Les événements de reproduction ont été vérifiés puis la DB restaurée au backup;
+aucun résultat n’est conservé dans la DB de l’utilisateur.

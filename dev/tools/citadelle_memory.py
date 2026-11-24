@@ -473,6 +473,69 @@ def migrate_to_v11(db_path: Path | None = None) -> None:
         )
 
 
+def migrate_to_v12(db_path: Path | None = None) -> None:
+    """Ajoute l'audit des suppressions sans conserver le texte documentaire."""
+    with _connect(db_path) as conn:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS audit_log ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "timestamp TEXT NOT NULL, "
+            "table_name TEXT NOT NULL, "
+            "action TEXT NOT NULL, "
+            "row_id INTEGER NOT NULL, "
+            "user_id INTEGER, "
+            "session_id INTEGER, "
+            "old_data JSON NOT NULL)"
+        )
+        conn.execute(
+            """
+            CREATE TRIGGER IF NOT EXISTS audit_conversation_documents_delete
+            AFTER DELETE ON conversation_documents
+            BEGIN
+                INSERT INTO audit_log
+                    (timestamp, table_name, action, row_id, user_id,
+                     session_id, old_data)
+                VALUES
+                    (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                     'conversation_documents', 'DELETE', OLD.id, OLD.user_id,
+                     OLD.session_id,
+                     json_object(
+                         'id', OLD.id,
+                         'session_id', OLD.session_id,
+                         'user_id', OLD.user_id,
+                         'metadata', CASE
+                             WHEN json_valid(OLD.metadata) THEN json(OLD.metadata)
+                             ELSE json_quote(OLD.metadata)
+                         END,
+                         'created_at', OLD.created_at,
+                         'content_redacted', json('true')
+                     ));
+            END
+            """
+        )
+        conn.execute(
+            """
+            CREATE TRIGGER IF NOT EXISTS audit_sessions_delete
+            AFTER DELETE ON sessions
+            BEGIN
+                INSERT INTO audit_log
+                    (timestamp, table_name, action, row_id, user_id,
+                     session_id, old_data)
+                VALUES
+                    (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                     'sessions', 'DELETE', OLD.id, OLD.user_id, OLD.id,
+                     json_object(
+                         'id', OLD.id,
+                         'user_id', OLD.user_id,
+                         'title', OLD.title,
+                         'created_at', OLD.created_at,
+                         'updated_at', OLD.updated_at
+                     ));
+            END
+            """
+        )
+
+
 def get_setting(
     key: str,
     default: str | None = None,
@@ -545,6 +608,7 @@ def init_db(db_path: Path | None = None) -> None:
     migrate_to_v9(db_path)
     migrate_to_v10(db_path)
     migrate_to_v11(db_path)
+    migrate_to_v12(db_path)
 
 
 def get_preferences(
