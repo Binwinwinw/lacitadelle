@@ -3040,3 +3040,31 @@ historique de l’écart #60.
 passent et 132 décisions sont datées. La DB a été restaurée au backup de départ;
 le schéma v12 sera recréé au prochain démarrage. Aucun modèle ou whitelist n’a
 été modifié dans ce GO. 132 décisions.
+
+## [2026-11-24] Nettoyage des dettes Ruff, tokenizer et audit SQL
+
+**Contexte** : le GO 16-CLEANUP-DETTE vise les diagnostics Ruff, l’estimation
+du budget de tokens, la journalisation des suppressions et l’attribution de
+l’acteur authentifié dans l’audit SQLite v12.
+
+**Décision(s)** :
+1. Corriger les deux diagnostics effectivement observés dans
+   `login_server.py` (SIM102 et SIM105) avec Ruff 0.17.5. Le GO en anticipait
+   quatre; les deux autres n’ont pas été reproduits.
+2. Ajouter `count_tokens`, qui utilise tiktoken si le modèle est reconnu et
+   conserve sinon le fallback `len(text) // 4`. Accepter et documenter que ce
+   fallback reste approximatif, notamment pour les modèles GGUF locaux.
+3. Journaliser les suppressions de documents et de sessions avec `logging`,
+   en limitant les messages aux identifiants et sans contenu documentaire.
+4. Ajouter la migration v13 et `audit_log.actor_id`; les handlers
+   authentifiés renseignent l’acteur dans le contexte de la transaction.
+   `user_id` continue de désigner le propriétaire; les DELETE SQL directs sans
+   contexte d’authentification ont `actor_id=NULL`.
+5. Clore `16-CLEANUP-DETTE` et `16-AUDIT-ACTOR`; garder `16-MULTIFORMAT` au
+   backlog.
+
+**Conséquences** : sept tests sont ajoutés, la suite complète passe à 338 tests
+et le compteur atteint 133 décisions. Le CLI Ruff 0.17.5 passe sur les fichiers
+vérifiés; tiktoken est absent de `.venv`, donc le fallback reste actif pour les
+modèles locaux. Aucune règle de rétention des logs n’est définie par ce GO;
+aucune DB utilisateur ni whitelist n’a été modifiée.

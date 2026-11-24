@@ -2,6 +2,25 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-24] GO 16-CLEANUP-DETTE — Ruff, tokenizer et audit acteur
+
+**Commit de référence audité** : `8604df8` (HEAD observé au préflight; le hash
+de livraison est consultable dans l’historique Git).
+**Fichiers modifiés** : `dev/tools/citadelle_memory.py`,
+`dev/tools/login_server.py`, `dev/tools/tokenizer.py`,
+`dev/tests/_helpers.py`, `dev/tests/test_audit_log.py`,
+`dev/tests/test_logging_sql.py`, `dev/tests/test_tokenizer.py`,
+`.memory/decisions.md`, `AGENTS.md`, `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : corriger les diagnostics Ruff observés, centraliser l’estimation
+des tokens, tracer les suppressions et identifier l’acteur des DELETE
+authentifiés.
+**Impact** : migration v13 et sept tests ajoutés; `338 passed`. Ruff 0.17.5
+signale deux diagnostics dans `login_server.py` (SIM102, SIM105), tous deux
+corrigés; seuls deux des quatre diagnostics attendus ont été reproduits. Le
+fallback des modèles GGUF demeure approximatif et documenté. Aucune DB
+utilisateur ni whitelist modifiée.
+
 ## [2026-11-24] GO 16-PHASE-CLOSE — bilan AIWorkflow et fichiers du chat
 
 **Commit de référence audité** : `fd34e82` (HEAD observé au préflight; le

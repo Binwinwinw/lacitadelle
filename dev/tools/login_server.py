@@ -20,6 +20,7 @@ from __future__ import annotations
 import hmac
 import ipaddress
 import json
+import logging
 import math
 import os
 import re
@@ -32,6 +33,7 @@ import urllib.error
 import urllib.request
 from collections import deque
 from collections.abc import Callable
+from contextlib import suppress
 from datetime import datetime, timedelta, timezone
 from email import policy
 from email.parser import BytesParser
@@ -70,7 +72,7 @@ from citadelle_memory import (
     migrate_to_v9,
     migrate_to_v10,
     migrate_to_v11,
-    migrate_to_v12,
+    migrate_to_v13,
     record_inference,
     set_preferences,
     set_setting,
@@ -92,6 +94,7 @@ from nodes.extract_text import (
 )
 from nodes.index_fts5 import index_fts5, search_fts5
 from paths import get_bundle_dir
+from tokenizer import count_tokens
 from workflow_runner import (
     UnknownWorkflowError,
     WorkflowPathError,
@@ -1112,6 +1115,42 @@ def count_active_admins(conn: sqlite3.Connection) -> int:
     ).fetchone()[0]
 
 
+def _capture_user_deletion_rows(
+    conn: sqlite3.Connection,
+    user_id: int,
+) -> tuple[list[tuple[int, int]], list[tuple[int, int, int]]]:
+    sessions = [
+        (int(row["id"]), int(row["user_id"]))
+        for row in conn.execute(
+            "SELECT id, user_id FROM sessions WHERE user_id = ?",
+            (user_id,),
+        ).fetchall()
+    ]
+    documents = [
+        (int(row["id"]), int(row["session_id"]), int(row["user_id"]))
+        for row in conn.execute(
+            "SELECT id, session_id, user_id FROM conversation_documents "
+            "WHERE user_id = ?",
+            (user_id,),
+        ).fetchall()
+    ]
+    return sessions, documents
+
+
+def _log_deleted_user_rows(
+    sessions: list[tuple[int, int]],
+    documents: list[tuple[int, int, int]],
+) -> None:
+    for document_id, session_id, user_id in documents:
+        citadelle_memory.log_deleted_conversation_document(
+            document_id,
+            session_id,
+            user_id,
+        )
+    for session_id, user_id in sessions:
+        citadelle_memory.log_deleted_session(session_id, user_id)
+
+
 def handle_post_api_admin_user_promote(
     handler: BaseHTTPRequestHandler,
     user_id: int,
@@ -1160,12 +1199,20 @@ def handle_post_api_admin_user_promote(
             )
             return
 
-        conn.execute(
-            "DELETE FROM messages WHERE session_id IN "
-            "(SELECT id FROM sessions WHERE user_id = ?)",
-            (admin_id,),
+        sessions_to_log, documents_to_log = _capture_user_deletion_rows(
+            conn,
+            admin_id,
         )
-        conn.execute("DELETE FROM sessions WHERE user_id = ?", (admin_id,))
+        citadelle_memory.set_audit_actor(conn, admin_id)
+        try:
+            conn.execute(
+                "DELETE FROM messages WHERE session_id IN "
+                "(SELECT id FROM sessions WHERE user_id = ?)",
+                (admin_id,),
+            )
+            conn.execute("DELETE FROM sessions WHERE user_id = ?", (admin_id,))
+        finally:
+            citadelle_memory.set_audit_actor(conn, None)
         conn.execute(
             "UPDATE users SET role = 'user' WHERE id = ?",
             (admin_id,),
@@ -1179,6 +1226,7 @@ def handle_post_api_admin_user_promote(
     finally:
         conn.close()
 
+    _log_deleted_user_rows(sessions_to_log, documents_to_log)
     for token, session_user_id in list(SESSIONS.items()):
         if session_user_id == admin_id:
             revoke_session(token)
@@ -1236,12 +1284,20 @@ def handle_post_api_admin_user_demote(
             )
             return
 
-        conn.execute(
-            "DELETE FROM messages WHERE session_id IN "
-            "(SELECT id FROM sessions WHERE user_id = ?)",
-            (user_id,),
+        sessions_to_log, documents_to_log = _capture_user_deletion_rows(
+            conn,
+            user_id,
         )
-        conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        citadelle_memory.set_audit_actor(conn, admin_id)
+        try:
+            conn.execute(
+                "DELETE FROM messages WHERE session_id IN "
+                "(SELECT id FROM sessions WHERE user_id = ?)",
+                (user_id,),
+            )
+            conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        finally:
+            citadelle_memory.set_audit_actor(conn, None)
         conn.execute(
             "UPDATE users SET role = 'user' WHERE id = ?",
             (user_id,),
@@ -1251,6 +1307,7 @@ def handle_post_api_admin_user_demote(
     finally:
         conn.close()
 
+    _log_deleted_user_rows(sessions_to_log, documents_to_log)
     for token, session_user_id in list(SESSIONS.items()):
         if session_user_id == user_id:
             revoke_session(token)
@@ -1291,21 +1348,33 @@ def handle_post_api_admin_user_delete(
                 HTTPStatus.FORBIDDEN,
             )
             return
-        if user["role"] == "admin" and user["is_active"] == 1:
-            if count_active_admins(conn) <= 1:
-                error_response(
-                    handler,
-                    "Impossible de supprimer le dernier admin actif",
-                    HTTPStatus.FORBIDDEN,
-                )
-                return
+        if (
+            user["role"] == "admin"
+            and user["is_active"] == 1
+            and count_active_admins(conn) <= 1
+        ):
+            error_response(
+                handler,
+                "Impossible de supprimer le dernier admin actif",
+                HTTPStatus.FORBIDDEN,
+            )
+            return
 
         username = user["username"]
-        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        sessions_to_log, documents_to_log = _capture_user_deletion_rows(
+            conn,
+            user_id,
+        )
+        citadelle_memory.set_audit_actor(conn, admin_id)
+        try:
+            conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        finally:
+            citadelle_memory.set_audit_actor(conn, None)
         conn.commit()
     finally:
         conn.close()
 
+    _log_deleted_user_rows(sessions_to_log, documents_to_log)
     for token, session_user_id in list(SESSIONS.items()):
         if session_user_id == user_id:
             revoke_session(token)
@@ -1401,12 +1470,20 @@ def handle_post_api_admin_user_deactivate(
                 )
                 return
 
-        conn.execute(
-            "DELETE FROM messages WHERE session_id IN "
-            "(SELECT id FROM sessions WHERE user_id = ?)",
-            (user_id,),
+        sessions_to_log, documents_to_log = _capture_user_deletion_rows(
+            conn,
+            user_id,
         )
-        conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        citadelle_memory.set_audit_actor(conn, admin_id)
+        try:
+            conn.execute(
+                "DELETE FROM messages WHERE session_id IN "
+                "(SELECT id FROM sessions WHERE user_id = ?)",
+                (user_id,),
+            )
+            conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        finally:
+            citadelle_memory.set_audit_actor(conn, None)
         conn.execute(
             "UPDATE users SET is_active = 0 WHERE id = ?",
             (user_id,),
@@ -1415,6 +1492,7 @@ def handle_post_api_admin_user_deactivate(
     finally:
         conn.close()
 
+    _log_deleted_user_rows(sessions_to_log, documents_to_log)
     for token, session_user_id in list(SESSIONS.items()):
         if session_user_id == user_id:
             revoke_session(token)
@@ -2443,7 +2521,11 @@ def handle_delete_chat_document(
         error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
         return
     try:
-        removed = delete_conversation_document_for_user(user_id, document_id)
+        removed = delete_conversation_document_for_user(
+            user_id,
+            document_id,
+            actor_id=user_id,
+        )
     except sqlite3.Error as exc:
         sys.stderr.write(
             "[chat-document] document removal failed "
@@ -2742,13 +2824,11 @@ def call_llamafile(
                 model_name=model_name,
             )
         except Exception as exc:
-            try:
+            with suppress(OSError):
                 sys.stderr.write(
                     "[metrics] Inference metric not recorded "
                     f"({type(exc).__name__})\n"
                 )
-            except OSError:
-                pass
 
 
 def handle_post_message(
@@ -2896,8 +2976,9 @@ def handle_post_message(
             document_context,
             is_partial,
         )
-        fixed_tokens = math.ceil(
-            (len(system_prompt) + len(model_content)) / 4
+        fixed_tokens = (
+            count_tokens(system_prompt, model_name)
+            + count_tokens(model_content, model_name)
         )
         history_budget = (
             MAX_CONTEXT_TOKENS
@@ -2916,6 +2997,7 @@ def handle_post_message(
         user_id,
         session_id,
         max_tokens=history_budget,
+        model=model_name,
     )
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(
@@ -3339,6 +3421,10 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 def main() -> int:
     """Migre la base V3 puis démarre le serveur local."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
     if sys.platform == "win32":
         if hasattr(sys.stdout, "reconfigure"):
             sys.stdout.reconfigure(encoding="utf-8")
@@ -3357,7 +3443,7 @@ def main() -> int:
         migrate_to_v9()
         migrate_to_v10()
         migrate_to_v11()
-        migrate_to_v12()
+        migrate_to_v13()
         created, _, password, message = ensure_admin_exists()
     except (OSError, sqlite3.Error, ValueError, MemoryError) as exc:
         print(

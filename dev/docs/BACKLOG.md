@@ -784,14 +784,17 @@ l’origine historique de l’écart #60 reste indéterminée.
 
 #### 16-CLEANUP-DETTE
 
-**Statut** : validé le 2026-11-24; à planifier.
+**Statut** : terminé le 2026-11-24 (GO 16-CLEANUP-DETTE).
 **Dépendances** : aucune.
 **Priorité** : moyenne.
-**Périmètre** : revoir les avertissements Ruff préexistants, l’approximation
-du budget tokenizer et la gestion des logs.
-**Questions ouvertes** : choix d’un tokenizer mesuré et règles de conservation
-des logs.
-**Moment de traitement** : GO technique séparé.
+**Résultat** : deux diagnostics Ruff observés dans `login_server.py` (SIM102,
+SIM105) sont corrigés; le GO en anticipait quatre, mais deux autres diagnostics
+n’ont pas été reproduits avec Ruff 0.17.5. `count_tokens` utilise tiktoken si
+le modèle est reconnu, sinon conserve le fallback `len(text) // 4` documenté.
+Les suppressions journalisent les identifiants sans contenu documentaire.
+**Limites** : le fallback reste approximatif pour les modèles GGUF inconnus;
+aucune règle de rétention des logs n’a été définie dans ce GO.
+**Moment de traitement** : livré selon le périmètre du GO; limites consignées.
 
 #### 16-MULTIFORMAT
 
@@ -806,14 +809,14 @@ d’erreur.
 
 #### 16-AUDIT-ACTOR
 
-**Statut** : validé le 2026-11-24; à planifier.
+**Statut** : terminé le 2026-11-24 (GO 16-CLEANUP-DETTE, migration v13).
 **Dépendances** : audit SQL v12 livré.
 **Priorité** : moyenne.
-**Périmètre** : tracer l’acteur authentifié en plus du propriétaire de la
-ligne, y compris les suppressions directes ou par cascade.
-**Questions ouvertes** : contexte d’acteur SQLite ou journalisation applicative;
-les triggers seuls ne connaissent que `OLD.user_id`.
-**Moment de traitement** : GO technique séparé.
+**Résultat** : `audit_log.actor_id` reçoit l’identité authentifiée fournie par
+les handlers API/admin; `user_id` reste le propriétaire de la ligne. Les
+suppressions SQL directes sans contexte d’acteur restent enregistrées avec
+`actor_id=NULL`.
+**Moment de traitement** : livré par la migration v13 et ses tests.
 
 **Note** : TODO.md est la source de vérité pour la liste actionnable;
 BACKLOG.md conserve le statut, les priorités et l'effort estimé sans

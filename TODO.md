@@ -143,11 +143,6 @@ tâche terminée est supprimée ici; sa trace reste dans
 
 ### Suites après clôture finale des livrables Phase 16
 
-- [ ] **16-CLEANUP-DETTE** : cadrer les avertissements Ruff préexistants,
-  l’approximation du budget tokenizer et la gestion des logs. — Propriétaire :
-  à planifier.
 - [ ] **16-MULTIFORMAT** : cadrer des extracteurs pour PDF, documents
   bureautiques et SQL comme texte (sans exécution). — Propriétaire :
   à planifier.
-- [ ] **16-AUDIT-ACTOR** : tracer l’acteur authentifié, au-delà du propriétaire
-  de la ligne enregistré par les triggers SQLite. — Propriétaire : à planifier.

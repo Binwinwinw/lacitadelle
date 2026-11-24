@@ -29,8 +29,10 @@ from pathlib import Path
 from typing import Any
 
 from paths import get_assets_dir, get_bundle_dir, get_data_dir, is_frozen
+from tokenizer import count_tokens
 
 PROJECT_ROOT = get_bundle_dir()
+logger = logging.getLogger(__name__)
 CITADELLE_DATA_DIR = (
     get_data_dir() / "citadelle_data" if is_frozen()
     else PROJECT_ROOT / "citadelle_data"
@@ -536,6 +538,125 @@ def migrate_to_v12(db_path: Path | None = None) -> None:
         )
 
 
+def migrate_to_v13(db_path: Path | None = None) -> None:
+    """Ajoute l'identité de l'acteur aux événements d'audit."""
+    migrate_to_v12(db_path)
+    with _connect(db_path) as conn:
+        audit_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(audit_log)")
+        }
+        if "actor_id" not in audit_columns:
+            conn.execute("ALTER TABLE audit_log ADD COLUMN actor_id INTEGER")
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS audit_actor_context ("
+            "id INTEGER PRIMARY KEY CHECK(id = 1), "
+            "actor_id INTEGER)"
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO audit_actor_context (id, actor_id) "
+            "VALUES (1, NULL)"
+        )
+        conn.execute(
+            "UPDATE audit_actor_context SET actor_id = NULL WHERE id = 1"
+        )
+        triggers = {
+            row["name"]: row["sql"] or ""
+            for row in conn.execute(
+                "SELECT name, sql FROM sqlite_master "
+                "WHERE type = 'trigger' AND name IN ("
+                "'audit_conversation_documents_delete', 'audit_sessions_delete')"
+            )
+        }
+        if any(
+            "audit_actor_context" not in triggers.get(name, "")
+            for name in (
+                "audit_conversation_documents_delete",
+                "audit_sessions_delete",
+            )
+        ):
+            conn.execute(
+                "DROP TRIGGER IF EXISTS audit_conversation_documents_delete"
+            )
+            conn.execute("DROP TRIGGER IF EXISTS audit_sessions_delete")
+            conn.execute(
+                """
+                CREATE TRIGGER audit_conversation_documents_delete
+                AFTER DELETE ON conversation_documents
+                BEGIN
+                    INSERT INTO audit_log
+                        (timestamp, table_name, action, row_id, user_id,
+                         session_id, old_data, actor_id)
+                    VALUES
+                        (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                         'conversation_documents', 'DELETE', OLD.id, OLD.user_id,
+                         OLD.session_id,
+                         json_object(
+                             'id', OLD.id,
+                             'session_id', OLD.session_id,
+                             'user_id', OLD.user_id,
+                             'metadata', CASE
+                                 WHEN json_valid(OLD.metadata)
+                                     THEN json(OLD.metadata)
+                                 ELSE json_quote(OLD.metadata)
+                             END,
+                             'created_at', OLD.created_at,
+                             'content_redacted', json('true')
+                         ),
+                         (SELECT actor_id FROM audit_actor_context WHERE id = 1));
+                END
+                """
+            )
+            conn.execute(
+                """
+                CREATE TRIGGER audit_sessions_delete
+                AFTER DELETE ON sessions
+                BEGIN
+                    INSERT INTO audit_log
+                        (timestamp, table_name, action, row_id, user_id,
+                         session_id, old_data, actor_id)
+                    VALUES
+                        (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+                         'sessions', 'DELETE', OLD.id, OLD.user_id, OLD.id,
+                         json_object(
+                             'id', OLD.id,
+                             'user_id', OLD.user_id,
+                             'title', OLD.title,
+                             'created_at', OLD.created_at,
+                             'updated_at', OLD.updated_at
+                         ),
+                         (SELECT actor_id FROM audit_actor_context WHERE id = 1));
+                END
+                """
+            )
+
+
+def set_audit_actor(conn: sqlite3.Connection, actor_id: int | None) -> None:
+    """Définit l'acteur dans la transaction BEGIN IMMEDIATE du DELETE."""
+    conn.execute(
+        "UPDATE audit_actor_context SET actor_id = ? WHERE id = 1",
+        (actor_id,),
+    )
+
+
+def log_deleted_conversation_document(
+    document_id: int,
+    session_id: int,
+    user_id: int,
+) -> None:
+    """Journalise les identifiants d'un document supprimé, sans son contenu."""
+    logger.info(
+        "DELETE conversation_documents: id=%s, session_id=%s, user_id=%s",
+        document_id,
+        session_id,
+        user_id,
+    )
+
+
+def log_deleted_session(session_id: int, user_id: int) -> None:
+    """Journalise les identifiants d'une session supprimée."""
+    logger.info("DELETE sessions: id=%s, user_id=%s", session_id, user_id)
+
+
 def get_setting(
     key: str,
     default: str | None = None,
@@ -608,7 +729,7 @@ def init_db(db_path: Path | None = None) -> None:
     migrate_to_v9(db_path)
     migrate_to_v10(db_path)
     migrate_to_v11(db_path)
-    migrate_to_v12(db_path)
+    migrate_to_v13(db_path)
 
 
 def get_preferences(
@@ -774,10 +895,47 @@ def list_sessions(db_path: Path | None = None) -> list[dict[str, Any]]:
         return [dict(row) for row in rows]
 
 
-def delete_session(session_id: int, db_path: Path | None = None) -> None:
+def delete_session(
+    session_id: int,
+    db_path: Path | None = None,
+    actor_id: int | None = None,
+) -> None:
     """Supprime une session et tous ses messages (CASCADE)."""
+    user_id = None
+    documents = []
+    deleted = False
     with _connect(db_path) as conn:
-        conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+        conn.execute("BEGIN IMMEDIATE")
+        session = conn.execute(
+            "SELECT user_id FROM sessions WHERE id = ?",
+            (session_id,),
+        ).fetchone()
+        if session is None:
+            return
+        user_id = int(session["user_id"])
+        documents = conn.execute(
+            "SELECT id, session_id, user_id FROM conversation_documents "
+            "WHERE session_id = ? AND user_id = ?",
+            (session_id, user_id),
+        ).fetchall()
+        set_audit_actor(conn, actor_id)
+        try:
+            cursor = conn.execute(
+                "DELETE FROM sessions WHERE id = ?",
+                (session_id,),
+            )
+            deleted = cursor.rowcount == 1
+        finally:
+            set_audit_actor(conn, None)
+
+    if deleted and user_id is not None:
+        for document in documents:
+            log_deleted_conversation_document(
+                int(document["id"]),
+                int(document["session_id"]),
+                int(document["user_id"]),
+            )
+        log_deleted_session(session_id, user_id)
 
 
 def add_conversation_document(
@@ -843,19 +1001,41 @@ def delete_conversation_document_for_user(
     user_id: int,
     document_id: int,
     db_path: Path | None = None,
+    actor_id: int | None = None,
 ) -> bool:
     """Supprime le document seulement depuis le compte propriétaire."""
+    session_id = None
+    removed = False
     with _connect(db_path) as conn:
-        cursor = conn.execute(
-            "DELETE FROM conversation_documents "
-            "WHERE id = ? AND user_id = ? AND EXISTS ("
-            "  SELECT 1 FROM sessions s "
-            "  WHERE s.id = conversation_documents.session_id "
-            "  AND s.user_id = conversation_documents.user_id"
-            ")",
-            (document_id, user_id),
-        )
-        return cursor.rowcount == 1
+        conn.execute("BEGIN IMMEDIATE")
+        document = conn.execute(
+            "SELECT d.session_id FROM conversation_documents d "
+            "JOIN sessions s ON s.id = d.session_id "
+            "AND s.user_id = d.user_id "
+            "WHERE d.id = ? AND d.user_id = ? AND s.user_id = ?",
+            (document_id, user_id, user_id),
+        ).fetchone()
+        if document is None:
+            return False
+        session_id = int(document["session_id"])
+        set_audit_actor(conn, actor_id)
+        try:
+            cursor = conn.execute(
+                "DELETE FROM conversation_documents "
+                "WHERE id = ? AND user_id = ? AND EXISTS ("
+                "  SELECT 1 FROM sessions s "
+                "  WHERE s.id = conversation_documents.session_id "
+                "  AND s.user_id = conversation_documents.user_id"
+                ")",
+                (document_id, user_id),
+            )
+            removed = cursor.rowcount == 1
+        finally:
+            set_audit_actor(conn, None)
+
+    if removed and session_id is not None:
+        log_deleted_conversation_document(document_id, session_id, user_id)
+    return removed
 
 
 def list_sessions_for_user(
@@ -913,21 +1093,23 @@ def get_messages_for_user_within_token_budget(
     session_id: int,
     max_tokens: int = 8000,
     db_path: Path | None = None,
+    model: str = "local",
 ) -> list[dict]:
     """Lit les messages récents dans la limite de tokens.
 
-    Approximation : 1 token ≈ 4 caractères (stdlib, pas de tiktoken).
+    Utilise tiktoken si le modèle est reconnu; sinon le fallback documenté
+    par tokenizer.count_tokens reste une approximation.
     Tricote depuis le plus récent, aligne sur user/assistant (jamais orphelin).
     """
     messages = get_messages_for_user(user_id, session_id, limit=200, db_path=db_path)
     selected = []
-    total_chars = 0
+    total_tokens = 0
     for msg in reversed(messages):
-        chars = len(msg["content"])
-        if total_chars + chars > max_tokens * 4:
+        tokens = count_tokens(msg["content"], model)
+        if total_tokens + tokens > max_tokens:
             break
         selected.insert(0, msg)
-        total_chars += chars
+        total_tokens += tokens
     # Aligner : le premier doit être 'user' (sinon retirer jusqu'au 1er user)
     while selected and selected[0]["role"] != "user":
         selected.pop(0)
