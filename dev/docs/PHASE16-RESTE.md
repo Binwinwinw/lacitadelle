@@ -6,10 +6,18 @@
 
 ## Périmètre et comptage
 
-L’inventaire compte **18 tâches ouvertes** liées aux modèles, à l’UX, à la
-qualité, à la distribution et aux évolutions de Phase 16 : les 15 entrées
+L’inventaire compte **17 tâches ouvertes** liées aux modèles, à l’UX, à la
+qualité, à la distribution et aux évolutions de Phase 16 : les 14 entrées
 `16-*` restantes dans `TODO.md`, plus `MODELE-NETTOYAGE`, `UX-Whitelist-Date`
 et la validation du persona après Qwen3-4B, qui n’ont pas de préfixe `16-`.
+
+`16-FIX-FLAKY-TESTS` est clôturé sans correctif à partir des résultats du GO
+précédent : suite complète 338/338 et 20 invocations ciblées (120 exécutions
+de cas) sans échec. Aucun test n’a été relancé pour cette clôture; la campagne
+ne constitue pas une garantie générale d’absence d’intermittence.
+L’ancien WinError 10053 a été corrigé en Phase 8b; aucun symptôme intermittent
+précis n’a été retrouvé pour `test_migration_v3`. La preuve détaillée figure
+dans les journaux.
 
 La validation de `16-FIX-SETTINGS-SCROLL` est clôturée le 2026-11-24 et n’est
 plus comptée. Le défilement général a été vérifié en session authentifiée sur
@@ -58,22 +66,14 @@ décisions et objectifs du projet.
 - **Dépendances** : aucune précisée; couvrir les entrées invalides par test.
 - **Priorité** : moyenne, déjà indiquée dans le BACKLOG.
 
-#### 4. `16-FIX-FLAKY-TESTS`
-
-- **Description** : identifier et stabiliser `test_migration_v3` et
-  `test_api_messages`.
-- **Dépendances** : reproduire les échecs intermittents; à traiter avant le
-  refactoring de `login_server.py`.
-- **Priorité** : moyenne, déjà indiquée dans le BACKLOG.
-
-#### 5. `16-AGENTS-RULES-18`
+#### 4. `16-AGENTS-RULES-18`
 
 - **Description** : formaliser dans `AGENTS.md` la règle de mise à jour des
   tests lorsqu’un fichier testé est modifié.
 - **Dépendances** : aucune; effort estimé de 30 min.
 - **Priorité** : moyenne, déjà indiquée dans le BACKLOG.
 
-#### 6. `16-FEATURE-ORCHESTRATION-LOG`
+#### 5. `16-FEATURE-ORCHESTRATION-LOG`
 
 - **Description** : vérifier manuellement la colonne et le filtre de modèle
   dans les logs admin.
@@ -82,7 +82,7 @@ décisions et objectifs du projet.
 - **Priorité** : moyenne, proposée; la validation est explicitement en attente
   dans TODO.
 
-#### 7. `16-MULTIFORMAT`
+#### 6. `16-MULTIFORMAT`
 
 - **Description** : cadrer l’extraction de PDF, documents bureautiques et SQL
   comme texte, sans exécuter leur contenu.
@@ -90,7 +90,7 @@ décisions et objectifs du projet.
   formats, extracteurs, limites et messages d’erreur.
 - **Priorité** : moyenne, proposée; le BACKLOG la laisse à déterminer.
 
-#### 8. Validation persona post-Qwen3-4B (TODO sans identifiant)
+#### 7. Validation persona post-Qwen3-4B (TODO sans identifiant)
 
 - **Description** : vérifier les réponses structurées et l’absence d’URL ou
   d’articles de loi inventés.
@@ -101,7 +101,7 @@ décisions et objectifs du projet.
 
 ### Priorité basse
 
-#### 9. `16-FEATURE-MODEL-DRIFT-DETECTION`
+#### 8. `16-FEATURE-MODEL-DRIFT-DETECTION`
 
 - **Description** : afficher un bandeau dans `/settings` si le modèle déclaré
   en SQLite diffère de celui renvoyé par llamafile (`/v1/models`).
@@ -109,7 +109,7 @@ décisions et objectifs du projet.
   `current_model_path`.
 - **Priorité** : basse, déjà indiquée dans le BACKLOG.
 
-#### 10. `16-FEATURE-AUTO-MODEL-SELECTION`
+#### 9. `16-FEATURE-AUTO-MODEL-SELECTION`
 
 - **Description** : détecter le matériel au premier lancement et choisir un
   modèle selon ses capacités. TODO propose Qwen3.5-9B à partir de 8 Go de VRAM,
@@ -118,7 +118,7 @@ décisions et objectifs du projet.
   proposés contre la décision V3.1 courante avant tout GO d’implémentation.
 - **Priorité** : basse, déjà indiquée dans le BACKLOG.
 
-#### 11. `16-FEATURE-RESPONSE-TIME`
+#### 10. `16-FEATURE-RESPONSE-TIME`
 
 - **Description** : valider manuellement l’affichage discret de la durée sous
   chaque réponse.
@@ -126,7 +126,7 @@ décisions et objectifs du projet.
   disposer d’une réponse générée pour la vérification.
 - **Priorité** : basse, déjà indiquée dans le BACKLOG.
 
-#### 12. `16-CHAT-RAG-LOCAL`
+#### 11. `16-CHAT-RAG-LOCAL`
 
 - **Description** : ajouter une base de connaissances locale avec upload,
   recherche BM25 et injection dans le prompt.
@@ -136,7 +136,7 @@ décisions et objectifs du projet.
 - **Priorité** : basse, déjà indiquée dans le BACKLOG; effort estimé de 2–3
   jours.
 
-#### 13. `16-CHAT-WEB-ACCESS` (optionnel)
+#### 12. `16-CHAT-WEB-ACCESS` (optionnel)
 
 - **Description** : accès web contrôlé par API (DuckDuckGo, Légifrance ou
   Wikipedia), désactivé par défaut.
@@ -147,7 +147,7 @@ décisions et objectifs du projet.
 - **Priorité** : basse, déjà indiquée dans le BACKLOG; effort estimé de 1–2
   jours.
 
-#### 14. `16-REFACTOR-LOGIN-SERVER`
+#### 13. `16-REFACTOR-LOGIN-SERVER`
 
 - **Description** : découper `login_server.py` en modules auth, chat, admin,
   settings et static.
@@ -155,7 +155,7 @@ décisions et objectifs du projet.
   existante de 4–6 h.
 - **Priorité** : basse, déjà indiquée dans le BACKLOG.
 
-#### 15. `16-FIX-OTHER-PROJECTS-VENV`
+#### 14. `16-FIX-OTHER-PROJECTS-VENV`
 
 - **Description** : recréer les environnements `.venv` des autres projets,
   notamment Nexxus Studio, avec Python 3.15.
@@ -163,7 +163,7 @@ décisions et objectifs du projet.
   propriétaire indiqué dans TODO : Décideur.
 - **Priorité** : basse, déjà indiquée dans le BACKLOG.
 
-#### 16. `16-DOC-RELEASE-NOTES`
+#### 15. `16-DOC-RELEASE-NOTES`
 
 - **Description** : documenter les changements majeurs, les modèles évalués,
   le choix du défaut et la migration Python.
@@ -171,7 +171,7 @@ décisions et objectifs du projet.
   ne pas présenter d’hypothèses comme des faits.
 - **Priorité** : basse, déjà indiquée dans le BACKLOG.
 
-#### 17. `MODELE-NETTOYAGE` (TODO sans identifiant)
+#### 16. `MODELE-NETTOYAGE` (TODO sans identifiant)
 
 - **Description** : l’ancienne tâche propose de retirer Qwen2.5-3B,
   Mistral-Nemo-12B et Gemma-2-9B, et de conserver Ornith, Llama-3.1-8B,
@@ -181,7 +181,7 @@ décisions et objectifs du projet.
   modification de whitelist n’est autorisée par cet inventaire.
 - **Priorité** : basse, déjà rangée dans les évolutions du BACKLOG.
 
-#### 18. `UX-Whitelist-Date` (TODO sans identifiant)
+#### 17. `UX-Whitelist-Date` (TODO sans identifiant)
 
 - **Description** : ajouter une colonne informative « Date d’ajout » au
   tableau whitelist.
@@ -194,32 +194,32 @@ décisions et objectifs du projet.
 Chaque ligne représente un GO autonome; cet ordre ne donne pas l’autorisation
 d’exécuter les GO suivants.
 
-1. `16-FIX-FLAKY-TESTS` — établir un socle de tests fiable avant les travaux
-   structurels.
-2. `16-FIX-WHITELIST-UX`.
-3. `16-CHAT-CONTEXT-STRATEGY`.
-4. `16-FEATURE-MODEL-USE-V2`.
-5. `16-FEATURE-RESPONSE-TIME` — validation manuelle seule.
-6. `16-FEATURE-ORCHESTRATION-LOG` — validation manuelle seule.
-7. `16-AGENTS-RULES-18` — GO documentaire indépendant.
-8. Validation persona post-Qwen3-4B — recadrer d’abord la version et les
+1. `16-FIX-WHITELIST-UX`.
+2. `16-CHAT-CONTEXT-STRATEGY`.
+3. `16-FEATURE-MODEL-USE-V2`.
+4. `16-FEATURE-RESPONSE-TIME` — validation manuelle seule.
+5. `16-FEATURE-ORCHESTRATION-LOG` — validation manuelle seule.
+6. `16-AGENTS-RULES-18` — GO documentaire indépendant.
+7. Validation persona post-Qwen3-4B — recadrer d’abord la version et les
    critères.
-9. `MODELE-NETTOYAGE` — réconcilier la liste historique avant tout changement.
-10. `16-FEATURE-MODEL-DRIFT-DETECTION`.
-11. `16-FEATURE-AUTO-MODEL-SELECTION` — après revalidation des seuils/modèles.
-12. `16-MULTIFORMAT` — cadrage avant tout GO d’extraction.
-13. `16-CHAT-RAG-LOCAL` — après définition de l’import et du stockage.
-14. `16-CHAT-WEB-ACCESS` — uniquement après décision explicite sur le mode hors
+8. `MODELE-NETTOYAGE` — réconcilier la liste historique avant tout changement.
+9. `16-FEATURE-MODEL-DRIFT-DETECTION`.
+10. `16-FEATURE-AUTO-MODEL-SELECTION` — après revalidation des seuils/modèles.
+11. `16-MULTIFORMAT` — cadrage avant tout GO d’extraction.
+12. `16-CHAT-RAG-LOCAL` — après définition de l’import et du stockage.
+13. `16-CHAT-WEB-ACCESS` — uniquement après décision explicite sur le mode hors
     ligne et mise à jour du périmètre.
-15. `16-REFACTOR-LOGIN-SERVER` — après stabilisation des tests.
-16. `UX-Whitelist-Date`.
-17. `16-FIX-OTHER-PROJECTS-VENV`.
-18. `16-DOC-RELEASE-NOTES` — après validation des informations à publier.
+14. `16-REFACTOR-LOGIN-SERVER` — après stabilisation des tests.
+15. `UX-Whitelist-Date`.
+16. `16-FIX-OTHER-PROJECTS-VENV`.
+17. `16-DOC-RELEASE-NOTES` — après validation des informations à publier.
 
 ## Recommandation
 
-Traiter d’abord `16-FIX-FLAKY-TESTS`, puis `16-FIX-WHITELIST-UX`. La validation
-de `16-FIX-SETTINGS-SCROLL` est clôturée sans correctif; le cas authentifié avec
-une liste longue reste non testé. Stabiliser les tests réduit le risque des GO
-de code ultérieurs. Garder `16-CHAT-WEB-ACCESS` en dernier et optionnel, car
+Traiter d’abord `16-FIX-WHITELIST-UX`, puis `16-CHAT-CONTEXT-STRATEGY`.
+`16-FIX-FLAKY-TESTS` est clôturé sans correctif après une campagne bornée sans
+échec; cela ne garantit pas l’absence générale d’intermittence. La validation
+de `16-FIX-SETTINGS-SCROLL` est aussi clôturée sans correctif; le cas
+authentifié avec une liste longue reste non testé. Garder `16-CHAT-WEB-ACCESS`
+optionnel, car
 il contredit la promesse hors ligne sans décision de périmètre.

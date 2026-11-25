@@ -117,9 +117,6 @@ tâche terminée est supprimée ici; sa trace reste dans
   dans un GO séparé. Priorité : basse. Fichier cible probable :
   `dev/tools/web/admin.html` (tableau whitelist) + CSS. Pas de logique
   métier associée. — Propriétaire : à planifier.
-- [ ] **16-FIX-FLAKY-TESTS** : identifier et corriger les tests
-  intermittents (`test_migration_v3`, `test_api_messages`).
-  — Propriétaire : à planifier.
 - [ ] **16-REFACTOR-LOGIN-SERVER** : découper `login_server.py`
   (~2600 lignes) en modules auth, chat, admin, settings et static.
   — Propriétaire : à planifier (maintenabilité).

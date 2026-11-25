@@ -684,7 +684,17 @@ complète compte 331 tests.
 ### Priorité moyenne (qualité)
 
 3. **16-FIX-WHITELIST-UX** — 1 h.
-4. **16-FIX-FLAKY-TESTS** — 2 h.
+4. **16-FIX-FLAKY-TESTS** — clôturé le 2026-11-24 sans correctif. Résultats de
+   la campagne du GO 16-FIX-FLAKY-TESTS précédent (aucune réexécution dans ce
+   GO) : suite complète 338/338 en 85,71 s; campagne ciblée : 20 invocations
+   (5 migration seule, 5 API seule, 5 migration→API, 5 API→migration), 120
+   exécutions de cas, aucun échec. Aucun intermittent actuel reproduit; cela
+   ne garantit pas
+   l’absence générale d’intermittence. L’ancien WinError 10053 a été signalé
+   sur `test_change_password_ok` et `test_post_message_no_auth`; l’analyse a
+   établi le corps POST lu après les contrôles d’auth et le défaut a été corrigé
+   en Phase 8b. Aucun symptôme intermittent précis n’a été retrouvé pour
+   `test_migration_v3`; son historique Ruff B011 est distinct.
 5. **16-FEATURE-MODEL-USE-V2** — 4-6 h.
 6. **16-AGENTS-RULES-18** — 30 min.
 - **BACKLOG-ARCH-008 — E2E analyse_md** — terminé le 2026-11-22 (GO

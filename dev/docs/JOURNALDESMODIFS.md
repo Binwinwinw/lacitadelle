@@ -2,6 +2,26 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-24] GO 16-FIX-FLAKY-TESTS-CLOTURE — clôture sans correctif
+
+**Commit de référence audité** : `ec8aa05b8f6d6b9878c198386e708cd520f40079`.
+Ce n’est pas le commit de livraison de cette clôture.
+**Fichiers modifiés** : `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : réconcilier le signalement de flakiness après la suite de
+référence et la campagne ciblée autorisées, sans inventer de correction ni
+présenter « non reproduit » comme une garantie générale.
+**Impact** : documentation seulement; aucun test ni code modifié. Preuves
+reprises du GO 16-FIX-FLAKY-TESTS précédent (aucun test relancé dans ce GO) :
+suite complète 338/338 en 85,71 s; 20 invocations ciblées (5 migration seule,
+5 API seule, 5 migration→API, 5 API→migration), soit 120 exécutions de cas sans
+échec. Bases temporaires et serveur loopback éphémère vérifiés pour les modules
+ciblés. WinError 10053 historique déjà corrigé en Phase 8b; aucun symptôme
+intermittent précis retrouvé pour `test_migration_v3`. La tâche a été retirée du
+TODO conformément au GO; l’absence d’échec dans cette campagne bornée ne
+certifie pas l’absence générale d’intermittence.
+
 ## [2026-11-24] GO 16-SETTINGS-SCROLL-CLOTURE — validation consignée
 
 **Commit de référence audité** : `36427c4`. Ce n’est pas le commit de
