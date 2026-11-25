@@ -2,6 +2,41 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-25] GO 16-MULTIFORMAT-DECISION — arbitrage fonctionnel consigné
+
+**HEAD de référence audité** : `66b26cc5b4127488f7bb3493535377d7d84c4a06`.
+Ce n’est pas un hash de livraison; aucun commit n’est créé dans ce GO.
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`, `TODO.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/ETAT-PROJET.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/JOURNALDESMODIFS.md` et
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : consigner l’arbitrage explicite du 2026-11-25 sur le premier
+palier `.md`, `.txt`, `.csv`, `.json`, `.sql`, sa profondeur de lecture et
+une version cible laissée à déterminer.
+**Impact** : documentation seulement; décision #135 et compteurs à 135.
+L’allowlist est approuvée pour une réalisation future, tandis que l’upload
+actuel reste `.md` seulement. B et l’implémentation ne sont pas autorisés par
+ce GO; aucun code, test, configuration, dépendance ou capacité utilisateur
+n’a changé. Aucun test applicatif n’a été relancé; `338 passed in 85.71s`
+reste le résultat du GO 16-FIX-FLAKY-TESTS antérieur. 17 tâches conservées.
+
+## [2026-11-25] GO 16-MULTIFORMAT-ARBITRAGE — proposition fonctionnelle
+
+**HEAD de référence audité** : `66b26cc5b4127488f7bb3493535377d7d84c4a06`.
+Ce n’est pas un hash de livraison; aucun commit n’est créé dans ce GO.
+**Fichiers modifiés** : `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/JOURNALDESMODIFS.md` et
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : préparer sans l’approuver l’arbitrage sur l’allowlist, le premier
+palier, la profondeur de lecture et la version cible de 16-MULTIFORMAT.
+**Impact** : documentation seulement; matrices et options proposées, sans
+modification du contrat `.md` actuel. Aucun choix n’est consigné comme acquis,
+aucun format ajouté, aucun code/test/configuration/dépendance modifié et aucun
+test applicatif lancé. Le résultat `338 passed in 85.71s` reste celui du GO
+16-FIX-FLAKY-TESTS antérieur; aucun test n’est relancé ici. Le compte de 134
+décisions et l’inventaire de 17 tâches restent inchangés. L’étape technique B
+attend l’arbitrage du Décideur.
+
 ## [2026-11-24] GO 16-MULTIFORMAT-DOC — chaîne documentaire réconciliée
 
 **Commit de référence audité** : `ee990535e039135cc0065136a71e3e4028ae9310`.

@@ -140,8 +140,11 @@ tâche terminée est supprimée ici; sa trace reste dans
 **Phase 16** : AIWorkflow, Fichiers Chat, Audit SQL clôturés. Tâches restantes :
 voir [PHASE16-RESTE.md](dev/docs/PHASE16-RESTE.md).
 
-- [ ] **16-MULTIFORMAT** : décider l’allowlist fermée initiale, son premier
-  palier et la cible de version avant tout GO technique; préserver traitement
-  local, non-exécution et contrôles côté serveur. Voir le
-  [plan 16-MULTIFORMAT](dev/docs/BACKLOG.md#16-multiformat) et la
-  [décision #134](.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat). — Propriétaire : à planifier.
+- [ ] **16-MULTIFORMAT** : arbitrage fonctionnel approuvé le 2026-11-25 :
+  `.md`, `.txt`, `.csv`, `.json`, `.sql`; CSV/JSON structurés, Markdown/TXT/SQL
+  textuels et non exécutés. Version à déterminer. Préparer un GO distinct pour
+  le cadrage technique B; aucune implémentation autorisée. L’upload chat reste
+  `.md` seulement. Voir le
+  [plan 16-MULTIFORMAT](dev/docs/BACKLOG.md#16-multiformat), la
+  [décision #135](.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat) et les
+  [invariants #134](.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat). — Propriétaire : à planifier.

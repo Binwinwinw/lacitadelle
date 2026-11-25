@@ -814,18 +814,22 @@ aucune règle de rétention des logs n’a été définie dans ce GO.
 
 #### 16-MULTIFORMAT
 
-**Statut** : cadrage documentaire actualisé le 2026-11-24; tâche ouverte,
-implémentation non commencée.
+**Statut** : arbitrage fonctionnel approuvé le 2026-11-25 (décision #135);
+cadrage technique B à ouvrir par GO distinct; implémentation non commencée.
+L’upload du chat accepte toujours `.md` seulement.
 **Priorité** : à déterminer.
 **Objectif** : faire évoluer le contrôle actuel « Joindre un .md » vers
 « Joindre un fichier » uniquement lorsque les formats effectivement pris en
 charge sont définis et vérifiés. Le bouton ne promettra pas une compatibilité
 universelle.
 **Références de reprise** : [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md),
-[décision #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat), [périmètre produit V4 proposé](./OBJECTIF.md#L52).
-La spécification et le périmètre existants restent inchangés : ils décrivent
-le premier incrément `.md` et la cible V4 proposée, pas une liste multiformat
-déjà approuvée.
+[décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat),
+[invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et
+[OBJECTIF.md](./OBJECTIF.md#L64) comme contexte de la proposition V4 examinée,
+non comme version cible acquise.
+La spécification décrit le contrat actuel `.md`; l’allowlist approuvée dans
+la décision #135 est un périmètre fonctionnel futur, pas une capacité déjà
+disponible.
 
 **Faits observés au HEAD audité `ee990535e039135cc0065136a71e3e4028ae9310`** :
 
@@ -848,25 +852,92 @@ déjà approuvée.
 - Les formats formeront une liste explicite et fermée, contrôlée côté serveur.
   Les limites, refus et traitements partiels seront visibles.
 - Le libellé cible « Joindre un fichier » accompagne une prise en charge réelle
-  et testée. Ce GO n’autorise aucun format supplémentaire à l’implémentation.
+  et testée. Le GO documentaire du 2026-11-24 n’autorisait aucun nouveau format
+  à l’implémentation; le périmètre futur a depuis été approuvé par la décision
+  #135, sans rendre ces formats disponibles actuellement.
 
-**Pistes, non engagements** : un premier palier textuel; PDF textuel si un
-extracteur local est validé; bureautique dans un palier distinct; images/OCR
-dans des lots séparés éventuels. Le `.md` reste le seul format pris en charge
-par le parcours actuel.
+**Proposition fonctionnelle examinée avant arbitrage (GO 16-MULTIFORMAT-ARBITRAGE), non approuvée à cette date** :
 
-**Arbitrages restant ouverts** :
+| Candidat | Utilité et contenu accessible / lecture envisagée | Réutilisation établie, dépendances possibles et limites | Risques / recommandation |
+|---|---|---|---|
+| `.md` | Commenter, résumer, reformuler et questionner le texte Markdown; le modèle reçoit le texte ou des passages partiels selon le contrat courant. | Seul format du téléversement chat actuellement pris en charge; extraction UTF-8 stricte existante. | À préserver dans chaque option; aucune extension du comportement actuel n’est proposée ici. |
+| `.txt` | Lire, résumer et questionner le texte brut. | Un helper générique sait lire `.txt` dans un autre parcours, sans être branché à l’upload chat. Encodage et extraction restent à définir; aucune nouvelle dépendance n’est présumée. | Premier palier recommandé; décider le traitement des encodages et erreurs au cadrage technique. |
+| `.csv` | Interroger des données tabulaires; proposer une lecture structurée des en-têtes, lignes et cellules. | Aucun extracteur chat établi. La bibliothèque standard Python pourrait lire la syntaxe CSV, sans que ce soit un choix d’implémentation. | Premier palier recommandé sous réserve d’arbitrer la lecture structurée; délimiteurs, guillemets, encodage et volume sont des limites à cadrer. Les cellules restent des données, jamais des formules exécutées. |
+| `.json` | Expliquer des objets, listes, clés et valeurs d’un document structuré. | Aucun extracteur chat établi. La bibliothèque standard Python sait analyser JSON, sans choix technique arrêté. | Premier palier recommandé sous réserve d’une lecture structurée; JSON invalide, imbrication profonde et volumes excessifs devront être traités explicitement. Aucun code n’est évalué. |
+| `.sql` | Faire expliquer ou résumer un script de requêtes comme source textuelle. | Le workflow admin `analyse_sql` est un parcours distinct et n’est pas une capacité réutilisable d’upload chat. | Premier palier recommandé en texte seulement; aucune requête n’est analysée contre une DB ni exécutée. |
+| Code et configuration : `.py`, `.js`, `.ts`, `.jsx`, `.tsx`, `.html`, `.css`, `.sh`, `.bash`, `.bat`, `.ps1`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg`, `.xml` | Demander une explication du texte source ou de configuration; aucun résultat d’exécution. | Aucun parcours d’upload chat établi pour ces extensions; pas de parseur de format retenu. | Palier ultérieur séparé, pas une famille générique autorisée. Risques de secrets dans les configurations, contenu d’instructions non fiable et diversité syntaxique. `.env`, clés, certificats et binaires ne sont pas inclus dans cette liste candidate. |
+| Nom `Dockerfile` | Expliquer le texte des instructions de construction. | Aucun extracteur chat établi; règle candidate : accepter uniquement un fichier dont le basename est exactement `Dockerfile`, sans extension. | Palier ultérieur séparé; jamais lancer `docker build` ni exécuter une instruction. Confirmer la règle de nom et sa portabilité avant de l’envisager. |
+| PDF textuel | Résumer et questionner le texte réellement présent dans la couche texte du PDF. | Un helper distinct utilise `pypdf`, mais il n’est pas branché à l’upload chat; sa disponibilité comme dépendance du produit n’est pas établie. | Palier ultérieur conditionnel à la validation du parseur et de son isolation. PDF numérisé, OCR et extraction d’images sont exclus; fichiers chiffrés, malformés ou lourds exigent un traitement défini. |
+| `.docx` | Lire et expliquer le texte des paragraphes et tableaux. | Aucun extracteur chat établi; une dépendance de parsing OOXML pourrait être nécessaire, à choisir à l’étape B. | Palier bureautique ultérieur; archives structurées, contenu embarqué et complexité du parseur augmentent les risques. Pas de macros, d’exécution ni de récupération externe. |
+| `.xlsx` | Lire les feuilles, cellules, valeurs et formules comme contenu; les formules peuvent être expliquées comme texte. | Aucun extracteur chat établi; parsing de classeur potentiellement dépendant d’une bibliothèque, non choisie. | Palier bureautique ultérieur; ne pas recalculer les formules ni charger de liens externes. `.xlsm`, macros et objets actifs ne sont pas proposés. |
+| `.odt` | Lire et expliquer le texte des paragraphes et tableaux. | Aucun extracteur chat établi; parsing ODF pourrait demander une dépendance, non choisie. | Palier bureautique ultérieur; archive structurée et contenu embarqué à traiter de façon isolée. Aucun objet, macro ou ressource externe n’est exécuté/récupéré. |
 
-- allowlist initiale exacte, ordre des paliers et version cible de la capacité;
-- extracteurs et dépendances locales, notamment la disponibilité réelle de
-  `pypdf` avant de retenir le PDF;
-- limites par famille (octets, pages, volume extrait, durée, mémoire et volume
-  cumulé), isolation des parseurs et traitement des archives compressées;
-- maintien ou évolution du plafond actuel d’un document par conversation;
+Cette matrice décrit des candidats et des profondeurs de lecture proposées,
+pas des formats disponibles. Pour tout format, le contenu serait une donnée
+locale non fiable; seules les données effectivement extraites et transmises
+seraient accessibles au modèle. Une extraction ou un contexte partiel devrait
+être signalé; aucune lecture exhaustive n’est promise. OCR, formats non
+énumérés et exécution de code, macros, requêtes ou formules ne sont pas inclus.
+
+**Options de premier palier examinées avant l’arbitrage du 2026-11-25** :
+
+| Option | Allowlist exacte et usages proposés | Exclusions | Interface, dépendances et inconnues | Compromis |
+|---|---|---|---|---|
+| **A — recommandée, palier textuel structuré** | `.md`, `.txt`, `.csv`, `.json`, `.sql`. Texte pour Markdown/TXT/SQL; lecture tabulaire CSV et lecture de l’arbre JSON, sans évaluation. | PDF, OCR, bureautique, code/configuration, `Dockerfile`, images et toute extension non listée. | Le sélecteur futur et le serveur devraient annoncer la même liste fermée; erreurs de format et résultats partiels visibles. Le cadrage technique doit confirmer parsing, encodages, limites et isolation. Le helper TXT n’est pas une preuve de support chat. | Couvre documents et données textuelles courantes sans introduire les parseurs d’archives PDF/OOXML/ODF. Recommandée seulement si le Décideur accepte la distinction entre texte brut et lecture structurée CSV/JSON. |
+| **B — alternative restreinte** | `.md`, `.txt`; les deux lus comme texte, selon les limites qui seront décidées. | CSV/JSON/SQL, PDF, bureautique, code/configuration, `Dockerfile`, images et OCR. | Interface simple et allowlist courte; il reste à arbitrer encodages TXT, extraction et limites. | Risque et surface fonctionnelle réduits; reporte l’analyse de données structurées et les documents bureautiques. |
+| **C — alternative plus large, conditionnelle** | `.md`, `.txt`, `.csv`, `.json`, `.sql`, `.pdf`, `.docx`, `.xlsx`, `.odt`. PDF limité à sa couche texte; bureautique limitée au texte/tableaux/cellules définis ci-dessus. | OCR, images, code/configuration, `Dockerfile`, macros (`.docm`, `.xlsm`), contenus exécutables et formats non listés. | Chaque famille doit avoir un extracteur validé, des limites, une isolation et des tests propres; dépendances et gestion des archives à établir à l’étape B. L’interface ne pourrait annoncer ces formats qu’après vérification de leur parcours réel. | Permettrait davantage d’usages documentaires, mais réunit plusieurs familles et risques de parsing. Ne pas retenir si les dépendances, protections ou résultats partiels ne sont pas démontrables. |
+
+**Recommandation formulée avant arbitrage** : l’option A était proposée comme
+base de discussion, sans approbation à cette date. L’arbitrage du 2026-11-25
+(décision #135) a retenu son allowlist et sa profondeur de lecture comme
+périmètre fonctionnel futur.
+
+Les options portent sur les formats, pas sur le nombre de pièces jointes. Le
+comportement actuel est d’un document par conversation; son maintien ou son
+évolution reste à décider à l’étape B.
+
+**Contexte de version examiné avant arbitrage** : [OBJECTIF.md](./OBJECTIF.md#L64)
+présente V4 comme cible proposée pour les fichiers du chat; cette proposition
+a été examinée, mais n’a pas été retenue comme rattachement acquis.
+**Version cible actuelle** : à déterminer, conformément à la décision #135.
+
+**Arbitrage du Décideur du 2026-11-25 — décision #135** :
+
+1. **Option A retenue pour le premier palier futur** : `.md`, `.txt`, `.csv`,
+   `.json`, `.sql`.
+2. **Profondeur approuvée** : CSV/JSON lus structurellement; Markdown/TXT/SQL
+   lus comme texte. Aucun contenu n’est exécuté; SQL est explicitement admis
+   comme source textuelle seulement.
+3. **Options B et C** : non retenues pour ce premier palier, sans interdiction
+   définitive de les réexaminer.
+4. **Version** : à déterminer; aucun rattachement V4 acquis.
+5. **Exclusions de ce palier** : PDF, bureautique, fichiers de code/configuration
+   autres que l’exception `.sql` (y compris `.py`), `Dockerfile`, images et OCR.
+
+Ces formats sont approuvés pour une réalisation future, pas disponibles
+actuellement dans l’upload chat. Le seul format actuellement pris en charge
+reste `.md`.
+
+**Étape B — cadrage technique à ouvrir par un GO distinct** :
+
+- extracteurs et dépendances applicables uniquement à `.md`, `.txt`, `.csv`,
+  `.json` et `.sql`, sans choisir de solution ni déduire le support du chat
+  d’un helper ou d’un autre workflow;
+- encodages et validation de structure des données CSV/JSON;
+- limites par format (octets, volume extrait, durée, mémoire et volume cumulé)
+  et isolation des parseurs;
+- refus des archives compressées et des contenus imbriqués; une archive n’est
+  pas un format pris en charge dans ce palier;
+- stockage et nettoyage; maintien ou évolution du plafond actuel d’un document
+  par conversation;
 - conservation et suppression des originaux et textes extraits, y compris
   après erreur ou retrait;
 - erreurs, extraction partielle, affichage éventuel et besoins de téléchargement
   de l’original.
+
+Aucune valeur ni bibliothèque n’est choisie par la décision fonctionnelle.
+L’arbitrage A est terminé; l’exécution du cadrage B n’est pas autorisée par le
+présent GO et requiert un GO distinct.
 
 **Matrice besoin → changement → preuve future** :
 
@@ -893,43 +964,50 @@ isolation, refus d’un second document, suivi après rechargement, retrait,
 nettoyage temporaire et contrôles HTML. Ces tests décrivent le premier incrément;
 ils ne valident pas encore de formats multiformat.
 
-**Prochaine action** : obtenir l’arbitrage du Décideur sur l’allowlist initiale,
-le premier palier et la version cible, en vérifiant l’alignement avec la
-proposition V4 de `OBJECTIF.md`. Ensuite seulement, proposer un GO technique
-séparé pour extracteurs, dépendances, limites et conservation. Aucun GO
-d’implémentation n’est autorisé par ce cadrage documentaire.
-**Moment de traitement** : GO séparés; attendre les arbitrages avant tout code.
+**Prochaine action** : préparer un GO distinct pour ouvrir le cadrage
+technique B. Aucun choix d’extracteur, de dépendance ou de seuil n’est fait;
+aucune implémentation n’est autorisée par cette décision documentaire.
+**Moment de traitement** : étape B sur GO explicite; implémentation séparément
+autorisée seulement après son cadrage et sa validation.
 
 **Point de reprise**
 
-- **Dernière étape terminée** : inspection ciblée et cadrage documentaire.
-- **Étape technique en cours** : aucune; implémentation non commencée.
-- **Prochaine action** : soumettre au Décideur une proposition d’allowlist
-  initiale, de premier palier et de version cible, avec les conséquences des
-  choix; aucun n’est déjà approuvé.
-- **Arbitrages suivants** : extracteurs/dépendances, limites, isolation,
-  cardinalité et conservation.
+- **Dernière étape terminée** : arbitrage fonctionnel A validé et consigné le
+  2026-11-25 dans la décision #135.
+- **Étape technique en cours** : aucune.
+- **Capacité actuelle** : l’upload chat accepte `.md` seulement.
+- **Périmètre futur approuvé** : `.md`, `.txt`, `.csv`, `.json`, `.sql`;
+  CSV/JSON structurés, Markdown/TXT/SQL textuels, aucun contenu exécuté.
+- **Version cible** : à déterminer.
+- **Prochaine action** : soumettre un GO distinct pour ouvrir le cadrage
+  technique B.
+- **Questions techniques encore ouvertes** : extracteurs/dépendances,
+  encodages et validation de structure, limites, isolation,
+  stockage/nettoyage, cardinalité, conservation et résultats partiels.
+- **Autorisation** : aucun cadrage B ni aucune implémentation n’est engagé par
+  ce GO.
 - **Références à lire dans l’ordre** : [présente section](#16-multiformat);
-  [décision #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat);
+  [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat);
+  [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat);
   [SPEC-FICHIERS-CHAT](./SPEC-FICHIERS-CHAT.md) pour le contrat actuel;
-  [OBJECTIF](./OBJECTIF.md) pour la proposition de version; dernière entrée
-  de [JOURNALDEBORD](./JOURNALDEBORD.md) pour l’état d’arrêt.
+  [OBJECTIF](./OBJECTIF.md) pour le contexte de la proposition V4; dernière
+  entrée de [JOURNALDEBORD](./JOURNALDEBORD.md) pour l’état d’arrêt.
 - **Référence technique** : HEAD initial audité
   `ee990535e039135cc0065136a71e3e4028ae9310`.
 - **Vérifications disponibles** : contrôles documentaires de ce GO; dernier
-  résultat applicatif rapporté, `338 passed in 85.71s`, provenant d’un GO
-  antérieur. Aucun test applicatif n’est relancé ici.
+  résultat applicatif rapporté, `338 passed in 85.71s`, provenant du GO
+  16-FIX-FLAKY-TESTS antérieur. Aucun test applicatif n’est relancé ici.
 
 Chaque futur GO 16-MULTIFORMAT met à jour ce point de reprise, le statut
 concerné et les journaux dans le même lot.
 
-**Étapes futures proposées** (découpage de travail, sans autoriser
-l’implémentation) :
+**Étapes proposées** (découpage de travail; A est consignée comme terminée;
+ce tableau n’autorise pas l’implémentation) :
 
 | Étape | Précondition | Résultat attendu | Preuve de validation | Condition d’arrêt |
 |---|---|---|---|---|
-| A. Arbitrage fonctionnel | Proposition soumise au Décideur; aucun choix présupposé. | Allowlist initiale, premier palier et version cible décidés. | Arbitrage explicite consigné. | Suspendre si les choix ou leurs conséquences ne sont pas validés. |
-| B. Cadrage technique | Étape A validée. | Extracteurs/dépendances, limites, isolation, stockage, cardinalité et conservation définis. | Spécification et stratégie de vérification approuvées. | Suspendre si une dépendance, limite ou mesure d’isolation reste incertaine. |
+| A. Arbitrage fonctionnel — terminé le 2026-11-25 | Proposition examinée et arbitrage explicite du Décideur. | Allowlist et profondeur approuvées; version cible à déterminer. | Décision #135 consignée. | Aucun travail technique n’est autorisé par cette étape seule. |
+| B. Cadrage technique | Décision #135 consignée et GO distinct autorisant l’ouverture de B. | Extracteurs/dépendances, limites, isolation, stockage, cardinalité et conservation définis. | Spécification et stratégie de vérification approuvées. | Suspendre si le GO B manque ou si une dépendance, limite ou mesure d’isolation reste incertaine. |
 | C. Implémentation séparément autorisée | Étape B validée et GO d’implémentation distinct. | Contrôles serveur, extraction et tests correspondants. | Tests ciblés des formats et refus prévus. | Arrêter sur un échec, un contournement de contrôle ou une limite non respectée. |
 | D. Intégration utilisateur | Étape C vérifiée et GO distinct. | Sélection, messages, résultats partiels; renommer le bouton seulement pour les capacités vérifiées. | Vérifications UI/API concordantes avec l’allowlist. | Arrêter si les formats annoncés diffèrent du support réel ou si les résultats partiels sont opaques. |
 | E. Validation et clôture | Étapes C et D vérifiées. | Preuves fonctionnelles/sécurité, documentation utilisateur et suivi réconcilié; livraison autorisée séparément. | Résultats de validation et journaux cohérents. | Ne pas clôturer ni livrer tant qu’une preuve manque ou qu’un échec reste ouvert. |

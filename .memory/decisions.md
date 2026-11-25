@@ -3109,3 +3109,39 @@ dans le chat.
 l’allowlist initiale, des paliers et de la version cible, puis un GO technique
 distinct. La proposition V4 déjà portée dans `OBJECTIF.md` n’est pas
 réinterprétée par cette décision. 134 décisions.
+
+## [2026-11-25] Arbitrage fonctionnel du premier palier multiformat
+
+**Contexte** : la décision #134 fixe les invariants de traitement local,
+sécurité et non-exécution, sans approuver de format supplémentaire. La
+proposition A/B/C de 16-MULTIFORMAT a ensuite été soumise au Décideur. Le
+parcours d’upload du chat reste limité à `.md` selon les faits observés au HEAD
+audité `ee990535e039135cc0065136a71e3e4028ae9310`.
+
+**Décision(s)** :
+1. Retenir l’option A et approuver pour une réalisation future un premier
+   palier dont l’allowlist fonctionnelle exacte est `.md`, `.txt`, `.csv`,
+   `.json` et `.sql`. Les options B et C ne sont pas retenues pour ce palier,
+   sans être définitivement interdites.
+2. Approuver la lecture structurée de `.csv` et `.json`; lire `.md`, `.txt` et
+   `.sql` comme texte seulement. Aucun contenu n’est exécuté; `.sql` est une
+   exception explicite à l’exclusion des autres fichiers de code/configuration,
+   et reste une source textuelle.
+3. Exclure de ce premier palier le PDF, les formats bureautiques, les autres
+   fichiers de code/configuration (y compris `.py`), `Dockerfile`, les images
+   et l’OCR. Ces formats ne sont pas déclarés définitivement interdits; ils
+   ne font pas partie du périmètre fonctionnel approuvé ici.
+4. Laisser la version cible à déterminer. La proposition V4 de `OBJECTIF.md`
+   est un contexte examiné, pas un rattachement approuvé ni une dépendance.
+5. Limiter le présent GO à la consignation documentaire. Il n’autorise ni le
+   cadrage technique B ni l’implémentation; un GO distinct est requis avant
+   d’ouvrir B ou de modifier l’application.
+6. La décision #134 continue de s’appliquer, notamment pour le traitement
+   local, le contenu non fiable, l’absence d’exécution, les permissions
+   applicatives, la validation côté serveur et les refus/résultats partiels
+   visibles. Aucun extracteur, paquet, seuil ou choix de stockage n’est décidé.
+
+**Conséquences** : les cinq formats sont approuvés comme périmètre fonctionnel
+futur, mais `.md` demeure le seul format actuellement disponible par l’upload
+du chat et le bouton reste inchangé. La version n’est pas attribuée; le
+cadrage technique et toute implémentation attendent un GO distinct. 135 décisions.

@@ -43,10 +43,11 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 - **Dernière suite complète enregistrée** : `338 passed in 85.71s` au GO
   16-FIX-FLAKY-TESTS du 2026-11-24. Cette exécution précède le présent GO
   documentaire; aucune suite n’a été relancée ici.
-- **Décisions datées** : 134 entrées, comptées dans
-  [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-24. Le comptage
-  est calculé sur les titres `## [AAAA-MM-JJ]`; la décision #134 consigne le
-  cadrage documentaire de 16-MULTIFORMAT, sans autoriser son implémentation.
+- **Décisions datées** : 135 entrées, comptées dans
+  [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-25. Le comptage
+  est calculé sur les titres `## [AAAA-MM-JJ]`; les décisions #134 et #135
+  cadrent les invariants et l’arbitrage fonctionnel de 16-MULTIFORMAT, sans
+  autoriser son implémentation.
 - **Décision modèle la plus récente** : Ornith recommandé s'il est local et
   whitelisté; Qwen3-4B reste le modèle intégré de fallback; Qwen3.5 reste local;
   Granite est retiré de la whitelist ([decisions.md](../../.memory/decisions.md#L2882)).
@@ -82,12 +83,14 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
   [décision #129](../../.memory/decisions.md#L2941)). Le test live a ensuite
   vérifié le parcours et les limites. La clôture finale des livrables centraux
   est consignée par la décision #132; les autres tâches restent des reports.
-- `16-MULTIFORMAT` reste une tâche de cadrage ouverte : l’upload chat accepte
-  `.md` seulement. Aucun format additionnel n’est approuvé ou implémenté; la
-  liste fermée initiale, les paliers, la cible de version, les extracteurs,
-  les limites et la conservation restent à arbitrer. Voir
-  [BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat) et
-  [décision #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat).
+- `16-MULTIFORMAT` reste ouvert après arbitrage fonctionnel : `.md`, `.txt`,
+  `.csv`, `.json` et `.sql` sont approuvés comme périmètre futur; CSV/JSON
+  seront lus structurellement et Markdown/TXT/SQL comme texte non exécuté. La
+  version cible reste à déterminer; l’étape technique B attend un GO distinct.
+  L’upload chat disponible accepte `.md` seulement. Voir
+  [BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat),
+  [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat) et
+  [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat).
 - L’audit v12 journalise les suppressions avec le propriétaire de la ligne,
   pas nécessairement l’acteur. Le test #62 via UI et #63 par DELETE direct
   cible les bonnes sessions; l’origine historique de l’écart #60 reste

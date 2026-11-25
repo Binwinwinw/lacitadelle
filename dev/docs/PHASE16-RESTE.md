@@ -84,24 +84,26 @@ décisions et objectifs du projet.
 
 #### 6. `16-MULTIFORMAT`
 
-- **État** : cadrage documentaire fait le 2026-11-24; implémentation non
-  commencée. Le chat reste `.md` seulement.
-- **Description** : faire évoluer le contrôle vers « Joindre un fichier »
-  seulement avec une allowlist réelle, explicite et vérifiée; aucune liste de
-  formats additionnels n’est approuvée.
+- **État** : arbitrage fonctionnel approuvé le 2026-11-25 (décision #135);
+  implémentation non commencée. L’upload chat reste `.md` seulement.
+- **Description** : réaliser ultérieurement l’allowlist approuvée `.md`, `.txt`,
+  `.csv`, `.json`, `.sql`; cela ne décrit pas la disponibilité actuelle.
 - **Faits clés** : le chat accepte `.md`; le helper générique `.txt`/PDF et le
   workflow admin PDF/SQL sont des parcours distincts, pas une preuve de support
   d’upload multiformat dans le chat.
 - **Contraintes décidées** : traitement local, fichier non fiable/non exécuté,
   permissions non issues du document et vérifications imposées côté serveur.
-- **Dépendances et arbitrages** : premier incrément `.md` et test live terminés;
-  restent l’allowlist, le palier, la version cible, les extracteurs/dépendances,
-  les limites et la conservation. Voir le
+- **Dépendances et arbitrages** : profondeur approuvée : CSV/JSON structurés,
+  Markdown/TXT/SQL textuels, aucun contenu exécuté. La version cible est à
+  déterminer. Extracteurs/dépendances, encodages et validation, limites,
+  isolation, stockage/nettoyage, cardinalité, conservation et résultats
+  partiels restent pour l’étape B; aucun GO B n’est engagé. Voir le
   [plan détaillé](./BACKLOG.md#16-multiformat), la
-  [décision #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et la
+  [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat), les
+  [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et la
   [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md).
-- **Prochaine action** : obtenir l’arbitrage du Décideur sur l’allowlist
-  initiale, le premier palier et la version cible avant tout GO technique.
+- **Prochaine action** : préparer un GO distinct pour ouvrir le cadrage
+  technique B; aucune implémentation n’est autorisée par l’arbitrage seul.
 - **Priorité** : moyenne, proposée; le BACKLOG la laisse à déterminer.
 
 #### 7. Validation persona post-Qwen3-4B (TODO sans identifiant)
