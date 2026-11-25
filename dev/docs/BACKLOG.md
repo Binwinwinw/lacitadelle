@@ -814,8 +814,8 @@ aucune règle de rétention des logs n’a été définie dans ce GO.
 
 #### 16-MULTIFORMAT
 
-**Statut** : arbitrage fonctionnel approuvé le 2026-11-25 (décision #135);
-cadrage technique B à ouvrir par GO distinct; implémentation non commencée.
+**Statut** : arbitrage A approuvé (décision #135); proposition technique B
+préparée le 2026-11-25, validation en attente; C/D/E non commencées.
 L’upload du chat accepte toujours `.md` seulement.
 **Priorité** : à déterminer.
 **Objectif** : faire évoluer le contrôle actuel « Joindre un .md » vers
@@ -837,7 +837,7 @@ disponible.
 |---|---|---|
 | Interface | [`chat.html`](../tools/web/chat.html#L40) présente un input `accept=".md,text/markdown"` et « Joindre un .md ». [`chat.js`](../tools/web/chat.js#L278) envoie un multipart à `/api/chat/upload`; le nom et l’indication d’extraits sont affichés en texte. | Aligner le libellé et l’acceptation UI sur la future allowlist réelle; le filtre du navigateur ne remplace pas la validation serveur. |
 | Réception et accès | [`login_server.py`](../tools/login_server.py#L2249) parse un seul identifiant de session et un fichier et réduit le nom à un basename. [`handle_post_chat_upload`](../tools/login_server.py#L2334) authentifie, vérifie le rôle, exige `.md`, contrôle la propriété de la session et refuse un second document. `do_POST` limite le corps général à 1 MiB et l’upload à `MAX_MARKDOWN_BYTES + 16 384`; le fichier est ensuite plafonné à 256 KiB. CSRF et rate limit sont appliqués. | Étendre l’allowlist fermée et faire appliquer côté serveur les règles propres à chaque format, en conservant authentification, CSRF et isolation utilisateur/conversation. |
-| Extraction et classification | [`extract_markdown_document`](../tools/nodes/extract_text.py#L21) seul est appelé par le téléversement : `.md`, UTF-8 strict, 256 KiB et 200 000 caractères. [`extract_text`](../tools/nodes/extract_text.py#L58) prend aussi `.txt` et `.pdf`, mais ce helper n’est pas branché à l’upload chat; PDF importe `pypdf` à la demande. [`security_files.py`](../tools/security_files.py#L15) classe aussi des extensions PDF, bureautiques et images. | Une classification d’extension ne constitue ni une allowlist d’upload ni un extracteur. Décider un parseur local pour chaque format; `pyproject.toml` ne déclare pas `pypdf` et aucune dépendance ne sera ajoutée dans ce GO. |
+| Extraction et classification | [`extract_markdown_document`](../tools/nodes/extract_text.py#L21) seul est appelé par le téléversement : `.md`, UTF-8 strict, 256 KiB et 200 000 caractères. [`extract_text`](../tools/nodes/extract_text.py#L58) prend aussi `.txt` et `.pdf`, mais ce helper n’est pas branché à l’upload chat; PDF importe `pypdf` à la demande. [`security_files.py`](../tools/security_files.py#L15) classe aussi des extensions PDF, bureautiques et images. | Une classification d’extension ne constitue ni une allowlist d’upload ni un extracteur. Le constat `pypdf` concerne seulement le candidat PDF hors palier; ce helper TXT/PDF, pypdf et OCR ne sont pas des prérequis de l’étape B approuvée. |
 | Workflows distincts | [`workflow_runner.py`](../tools/workflow_runner.py#L23) et `analyse_pdf`/`analyse_sql` reçoivent des chemins serveur autorisés; ce parcours admin n’est pas le téléversement du chat. | Ne pas compter les capacités AIWorkflow comme formats déjà supportés par « Joindre un fichier ». Le contenu SQL, scripts et macros ne sera pas exécuté. |
 | Stockage et suppression | La migration v11 de [`citadelle_memory.py`](../tools/citadelle_memory.py#L455) conserve texte extrait et métadonnées par propriétaire/session; l’index unique limite à un document par conversation. L’original passe par un répertoire temporaire nettoyé; le retrait supprime le contenu extrait, pas les messages. | Arbitrer si la limite d’un document par conversation demeure et quelle politique s’applique aux originaux, aux contenus extraits et aux données dérivées. |
 | Contexte modèle et historique | [`handle_get_messages`](../tools/login_server.py#L2546) retourne les métadonnées du document, pas son contenu ni l’original. [`_build_document_context`](../tools/login_server.py#L2617) transmet jusqu’à 6 000 caractères, ou jusqu’à 12 passages FTS5 dans cette limite; le prompt marque le document comme donnée non fiable et interdit les appels d’outils sur sa demande. Le budget actuel est estimé à 8 000 tokens, avec jusqu’à 1 024 pour la réponse; ces estimations ne sont pas des limites multiformat validées. | Définir les sorties normalisées, les résultats partiels et leurs indications UI par format; conserver la séparation instructions/données et ne donner aucun pouvoir au document. |
@@ -918,26 +918,239 @@ Ces formats sont approuvés pour une réalisation future, pas disponibles
 actuellement dans l’upload chat. Le seul format actuellement pris en charge
 reste `.md`.
 
-**Étape B — cadrage technique à ouvrir par un GO distinct** :
+**Proposition technique B — non validée, non implémentée** :
 
-- extracteurs et dépendances applicables uniquement à `.md`, `.txt`, `.csv`,
-  `.json` et `.sql`, sans choisir de solution ni déduire le support du chat
-  d’un helper ou d’un autre workflow;
-- encodages et validation de structure des données CSV/JSON;
-- limites par format (octets, volume extrait, durée, mémoire et volume cumulé)
-  et isolation des parseurs;
-- refus des archives compressées et des contenus imbriqués; une archive n’est
-  pas un format pris en charge dans ce palier;
-- stockage et nettoyage; maintien ou évolution du plafond actuel d’un document
-  par conversation;
-- conservation et suppression des originaux et textes extraits, y compris
-  après erreur ou retrait;
-- erreurs, extraction partielle, affichage éventuel et besoins de téléchargement
-  de l’original.
+Les constats ci-dessous proviennent d’une lecture ciblée des composants cités
+au HEAD initial `b3da82ea5e32734953efc11c998a53ad91070f85`. La cartographie
+antérieure au HEAD `ee990535e039135cc0065136a71e3e4028ae9310` reste historique;
+aucun audit général ni test n’a été exécuté.
 
-Aucune valeur ni bibliothèque n’est choisie par la décision fonctionnelle.
-L’arbitrage A est terminé; l’exécution du cadrage B n’est pas autorisée par le
-présent GO et requiert un GO distinct.
+| Point et constat directement vérifié | Évolution proposée | Compatibilité à préserver | Preuve future |
+|---|---|---|---|
+| Réception : [`do_POST`](../tools/login_server.py#L3272) borne le corps chat à 272 KiB avant lecture, puis vérifie authentification, gate de changement de mot de passe, CSRF et rate limit; [`handle_post_chat_upload`](../tools/login_server.py#L2334) répète l’authentification, vérifie le rôle, la session propriétaire et le document déjà attaché. | Garder route, séquence de confiance et champs `session_id`/`file`; refuser tout élément multipart non prévu et dispatcher uniquement les cinq suffixes approuvés. Garder serveur comme autorité; l’UI et le MIME client ne décident pas du type. | `.md` conserve les codes/résultats existants; non-authentifié 401, CSRF 403, session non possédée 404, second document 409. | API isolée : chacun des droits, codes et limites; champ/fichier supplémentaire refusé. |
+| Corps et nom : [`_parse_chat_upload`](../tools/login_server.py#L2249) parse le corps MIME complet; `_safe_chat_upload_filename` (même fichier, L2235) enlève les chemins et refuse nom vide, `.`/`..`, plus de 255 caractères, `:` et contrôles. Le parseur collecte une session et un fichier mais ignore les autres parts inconnues. | Exiger exactement deux parts `form-data`; suffixe final insensible à la casse sélectionne le parseur, nom complet conservé pour affichage. Les suffixes précédents ne changent pas le mode; `.py.txt` reste du texte `.txt`, jamais du code exécuté. MIME déclaré ignoré comme preuve de sécurité. | Maintenir l’assainissement du basename et la taille maximale du nom; ne jamais utiliser le nom comme chemin persistant. | Noms multi-suffixes, séparateurs Windows/Unix, absence/majuscules d’extension, contrôles et part MIME incohérente. |
+| Extraction : `_extract_chat_upload` (même fichier, L2295) écrit dans `TemporaryDirectory` et nettoie succès/erreur; [`extract_markdown_document`](../tools/nodes/extract_text.py#L21) contrôle `.md`, classe, UTF-8 strict, 256 KiB, NUL/vide et 200 000 caractères. [`extract_text`](../tools/nodes/extract_text.py#L58) lit aussi TXT/PDF ailleurs, sans intégration chat ni ces mêmes limites. | Conserver le chemin `.md`; ajouter un dispatch chat spécifique aux formats du palier, sans reprendre le helper PDF/TXT comme preuve de support. Refuser entièrement un document invalide ou trop complexe; ne pas stocker de résultat d’extraction tronqué. | Pas de dépendance nouvelle recommandée : `csv` et `json` sont dans la bibliothèque standard. L’original demeure temporaire. | Tests unitaires d’extraction temporaires et tests API des erreurs/cleanups. |
+| Classification : [`PUBLIC_EXTENSIONS`](../tools/security_files.py#L15) contient TXT/CSV/JSON/MD mais pas SQL; [`classify_file`](../tools/security_files.py#L60) classe par défaut un suffixe inconnu `SENSITIVE`, que [`can_read`](../tools/security_files.py#L96) réserve à `admin`. Les signatures ZIP/GZIP/BZIP sont aussi sensibles. | Ne pas reclassifier SQL silencieusement. **Blocage d’arbitrage** : choisir si `.sql` reste sensible/admin-seulement ou si les comptes `user` peuvent le lire; l’allowlist #135 ne tranche pas ce droit. Rejeter les signatures binaires/archives pour tous les rôles dans l’extracteur. | Les droits restent par propriétaire/conversation; `admin` ne voit pas les documents d’autrui. Une classification ne prouve ni le type ni l’innocuité. | Matrice `user`/`admin` propriétaire/non-propriétaire, SQL et fichiers déguisés; archive refusée même si suffixe autorisé. |
+| Stockage : [`migrate_to_v11`](../tools/citadelle_memory.py#L457) crée `conversation_documents(content TEXT, metadata JSON, user_id, session_id)` avec un index unique sur la session. `add/get/delete_conversation_document_for_user` (L941, L980, L1000) vérifient le propriétaire; suppression de conversation en cascade. | Recommandation : conserver un document/conversation et sérialiser le texte/structure normalisés dans `content`; ajouter `format`, version d’extraction et compteurs dans le JSON `metadata`. Pas de migration de schéma prévue si les colonnes existantes suffisent. | Garder le texte `.md` historique lisible et son comportement après rechargement; maintenir erreurs/ownership existants. | Régression de lecture des anciens documents; isolation et suppression active avec DB temporaire. |
+| Suppression et sauvegardes : le trigger d’audit de [`citadelle_memory.py`](../tools/citadelle_memory.py#L494) conserve identifiants/métadonnées et `content_redacted=true`, pas le contenu. La sauvegarde `VACUUM INTO` lue dans `migrate_to_v3` précède la table v11; aucune politique générale de rétention des copies n’est établie dans les sources ciblées. | Suppression active = effacer la ligne/document et empêcher sa réinjection; ne pas promettre l’effacement d’anciens snapshots, pages libres SQLite ou copies gérées hors de ce mécanisme. Toute politique de sauvegardes reste à arbitrer. | Messages déjà écrits peuvent conserver des informations dérivées, comme la SPEC le prévoit. | Vérifier audit redacted, cascade, nettoyage d’erreur; aucun test ne prétend prouver l’effacement de sauvegardes. |
+| Contexte : [`_build_document_context`](../tools/login_server.py#L2617) transmet jusqu’à 6 000 caractères en entier; sinon FTS5 jusqu’à 12 passages et la limite totale. [`index_fts5`](../tools/nodes/index_fts5.py#L57) coupe par paragraphes en chunks de 500; `search_fts5` retourne contenu, chemin et metadata de chunk, mais le builder actuel conserve surtout le contenu. | Sérialiser CSV/JSON en segments auto-descriptifs (n° de ligne/colonne ou JSON Pointer) et ne retenir que des segments complets dans le budget; répéter le locator si un segment est divisé. Ne pas changer le comportement Markdown par défaut. | Maintenir budget actuel estimatif, recherche limitée au document courant, prompt « donnée non fiable » et absence d’outil. Le prompt seul ne constitue pas un contrôle d’autorisation. | Petit document complet; retrieval partiel avec locators; absence de mélange inter-documents; coverage générée par le serveur. |
+| Interface : [`chat.html`](../tools/web/chat.html#L41) annonce `.md` seulement et « Joindre un .md ». [`chat.js`](../tools/web/chat.js#L76) affiche le nom avec `textContent`, marque les documents longs comme extraits, envoie multipart avec CSRF; [`renderMarkdown`](../tools/web/chat.js#L43) assainit les réponses via DOMPurify. | Après validation de chaque parcours, aligner `accept` sur les cinq suffixes et afficher format, choix de séparateur/header, erreurs et couverture partielle en texte sûr. Garder le libellé actuel jusqu’à ce que les cinq formats soient réellement vérifiés. | Aucun HTML extrait directement injecté; pas de route de téléchargement de l’original; l’UX Markdown reste fonctionnelle. | Tests DOM/UI et vérification navigateur après implémentation, pas dans ce GO. |
+| Tests : [`test_chat_documents.py`](../tests/test_chat_documents.py) couvre déjà migration, Markdown, limites, CSRF, droits, retrait, nettoyage et HTML. [`api_test_context`](../tests/_helpers.py#L140) utilise une DB temporaire et un serveur loopback sur port éphémère. | Étendre les tests existants; toutes les DB/fichiers restent temporaires. Pas de fixture utilisant l’installation réelle. | Préserver la suite Markdown et ses fixtures; aucun test n’est lancé pendant le cadrage. | Plan de tests détaillé ci-dessous; validation manuelle multiplateforme requise avant release. |
+
+#### Lecteurs et représentation proposés
+
+| Format approuvé | Traitement proposé | Représentation normalisée | Erreurs/dépendances |
+|---|---|---|---|
+| `.md` | Garder `extract_markdown_document` et son contrat actuel; éviter de changer le BOM ou le texte stocké existant. | Texte Markdown courant. | UTF-8 strict, vide/NUL et limites actuelles; aucune dépendance nouvelle. |
+| `.txt` | Lecteur chat dédié, pas le helper générique; décodage UTF-8 strict. | Texte brut, fins de ligne normalisées en LF. | Encodage invalide, vide/espaces seuls, NUL/contrôles refusés. |
+| `.csv` | `csv.reader(..., strict=True)` de la bibliothèque standard, flux logique ligne par ligne. | En-têtes et valeurs brutes indexés par numéro de colonne; chaque enregistrement porte son numéro de ligne. Aucune conversion numérique/formule. | Guillemets invalides refusés. Pas de dépendance. Limite globale de champ `csv.field_size_limit` est process-wide, donc préférable dans le worker proposé ou avec verrou et restauration sûre. |
+| `.json` | `json.loads` standard après pré-scan lexical borné; `object_pairs_hook` rejette clés dupliquées; `parse_constant` et parseur de nombres rejettent NaN/Infinity et valeurs non finies. | Ordre des listes et objets conservé; fragments annotés par JSON Pointer RFC 6901 (racine `""`, échappement `~0`/`~1`). Lexèmes numériques conservés en texte typé pour éviter de promettre des calculs/précision flottante. | Syntaxe invalide, doublons, profondeur/nœuds dépassés refusés. Aucun `eval`, schéma exécuté ou dereferencement externe. Pas de dépendance choisie. |
+| `.sql` | Lecture UTF-8 textuelle sans analyse SQL. | Texte source inchangé, hormis normalisation de fins de ligne commune aux nouveaux formats. | Ne jamais ouvrir de base, exécuter une requête, traiter les imports/includes ou utiliser le workflow admin `analyse_sql`. Classification `SENSITIVE` actuelle à arbitrer pour `user`. |
+
+Aucune ligne de `.csv` ou valeur JSON n’est convertie en calcul. Dans un CSV,
+les cellules commençant par `=`, `+`, `-` ou `@` restent des chaînes de données;
+elles ne sont ni ouvertes dans un tableur ni interprétées. Un fichier `.sql`
+reste du texte même s’il contient des instructions valides.
+
+#### Encodage, noms et validation commune proposés
+
+- Conserver pour `.md` le décodage `utf-8` actuel. Pour les quatre nouveaux
+  suffixes, UTF-8 strict seulement; autoriser un BOM UTF-8 initial et le retirer
+  avant parsing. Aucun fallback Latin-1/Windows-1252/UTF-16 : l’encodage de
+  remplacement peut modifier des valeurs silencieusement.
+- Normaliser CRLF/CR en LF pour texte brut; passer les CSV à `csv.reader` avec
+  gestion explicite des fins de ligne pour préserver les cellules multilignes.
+- Rejeter NUL, caractères C0 autres que TAB/CR/LF, DEL et contrôles C1, y
+  compris s’ils sont décodés depuis un JSON échappé. Refuser un texte brut vide
+  ou seulement blanc. JSON `null`, `false`, `0` et chaîne vide restent des
+  valeurs JSON syntaxiquement valides.
+- Suffixe final autorisé, insensible à la casse; suffixe absent/hors allowlist
+  refusé. Les points précédents d’un nom ne changent pas le parser : `code.py.txt`
+  est un `.txt` affiché sous son nom complet et n’est jamais exécuté. Cette
+  politique est par extension, pas une détection de langage dans du texte.
+- Conserver `_safe_chat_upload_filename`: basename seulement, pas de chemin,
+  limite actuelle 255 caractères, rejet `:`, contrôles et noms vides. Afficher
+  le nom avec `textContent`. Le type MIME client est non fiable et ne sélectionne
+  jamais le parser; suffixe + validation de format font foi.
+- Refuser les signatures binaires et archives reconnues (ZIP/PK, GZIP, BZIP,
+  PE/ELF/Mach-O) indépendamment du rôle. Pour le texte ordinaire, aucune signature
+  ne prouve qu’un fichier est sûr; l’allowlist/UTF-8/contrôles ne remplace pas
+  la validation serveur ni l’isolation.
+- Rejeter les parts multipart supplémentaires. Le `Content-Length` maximal
+  borne déjà le corps avant lecture, mais le parseur MIME courant matérialise
+  le corps avant le comptage des parts : ce comptage seul n’est pas une borne
+  mémoire préalable.
+
+#### Contrat CSV proposé
+
+- Délimiteurs candidats : virgule, point-virgule et tabulation. Détecter sur
+  un échantillon borné (8 KiB proposés), valider les 20 premiers
+  enregistrements logiques; retenir un seul séparateur cohérent, sinon refuser
+  avec une erreur expliquant l’ambiguïté. `csv.Sniffer` est une heuristique,
+  donc sa réponse n’est jamais acceptée sans validation de cohérence.
+- La première ligne logique non vide est proposée comme ligne d’en-tête; il
+  n’existe pas de détection fiable d’un header absent. L’absence de header doit
+  soit être explicitement déclarée par l’utilisateur (option UI à arbitrer),
+  soit être affichée comme hypothèse; ne pas deviner silencieusement.
+- En-têtes dupliqués/vide : garder le texte source et l’ordinal (`colonne 1`,
+  `colonne 2`); nommer une colonne sans texte `column_N` sans écraser sa valeur
+  d’origine. Cellules multilignes prises en charge par le parseur strict.
+- Lignes entièrement vides ignorées avec compteur; fichier sans en-tête ou
+  données selon la règle retenue donne un état explicite. Pour longueur variable,
+  distinguer cellule vide de cellule absente et conserver les cellules
+  supplémentaires sous leur ordinal; ne rien tronquer ni décaler.
+- La sortie délimite explicitement `header_row`, `row_number`, `column_index`,
+  libellé original et valeur textuelle. Une ligne/cellule trop longue ou une
+  syntaxe cassée fait échouer tout l’attachement, sans table partielle persistée.
+
+#### Contrat JSON proposé
+
+- Racine objet, tableau, chaîne, nombre, booléen ou `null`; le parser standard
+  valide la syntaxe. Le pré-scan n’est qu’une garde de profondeur/nœuds et doit
+  gérer chaînes et échappements; il ne remplace jamais `json.loads`.
+- Refuser les clés dupliquées plutôt que laisser le comportement standard
+  « dernière clé gagnante » perdre une valeur; refuser constantes non-JSON et
+  nombres non finis. Préserver l’ordre des tableaux et des membres d’objet.
+- Chaque fragment normalisé porte son JSON Pointer source; un objet/tableau
+  est découpé par enfants complets, jamais par suppression silencieuse de clés.
+  Les fragments longs sont segmentés en répétant le Pointer et l’index de
+  segment. Si l’ensemble dépasse les limites, refuser le document, pas le
+  réduire silencieusement.
+
+#### Limites proposées et mécanismes applicables
+
+| Limite | Valeur candidate / unité | Justification | Enforcement proposé | Dépassement et test |
+|---|---|---|---|---|
+| Corps HTTP upload | 272 KiB (256 KiB fichier + 16 KiB multipart), actuel | Réutilise la borne actuelle et laisse un budget fixe aux en-têtes MIME. | `do_POST` avant lecture du corps. | 413; tester exact et +1 octet. |
+| Fichier brut | 256 KiB par fichier, actuel | Ne pas élargir le coût d’entrée qui borne déjà `.md`. | Avant écriture temporaire; le MIME doit rester borné à 272 KiB. | 413; tester exact et +1. |
+| Parts/champs | exactement 2 parts utiles (`session_id`, un `file`), proposition | Une seule pièce par conversation est le contrat actuel; les champs cachés ne doivent pas être ignorés. | Comptage après parsing MIME; le plafond brut protège la taille avant parse. Un streaming MIME serait requis pour une limite pré-parse. | 400 pour champs/fichiers supplémentaires; fixtures multipart adverses. |
+| Texte/normalisation | 200 000 caractères au plus, actuel `.md`, proposé pour chaque sortie | Conserve la limite existante et borne le texte persisté. | Contrôle du décodage et cap pendant sérialisation des formats structurés. | 413, attachement non créé; tester frontière et expansion CSV/JSON. |
+| CSV | 5 000 lignes de données, 100 colonnes, 20 000 cellules total, champ 64 KiB, candidates | Cap de lignes séparé pour CSV à une colonne; cellules plafonnent les petits champs nombreux; fichier/input et sortie restent en plus bornés. | `field_size_limit` dans worker isolé; compter lignes/cellules pendant lecture. `csv.reader` construit chaque ligne avant son contrôle de largeur; l’input cap borne la pire ligne mais pas une RSS stricte. | 413; tester chacun des seuils et une ligne maximale. Valeurs à calibrer, non approuvées. |
+| JSON | profondeur 64 et 20 000 nœuds, candidates; sortie ≤200 000 caractères | Évite récursion/objet excessif tout en laissant les structures courantes; calé sur les plafonds existants d’entrée/sortie, non mesuré. | Pré-scan lexical avant `json.loads`, puis hooks doublons/constants et cap de sérialisation. Un cap appliqué seulement après `json.loads` ne protège pas l’allocation préalable. | 413 pour complexité/taille, 400 pour syntaxe; tester 64/65 et 20 000/20 001. |
+| Pages | Non applicable au premier palier | PDF est hors allowlist; aucun compteur de pages/parsing PDF requis. | Pas de lecteur PDF ni de pypdf dans l’étape B. | Vérifier le refus d’un fichier `.pdf`; aucun test d’extraction PDF. |
+| Contexte modèle | 6 000 caractères, 12 passages, ~1 500 tokens; réponse ≤1 024, actuels | Compatibilité avec le chemin `.md`; tokenisation GGUF reste approximative. | Budget serveur actuel (8 000 tokens estimés total). Segments complets privilégiés; pas de coupe sans locator. | Refuser si question+document dépassent le budget; partial explicit si retrieval. Tests petit/grand. |
+| Durée du parseur structuré | 5 s murales/worker, candidate non mesurée | Le fichier ≤256 KiB et le JSON ≤20k nœuds donnent un travail borné; 5 s est un objectif à vérifier sur l’OS matériel minimum, pas une mesure acquise. | Seulement un worker terminable permet un timeout dur; dans le `HTTPServer` courant, le parseur in-process n’est pas interruptible. | Arrêter worker et retourner une erreur visible (503 proposé); test avec worker volontairement bloquant. |
+| Mémoire | Pas de seuil RSS portable proposé | Input/structures plafonnés ne donnent pas une borne mémoire exacte; Python amplifie objets/strings. | Aucune limite RSS cross-platform dans l’architecture/std-lib étudiée; mesurer le worker et décider éventuelle limite OS-spécifique. | Bloquant si une limite mémoire dure est exigée; ne pas annoncer un quota absent. |
+| Simultanéité | 1 requête servie à la fois actuellement; rate-limit chat 30 POST/min/IP partagé | `HTTPServer` sérialise les handlers et un parsing long bloque les autres requêtes. | Préserver le rate-limit; si serveurs threadés/worker pool futurs, ajouter un sémaphore/queue bornée (pas existant). | Pas de test de charge dans ce GO; futur test de concurrence et absence d’état partagé. |
+| Volume cumulé | Aucun quota par compte proposé | Le premier incrément ne borne que fichier/conversation; aucun plafond cumulé par utilisateur n’est documenté. | Toute limite de stockage globale demande un arbitrage; ne pas la déduire du plafond de fichier. | Décision nécessaire avant promesse de quota; test seulement après qu’un seuil soit choisi. |
+
+#### Isolation, stockage et conservation proposés
+
+`login_server.py` utilise actuellement un `HTTPServer` séquentiel : un parser
+in-process long bloque le proxy; il n’existe pas de timeout parsing ni de
+plafond RSS. Deux options sont à arbitrer :
+
+| Option | Avantage | Limite/portabilité |
+|---|---|---|
+| In-process, stdlib + petites bornes | Diff et packaging minimaux; pas de dépendance, fonctionne dans le serveur Python actuel. | Pas de timeout interruptible ni isolation mémoire; exceptions sont capturables, mais une boucle/pression mémoire bloque le service. |
+| Worker process pour CSV/JSON | Parent peut imposer le délai mural proposé et terminer un worker bloqué; seuls bytes en entrée et texte/métadonnées bornés en sortie; aucune DB/route/network n’est nécessaire au worker. | Pas un sandbox ni un plafond RSS portable. Le mode `spawn` et le lancement PyInstaller one-file doivent être vérifiés Windows/Linux/macOS; `login_server.py` ne peut pas être passé comme script à l’EXE gelé. Un worker dédié n’existe pas encore. |
+
+**Recommandation proposée** : évaluer un worker enfant pour les parseurs
+structurés si le Décideur exige un timeout dur; le texte `.md`/`.txt`/`.sql`
+reste un décodage borné. Ne pas annoncer une isolation réseau/fichiers par le
+seul fait de créer un processus; le code du worker doit n’opérer que sur les
+octets fournis. Le choix du worker et son packaging sont un bloqueur
+d’implémentation à valider, pas une décision de ce GO.
+
+| Élément | Proposition | Compatibilité/limite |
+|---|---|---|
+| Cardinalité | Garder un document actif par conversation (index unique actuel). | Recommandée : aucune migration ni remplacement implicite; réexaminer seulement si un besoin est validé. |
+| Original | Toujours fichier temporaire, nettoyé succès/erreur. | Ne pas persister ni servir de route download. Nettoyage échoué est erreur explicite. |
+| Dérivé | Garder texte normalisé complet dans `conversation_documents.content`; format/version/comptages dans `metadata` JSON. | Schéma v11 suffit pour ces champs; pas de migration prévue. Markdown sans nouveau parseur reste compatible. |
+| Retrait/suppression | Supprimer la ligne active; préserver messages historiques. La suppression de session cascade comme aujourd’hui. | Audit v12+ stocke identifiants/métadonnées et `content_redacted`, pas le texte. Le snapshot `VACUUM INTO` observé concerne la migration V3 avant table v11; la politique des copies/sauvegardes manuelles et la purge des pages SQLite ne sont pas établies. Ne pas promettre l’effacement absolu de backups. |
+
+#### Contrat serveur, interface et modèle proposé
+
+- Garder `POST /api/chat/upload`, multipart et la réponse 201
+  `{document_id,status,metadata}`; conserver `GET /api/sessions/{id}/messages`
+  (métadonnées sans contenu) et `DELETE /api/chat/document/{id}`.
+- Codes actuellement observés pour l’upload `.md` : 401 non-authentifié,
+  403 CSRF/droit, 404 session absente ou non possédée, 409 document déjà
+  présent, 413 corps/fichier/texte au-delà des limites, 415 type de contenu non
+  multipart ou suffixe autre que `.md`, 400 multipart invalide ou contenu
+  Markdown/UTF-8 invalide, 500 erreur de stockage/vérification interne.
+- Codes proposés pour les nouveaux traitements : 400 syntaxe CSV/JSON invalide
+  et 413 dépassement des limites propres à ces formats. Garder 415 pour un
+  suffixe hors de la future allowlist est proposé, même si le handler actuel
+  renvoie déjà 415 pour tout suffixe autre que `.md`. Un timeout de worker
+  renverrait 503 si cette option est retenue; ce code n’est pas actuellement
+  utilisé par l’upload.
+- Métadonnées additionnelles proposées dans le JSON existant : `format`,
+  `extraction_version`, `characters`, état extraction complet et seulement les
+  compteurs non sensibles (CSV: délimiteur/rows/columns; JSON: root type/nodes).
+  Pas de contenu dans l’API de messages.
+- Extraction à l’upload tout-ou-rien; un fichier dépassant un cap n’est pas
+  tronqué ni attaché. La partialité actuelle concerne le contexte d’une question,
+  distincte de l’extraction.
+- Contexte court = complet; retrieval long = passages structurés avec numéro de
+  ligne/colonne ou JSON Pointer. [`_build_document_user_content`](../tools/login_server.py#L2658)
+  garde le marqueur de donnée non fiable; ajouter un état serveur
+  `document_context` (`complete|partial`, locators sélectionnés) à l’événement
+  SSE, à la réponse non-stream et à l’historique.
+- [`add_message`](../tools/citadelle_memory.py#L830) accepte déjà des metadata
+  JSON; le chemin streaming de [`call_llamafile`](../tools/login_server.py#L2679)
+  devra recevoir le contexte de la réponse au lieu de ne sauvegarder que le
+  texte modèle. [`handle_get_messages`](../tools/login_server.py#L2546) expose
+  les messages; proposer un champ additif document_context sans changer
+  `role`/`content` ni rendre le contenu extrait accessible.
+- L’UI de [`chat.js`](../tools/web/chat.js#L447) traite les événements SSE;
+  afficher la couverture et les locators avec `textContent`, et préserver cette
+  provenance après rechargement. Pas de migration de messages proposée puisque
+  `messages.metadata` existe déjà; tester la sérialisation/désérialisation et
+  les lignes historiques dont metadata est vide.
+- Le client affiche le coverage/locators en `textContent`; ne pas dépendre de la
+  réponse du modèle pour signaler la partialité. Conserver DOMPurify pour le
+  Markdown assistant; ne jamais rendre directement le contenu extrait.
+- CSV/JSON/SQL restent une donnée non fiable. Le préfixe de prompt existant est
+  conservé, mais les droits sont vérifiés dans l’application; le document ne
+  donne aucune permission, aucun outil n’est activé et aucune URL/include n’est
+  chargée. OCR/PDF/bureautique n’entrent pas dans le worker ni le build.
+- Le sélecteur futur annonce exactement les cinq extensions après que tous les
+  parcours sont passés; label « Joindre un .md » conservé jusqu’à validation de
+  la liste complète. Aucun changement UI dans ce GO.
+
+#### Plan de changements et tests futurs
+
+| Lot futur | Composants identifiés | Changements/test principaux | Ordre et garde |
+|---|---|---|---|
+| Fondations/validation | `login_server.py`, `extract_text.py`, `security_files.py`, `test_chat_documents.py` | suffixe/parts/noms, UTF-8/BOM/contrôles, caps, SQL role, refus archives; tests unitaires `tmp_path` et API loopback. | Avant tout parseur; bloquer si SQL permissions ne sont pas tranchées. |
+| Texte | `extract_text.py`, `login_server.py`, tests existants | `.txt` et `.sql` via chemin chat, aucune exécution; conserver `.md`; limites/encodage/permissions. | Dépend de fondations; n’utilise pas le helper PDF générique. |
+| CSV/JSON | extracteurs chat et tests existants; worker si approuvé | parsing strict, separators/header rule, duplicate keys, pre-scan JSON, normalized outputs, source locators et caps. | Bloquer le JSON si le pré-scan/limites pré-parse ne sont pas jugés fiables; calibrer worker sur Windows/Linux/macOS. |
+| Stockage/contexte | `citadelle_memory.py`, `login_server.py`, `index_fts5.py`, `chat.js` | garder cardinalité; stocker métadonnées; segments/locators complets; metadata par message pour coverage partielle; compat ancien `.md`. | Schéma v11 semble suffire; migration seulement si validation prouve le besoin. |
+| Interface/validation finale | `chat.html`, `chat.js`, docs utilisateurs et tests | affichage sûr, erreurs/partial explicites, allowlist UI=serveur; bouton renommé après validation réelle des cinq formats. | Couvre tests d’isolation, données malveillantes, absence exécution/réseau, rendu, suppression et tests manuels multiplateformes avant release. |
+
+Les futurs tests s’exécutent uniquement avec `tmp_path`, DB temporaire et
+loopback éphémère comme `api_test_context`; jamais sur la DB réelle. Ajouter
+notamment: cinq succès formatés; refus `.py`/hors liste; `.SQL` case, extensions
+multiples et sans suffixe; encodages/BOM/CRLF/NUL; SQL contenant `DROP` jamais
+exécuté; CSV quoting/multilignes/headers dupliqués ou absents/lignes irrégulières/
+formule-like; JSON tous types racine/doublons/NaN/profondeur/nœuds/escapes;
+bornes exactes/+1, parser timeout, cleanup, auth/roles/CSRF/propriété, double
+upload, retrait/cascade, anciennes lignes Markdown, retrieval avec locators,
+partial visible, prompt injection et contenu non rendu en HTML.
+
+#### Questions techniques / bloqueurs à faire arbitrer
+
+1. **SQL et rôles (bloqueur)** : `.sql` est approuvé comme texte, mais la
+   politique actuelle le classe `SENSITIVE`, donc `user` est refusé et `admin`
+   propriétaire seul peut lire. Garder admin-only ou approuver explicitement
+   une classification plus ouverte? Ne pas reclasser automatiquement.
+2. **CSV** : confirmer séparateurs proposés `, ; TAB` avec détection sans
+   ambiguïté; première ligne non vide toujours header ou prévoir un réglage
+   explicite pour les fichiers headerless? Il n’existe pas de détection fiable.
+3. **Pré-scan JSON (bloqueur)** : quelle méthode fiable borne profondeur et
+   nombre de nœuds avant `json.loads`, y compris avec chaînes et échappements?
+   Les limites appliquées après le parsing ne protègent pas les ressources déjà
+   consommées; la fiabilité du pré-scan reste à démontrer.
+4. **Ressources** : accepter l’architecture in-process bornée sans timeout/RSS
+   dur, ou financer/valider un worker cross-platform; confirmer les caps CSV/
+   JSON et le délai 5s à mesurer. La mémoire n’a pas de limite portable établie.
+5. **Dérivés et backups** : confirmer maintien d’un document/conversation; les
+   snapshots/manuels et pages SQLite ne font pas l’objet d’une purge prouvée.
+
+Ces questions ne retirent aucun format de l’allowlist #135. Tant qu’un blocage
+n’est pas tranché, conserver la proposition comme PARTIELLE; ne pas coder ni
+réduire silencieusement `.sql`, CSV ou JSON.
 
 **Matrice besoin → changement → preuve future** :
 
@@ -964,39 +1177,45 @@ isolation, refus d’un second document, suivi après rechargement, retrait,
 nettoyage temporaire et contrôles HTML. Ces tests décrivent le premier incrément;
 ils ne valident pas encore de formats multiformat.
 
-**Prochaine action** : préparer un GO distinct pour ouvrir le cadrage
-technique B. Aucun choix d’extracteur, de dépendance ou de seuil n’est fait;
-aucune implémentation n’est autorisée par cette décision documentaire.
-**Moment de traitement** : étape B sur GO explicite; implémentation séparément
-autorisée seulement après son cadrage et sa validation.
+**Prochaine action** : faire relire la proposition B et trancher ses bloqueurs;
+si elle est validée, demander séparément l’autorisation d’implémentation C.
+Aucun choix d’extracteur, de dépendance ou de seuil n’est acquis.
+**Moment de traitement** : validation du présent cadrage; C/D/E attendent un
+GO distinct après résolution des questions bloquantes.
 
 **Point de reprise**
 
 - **Dernière étape terminée** : arbitrage fonctionnel A validé et consigné le
   2026-11-25 dans la décision #135.
-- **Étape technique en cours** : aucune.
+- **Étape B** : proposition technique préparée; validation en attente, aucun
+  choix technique acquis. Les étapes C, D et E ne sont pas commencées.
 - **Capacité actuelle** : l’upload chat accepte `.md` seulement.
 - **Périmètre futur approuvé** : `.md`, `.txt`, `.csv`, `.json`, `.sql`;
   CSV/JSON structurés, Markdown/TXT/SQL textuels, aucun contenu exécuté.
 - **Version cible** : à déterminer.
-- **Prochaine action** : soumettre un GO distinct pour ouvrir le cadrage
-  technique B.
-- **Questions techniques encore ouvertes** : extracteurs/dépendances,
-  encodages et validation de structure, limites, isolation,
-  stockage/nettoyage, cardinalité, conservation et résultats partiels.
-- **Autorisation** : aucun cadrage B ni aucune implémentation n’est engagé par
-  ce GO.
+- **Prochaine action** : faire relire B et répondre aux bloqueurs; ensuite,
+  demander un GO distinct pour C si la proposition est approuvée.
+- **Bloqueurs et questions techniques encore ouvertes** : droits du rôle `user`
+  sur `.sql`; séparateur et règle d’en-tête CSV; fiabilité du pré-scan JSON;
+  choix in-process/worker et timeout/RSS cross-platform. Restent aussi les
+  limites à calibrer, cardinalité, stockage/nettoyage, conservation/backups et
+  restitution des locators/états partiels.
+- **Autorisation** : ce GO prépare B seulement; aucun choix technique n’est
+  approuvé et aucune implémentation C n’est autorisée.
 - **Références à lire dans l’ordre** : [présente section](#16-multiformat);
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat);
   [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat);
   [SPEC-FICHIERS-CHAT](./SPEC-FICHIERS-CHAT.md) pour le contrat actuel;
-  [OBJECTIF](./OBJECTIF.md) pour le contexte de la proposition V4; dernière
-  entrée de [JOURNALDEBORD](./JOURNALDEBORD.md) pour l’état d’arrêt.
-- **Référence technique** : HEAD initial audité
-  `ee990535e039135cc0065136a71e3e4028ae9310`.
-- **Vérifications disponibles** : contrôles documentaires de ce GO; dernier
-  résultat applicatif rapporté, `338 passed in 85.71s`, provenant du GO
-  16-FIX-FLAKY-TESTS antérieur. Aucun test applicatif n’est relancé ici.
+  [PHASE16-RESTE](./PHASE16-RESTE.md) et [ETAT-PROJET](./ETAT-PROJET.md);
+  dernière entrée de [JOURNALDEBORD](./JOURNALDEBORD.md) et
+  [JOURNALDESMODIFS](./JOURNALDESMODIFS.md) pour l’arrêt.
+- **Référence technique vérifiée pendant ce GO** : HEAD initial
+  `b3da82ea5e32734953efc11c998a53ad91070f85`; cartographie antérieure conservée
+  au HEAD `ee990535e039135cc0065136a71e3e4028ae9310`.
+- **Vérifications disponibles** : lectures ciblées du code et contrôles
+  documentaires uniquement; aucun test applicatif/parser/benchmark n’est lancé.
+  Le dernier résultat applicatif `338 passed in 85.71s` vient du GO
+  16-FIX-FLAKY-TESTS antérieur.
 
 Chaque futur GO 16-MULTIFORMAT met à jour ce point de reprise, le statut
 concerné et les journaux dans le même lot.
@@ -1007,7 +1226,7 @@ ce tableau n’autorise pas l’implémentation) :
 | Étape | Précondition | Résultat attendu | Preuve de validation | Condition d’arrêt |
 |---|---|---|---|---|
 | A. Arbitrage fonctionnel — terminé le 2026-11-25 | Proposition examinée et arbitrage explicite du Décideur. | Allowlist et profondeur approuvées; version cible à déterminer. | Décision #135 consignée. | Aucun travail technique n’est autorisé par cette étape seule. |
-| B. Cadrage technique | Décision #135 consignée et GO distinct autorisant l’ouverture de B. | Extracteurs/dépendances, limites, isolation, stockage, cardinalité et conservation définis. | Spécification et stratégie de vérification approuvées. | Suspendre si le GO B manque ou si une dépendance, limite ou mesure d’isolation reste incertaine. |
+| B. Cadrage technique — proposition préparée, validation en attente | GO 16-MULTIFORMAT-CADRAGE-B autorisant la préparation d’une proposition. | Proposition sur extracteurs, validations, limites, isolation, stockage, cardinalité et conservation. | Sections techniques BACKLOG/SPEC relues et bloqueurs tranchés. | Ne pas implémenter si les choix restent ambigus ou si aucune protection applicable n’est démontrée. |
 | C. Implémentation séparément autorisée | Étape B validée et GO d’implémentation distinct. | Contrôles serveur, extraction et tests correspondants. | Tests ciblés des formats et refus prévus. | Arrêter sur un échec, un contournement de contrôle ou une limite non respectée. |
 | D. Intégration utilisateur | Étape C vérifiée et GO distinct. | Sélection, messages, résultats partiels; renommer le bouton seulement pour les capacités vérifiées. | Vérifications UI/API concordantes avec l’allowlist. | Arrêter si les formats annoncés diffèrent du support réel ou si les résultats partiels sont opaques. |
 | E. Validation et clôture | Étapes C et D vérifiées. | Preuves fonctionnelles/sécurité, documentation utilisateur et suivi réconcilié; livraison autorisée séparément. | Résultats de validation et journaux cohérents. | Ne pas clôturer ni livrer tant qu’une preuve manque ou qu’un échec reste ouvert. |

@@ -2,6 +2,22 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-25] GO 16-MULTIFORMAT-CADRAGE-B — proposition technique
+
+**HEAD de référence audité** : `b3da82ea5e32734953efc11c998a53ad91070f85`.
+Ce n’est pas un hash de livraison; aucun commit n’est créé dans ce GO.
+**Fichiers modifiés** : `dev/docs/BACKLOG.md`,
+`dev/docs/SPEC-FICHIERS-CHAT.md`, `TODO.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/ETAT-PROJET.md`,
+`dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
+**Raison** : transformer le périmètre fonctionnel approuvé #135 en proposition
+technique testable, sans sélectionner de dépendance ni déclarer de capacité.
+**Impact** : documentation seulement; les 135 décisions et 17 tâches restent
+inchangées. Le chat reste `.md` seulement; l’étape B est proposée et attend
+validation, C/D/E ne sont pas commencées. Bloqueurs consignés : droits `.sql`,
+contrat CSV sans en-tête/délimiteur, limites/isolation et packaging du worker.
+Aucun test applicatif, parseur, benchmark, DB, serveur ou réseau n’a été utilisé.
+
 ## [2026-11-25] GO 16-MULTIFORMAT-DECISION — arbitrage fonctionnel consigné
 
 **HEAD de référence audité** : `66b26cc5b4127488f7bb3493535377d7d84c4a06`.

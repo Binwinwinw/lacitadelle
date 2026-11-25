@@ -85,9 +85,11 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
   est consignée par la décision #132; les autres tâches restent des reports.
 - `16-MULTIFORMAT` reste ouvert après arbitrage fonctionnel : `.md`, `.txt`,
   `.csv`, `.json` et `.sql` sont approuvés comme périmètre futur; CSV/JSON
-  seront lus structurellement et Markdown/TXT/SQL comme texte non exécuté. La
-  version cible reste à déterminer; l’étape technique B attend un GO distinct.
-  L’upload chat disponible accepte `.md` seulement. Voir
+  seront lus structurellement et Markdown/TXT/SQL comme texte non exécuté.
+  Une proposition de cadrage technique B est documentée et attend validation;
+  ses choix ne sont pas approuvés. La version cible reste à déterminer, sans
+  capacité nouvelle livrée. L’upload chat disponible accepte `.md` seulement.
+  Voir
   [BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat),
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat) et
   [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat).

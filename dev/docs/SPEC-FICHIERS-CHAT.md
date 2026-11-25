@@ -275,3 +275,110 @@ suite existante; aucun code AIWorkflow n’a été modifié.
 
 Les choix techniques acceptés et l’implémentation de ce premier incrément sont
 consignés dans la [décision #129](../../.memory/decisions.md#L2941).
+
+## 14. Proposition de contrat multiformat — non implémentée
+
+**Statut** : proposition technique préparée pour revue au GO
+16-MULTIFORMAT-CADRAGE-B; aucune dépendance, limite ou architecture de parsing
+n’est approuvée. Les sections 1–13 restent le contrat livré du `.md`.
+Vérifications ciblées du code au HEAD
+`b3da82ea5e32734953efc11c998a53ad91070f85`; l’upload chat accepte toujours
+`.md` seulement.
+
+Le périmètre fonctionnel approuvé par la
+[décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat)
+est `.md`, `.txt`, `.csv`, `.json`, `.sql`, pour une réalisation future. La
+version cible reste à déterminer; la proposition V4 n’est pas acquise.
+
+| Format | Lecture proposée | Validation et résultat |
+|---|---|---|
+| `.md` | Conserver le lecteur UTF-8 et le texte du contrat courant. | Garder les limites, la classification, l’attachement et la récupération actuels. |
+| `.txt` | Lire du texte UTF-8 brut, sans interprétation. | Nouveau chemin d’upload chat; le helper générique existant ne vaut pas intégration. |
+| `.csv` | Lire enregistrements et cellules avec leurs en-têtes et positions. Aucune conversion numérique ni formule exécutée. | Parseur CSV strict; séparateur, règle d’en-tête et limites restent à valider. Les valeurs sont conservées comme chaînes. |
+| `.json` | Lire objets, listes, clés, valeurs et racine structurée; localiser chaque fragment par JSON Pointer. | JSON strict, pas de `eval`; doublons/constantes non standard et bornes structurelles à arbitrer. |
+| `.sql` | Lire le fichier comme texte source seulement. | Aucune analyse contre une base, exécution de requête ou ouverture de DB. `.sql` n’est pas dans `PUBLIC_EXTENSIONS` et est classé `SENSITIVE` par défaut; l’accès d’un compte `user` reste à trancher. |
+
+### Codes HTTP : comportement actuel et proposition
+
+Pour l’upload `.md` actuel, le handler renvoie 415 pour un `Content-Type` non
+multipart ou un suffixe autre que `.md`; 400 pour un multipart mal formé ou un
+Markdown invalide, y compris un encodage UTF-8 invalide; et 413 si le corps,
+le fichier ou le texte extrait dépasse sa limite. Les autres contrôles actuels
+renvoient notamment 401 (non authentifié), 403 (CSRF/droit), 404 (session
+absente ou non possédée), 409 (document déjà présent) et 500 (erreur interne
+ou de stockage).
+
+Pour les formats futurs, 400 pour une syntaxe CSV/JSON invalide et 413 pour
+leurs limites sont des codes proposés, non des comportements déjà livrés.
+Réutiliser 415 pour les suffixes hors de la future allowlist est également
+proposé, bien que le handler actuel renvoie déjà 415 pour tout suffixe autre
+que `.md`. Un timeout de worker pourrait renvoyer 503; ce code n’est pas
+actuellement utilisé par l’upload et dépend du choix d’architecture.
+
+Les autres formats restent hors de ce premier palier : PDF, bureautique,
+fichiers de code/configuration (dont `.py`), `Dockerfile`, images et OCR.
+Une extension ou un MIME déclaré ne prouve pas qu’un contenu est sûr; le serveur
+choisit le traitement selon une allowlist fermée et valide le contenu par le
+lecteur concerné. Les archives compressées sont refusées, pas extraites.
+
+### Contrat de validation proposé
+
+- UTF-8 strict; pas de repli d’encodage. Pour les nouveaux formats, accepter
+  un seul BOM UTF-8 initial et le retirer avant parsing; préserver le comportement
+  `.md` existant jusqu’à décision explicite sur une éventuelle normalisation.
+- Fins de ligne normalisées vers LF pour le texte conservé; le lecteur CSV
+  garde une entrée compatible avec les cellules multilignes avant normalisation.
+- NUL et contrôles non autorisés refusés. Les lignes vides, contrôles et erreurs
+  de structure produisent un refus visible, jamais un succès partiel silencieux.
+- Pour CSV, aucun heuristique silencieux de headerless : la proposition traite
+  le premier enregistrement logique non vide comme en-tête. Les doublons sont
+  conservés par ordinal; lignes incomplètes ou cellules supplémentaires sont
+  identifiées, pas supprimées.
+- Pour JSON, la limite de profondeur/nœuds doit être contrôlée avant la
+  construction complète de l’arbre. Une limite seulement après `json.loads`
+  ne protège pas les ressources déjà consommées.
+- Le `.sql` reste du texte, même si sa syntaxe ressemble à une commande; les
+  cellules CSV ressemblant à des formules restent des chaînes.
+
+### Stockage, contexte et restitution proposés
+
+Maintenir un document par conversation, l’original temporaire et le nettoyage
+sur tous les chemins. Garder la chaîne normalisée dans `content TEXT` et les
+métadonnées de format/version/compteurs dans le JSON existant; aucune migration
+n’est proposée à ce stade. Le contenu actif reste filtré par propriétaire.
+Le retrait supprime la ligne active, pas les messages déjà écrits. L’audit
+conserve des métadonnées avec `content_redacted`; aucune suppression totale des
+copies de sauvegarde ou pages SQLite n’est promise.
+
+L’extraction proposée est atomique : une erreur ou un dépassement refuse
+l’attachement au lieu de persister un fragment tronqué. Ensuite, le retrieval
+peut rester partiel comme pour le `.md`; le serveur doit joindre à chaque
+réponse un état de couverture et les locators sélectionnés (lignes CSV,
+JSON Pointers ou segments textuels), dans le flux et les métadonnées existantes
+des messages. La table `messages` a déjà un champ `metadata`; le chemin streaming
+devra transmettre cette metadata à `add_message`, qui l’accepte déjà, et l’API
+d’historique exposer explicitement le namespace `document_context` sans changer
+le contenu/role des anciens messages. L’interface affiche ce statut par
+`textContent` et ne dépend pas uniquement de la réponse du modèle. Le budget
+actuel de contexte reste une approximation et n’est pas une garantie d’analyse
+exhaustive.
+
+### Questions bloquantes avant validation du contrat B
+
+- `.sql` demeure sensible/admin-only selon la classification actuelle. Confirmer
+  si ce niveau s’applique aussi au palier futur pour les comptes `user`; aucune
+  extension à PUBLIC n’est déduite de l’allowlist.
+- Confirmer le contrat CSV : séparateur détecté sans ambiguïté et première
+  ligne logique traitée comme header, ou proposer un mode explicite headerless.
+- Accepter un worker enfant pour imposer un timeout structuré, avec validation
+  PyInstaller Windows/Linux/macOS; ou confirmer qu’une limite de durée/RSS dure
+  n’est pas promise. Le worker n’est pas un sandbox.
+- Le cadrage propose un timeout candidat de 5 s; il n’a pas été mesuré. Aucune
+  limite RSS portable n’est disponible dans les mécanismes observés. Décider si
+  une mesure ou protection OS-spécifique est un prérequis.
+
+Les seuils candidats, la comparaison in-process/worker, les contrats d’erreur,
+le plan de code/tests et les bloqueurs sont détaillés dans le
+[BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat). Ce contrat reste une
+proposition à valider; il ne démarre pas l’étape C, ne change pas le bouton et
+ne rend aucun des quatre nouveaux formats disponible.
