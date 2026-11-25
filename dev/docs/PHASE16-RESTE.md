@@ -84,10 +84,24 @@ décisions et objectifs du projet.
 
 #### 6. `16-MULTIFORMAT`
 
-- **Description** : cadrer l’extraction de PDF, documents bureautiques et SQL
-  comme texte, sans exécuter leur contenu.
-- **Dépendances** : premier incrément `.md` et son test live terminés; préciser
-  formats, extracteurs, limites et messages d’erreur.
+- **État** : cadrage documentaire fait le 2026-11-24; implémentation non
+  commencée. Le chat reste `.md` seulement.
+- **Description** : faire évoluer le contrôle vers « Joindre un fichier »
+  seulement avec une allowlist réelle, explicite et vérifiée; aucune liste de
+  formats additionnels n’est approuvée.
+- **Faits clés** : le chat accepte `.md`; le helper générique `.txt`/PDF et le
+  workflow admin PDF/SQL sont des parcours distincts, pas une preuve de support
+  d’upload multiformat dans le chat.
+- **Contraintes décidées** : traitement local, fichier non fiable/non exécuté,
+  permissions non issues du document et vérifications imposées côté serveur.
+- **Dépendances et arbitrages** : premier incrément `.md` et test live terminés;
+  restent l’allowlist, le palier, la version cible, les extracteurs/dépendances,
+  les limites et la conservation. Voir le
+  [plan détaillé](./BACKLOG.md#16-multiformat), la
+  [décision #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et la
+  [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md).
+- **Prochaine action** : obtenir l’arbitrage du Décideur sur l’allowlist
+  initiale, le premier palier et la version cible avant tout GO technique.
 - **Priorité** : moyenne, proposée; le BACKLOG la laisse à déterminer.
 
 #### 7. Validation persona post-Qwen3-4B (TODO sans identifiant)
@@ -205,7 +219,8 @@ d’exécuter les GO suivants.
 8. `MODELE-NETTOYAGE` — réconcilier la liste historique avant tout changement.
 9. `16-FEATURE-MODEL-DRIFT-DETECTION`.
 10. `16-FEATURE-AUTO-MODEL-SELECTION` — après revalidation des seuils/modèles.
-11. `16-MULTIFORMAT` — cadrage avant tout GO d’extraction.
+11. `16-MULTIFORMAT` — arbitrer l’allowlist et le premier palier avant tout GO
+    technique.
 12. `16-CHAT-RAG-LOCAL` — après définition de l’import et du stockage.
 13. `16-CHAT-WEB-ACCESS` — uniquement après décision explicite sur le mode hors
     ligne et mise à jour du périmètre.

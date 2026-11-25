@@ -2,6 +2,26 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-24] GO 16-MULTIFORMAT-DOC — chaîne documentaire réconciliée
+
+**Commit de référence audité** : `ee990535e039135cc0065136a71e3e4028ae9310`.
+Ce n’est pas le commit de livraison de cette mise à jour.
+**Fichiers modifiés** : `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/PHASE16-RESTE.md`, `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/ETAT-PROJET.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`.
+**Raison** : réunir l’état du premier incrément `.md`, les décisions validées
+pour l’évolution multiformat, les arbitrages encore ouverts et le plan de
+reprise dans les supports existants.
+**Impact** : documentation seulement; décision #134, compteurs AGENTS et
+ETAT-PROJET alignés à 134. Les 338 tests cités proviennent du GO précédent;
+aucun test n’a été exécuté dans ce GO. Le parcours du chat reste `.md`
+seulement; aucun format additionnel,
+extracteur, dépendance, seuil ou politique de conservation n’est autorisé par
+ce GO. Aucun code, test, DB, modèle, whitelist, service ou accès réseau externe
+n’a été modifié ou utilisé. Aucun nouveau document n’a été créé; le HEAD
+initial est en avance d’un commit sur `origin/main` et aucun push n’a été fait.
+
 ## [2026-11-24] GO 16-FIX-FLAKY-TESTS-CLOTURE — clôture sans correctif
 
 **Commit de référence audité** : `ec8aa05b8f6d6b9878c198386e708cd520f40079`.

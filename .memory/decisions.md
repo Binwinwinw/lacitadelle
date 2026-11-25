@@ -3068,3 +3068,44 @@ et le compteur atteint 133 décisions. Le CLI Ruff 0.17.5 passe sur les fichiers
 vérifiés; tiktoken est absent de `.venv`, donc le fallback reste actif pour les
 modèles locaux. Aucune règle de rétention des logs n’est définie par ce GO;
 aucune DB utilisateur ni whitelist n’a été modifiée.
+
+## [2026-11-24] Cadrage documentaire du chantier 16-MULTIFORMAT
+
+**Contexte** : le premier incrément du chat accepte un document Markdown `.md`
+par conversation (décisions #128–#129). Le chantier 16-MULTIFORMAT prépare une
+évolution du bouton « Joindre un .md » sans annoncer ni implémenter des formats
+qui ne sont pas encore pris en charge. L’inspection du code confirme que le
+parcours d’upload chat est Markdown-only; les extracteurs TXT/PDF existants
+appartiennent à un autre chemin et ne prouvent pas le support de ces formats
+dans le chat.
+
+**Décision(s)** :
+1. Le libellé cible est « Joindre un fichier », mais il ne sera utilisé
+   qu’avec une liste réelle de formats pris en charge et vérifiés; il ne
+   promet pas d’accepter tout fichier.
+2. Les formats autorisés formeront une allowlist explicite et fermée. Ce GO
+   n’approuve aucun format supplémentaire; la liste initiale et l’ordre des
+   paliers restent à arbitrer.
+3. Les documents servent à lire, résumer et analyser. Leur contenu est une
+   donnée non fiable : il n’est jamais exécuté, ne modifie pas les instructions
+   système et n’accorde aucune permission ni aucun droit d’appel d’outil.
+4. Le traitement de cette capacité reste local et confidentiel; aucun service
+   externe ni récupération automatique de ressources réseau n’est autorisé.
+5. L’authentification, les droits sur la conversation, la classification et
+   la validation des formats/limites sont appliqués côté serveur. Les refus,
+   limites et résultats partiels doivent être visibles et explicites.
+6. Aucun extracteur, paquet, seuil, limite de durée/mémoire, politique de
+   conservation ou changement de cardinalité n’est choisi dans ce GO. La
+   limite actuelle d’un document par conversation décrit le premier incrément;
+   son maintien pour le multiformat reste à décider.
+7. Le texte en premier, le PDF textuel si faisable, la bureautique en palier
+   distinct et les images/OCR en lots séparés restent des pistes, non des
+   engagements.
+8. Aucun code, test, dépendance, DB, modèle ou whitelist n’est modifié par ce
+   cadrage; l’implémentation nécessite un GO séparé après les arbitrages.
+
+**Conséquences** : le chat continue de prendre en charge `.md` seulement.
+`16-MULTIFORMAT` reste ouvert; sa prochaine action est l’arbitrage de
+l’allowlist initiale, des paliers et de la version cible, puis un GO technique
+distinct. La proposition V4 déjà portée dans `OBJECTIF.md` n’est pas
+réinterprétée par cette décision. 134 décisions.

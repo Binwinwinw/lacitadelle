@@ -814,14 +814,125 @@ aucune règle de rétention des logs n’a été définie dans ce GO.
 
 #### 16-MULTIFORMAT
 
-**Statut** : validé le 2026-11-24; à planifier.
-**Dépendances** : premier incrément `.md` livré et test live terminé.
+**Statut** : cadrage documentaire actualisé le 2026-11-24; tâche ouverte,
+implémentation non commencée.
 **Priorité** : à déterminer.
-**Périmètre** : cadrer PDF, documents bureautiques et SQL comme texte; aucune
-exécution du contenu n’est incluse.
-**Questions ouvertes** : formats exacts, extracteurs, limites et messages
-d’erreur.
-**Moment de traitement** : GO séparé après validation du test live.
+**Objectif** : faire évoluer le contrôle actuel « Joindre un .md » vers
+« Joindre un fichier » uniquement lorsque les formats effectivement pris en
+charge sont définis et vérifiés. Le bouton ne promettra pas une compatibilité
+universelle.
+**Références de reprise** : [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md),
+[décision #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat), [périmètre produit V4 proposé](./OBJECTIF.md#L52).
+La spécification et le périmètre existants restent inchangés : ils décrivent
+le premier incrément `.md` et la cible V4 proposée, pas une liste multiformat
+déjà approuvée.
+
+**Faits observés au HEAD audité `ee990535e039135cc0065136a71e3e4028ae9310`** :
+
+| Étape | Composant existant et comportement | Conséquence pour le chantier |
+|---|---|---|
+| Interface | [`chat.html`](../tools/web/chat.html#L40) présente un input `accept=".md,text/markdown"` et « Joindre un .md ». [`chat.js`](../tools/web/chat.js#L278) envoie un multipart à `/api/chat/upload`; le nom et l’indication d’extraits sont affichés en texte. | Aligner le libellé et l’acceptation UI sur la future allowlist réelle; le filtre du navigateur ne remplace pas la validation serveur. |
+| Réception et accès | [`login_server.py`](../tools/login_server.py#L2249) parse un seul identifiant de session et un fichier et réduit le nom à un basename. [`handle_post_chat_upload`](../tools/login_server.py#L2334) authentifie, vérifie le rôle, exige `.md`, contrôle la propriété de la session et refuse un second document. `do_POST` limite le corps général à 1 MiB et l’upload à `MAX_MARKDOWN_BYTES + 16 384`; le fichier est ensuite plafonné à 256 KiB. CSRF et rate limit sont appliqués. | Étendre l’allowlist fermée et faire appliquer côté serveur les règles propres à chaque format, en conservant authentification, CSRF et isolation utilisateur/conversation. |
+| Extraction et classification | [`extract_markdown_document`](../tools/nodes/extract_text.py#L21) seul est appelé par le téléversement : `.md`, UTF-8 strict, 256 KiB et 200 000 caractères. [`extract_text`](../tools/nodes/extract_text.py#L58) prend aussi `.txt` et `.pdf`, mais ce helper n’est pas branché à l’upload chat; PDF importe `pypdf` à la demande. [`security_files.py`](../tools/security_files.py#L15) classe aussi des extensions PDF, bureautiques et images. | Une classification d’extension ne constitue ni une allowlist d’upload ni un extracteur. Décider un parseur local pour chaque format; `pyproject.toml` ne déclare pas `pypdf` et aucune dépendance ne sera ajoutée dans ce GO. |
+| Workflows distincts | [`workflow_runner.py`](../tools/workflow_runner.py#L23) et `analyse_pdf`/`analyse_sql` reçoivent des chemins serveur autorisés; ce parcours admin n’est pas le téléversement du chat. | Ne pas compter les capacités AIWorkflow comme formats déjà supportés par « Joindre un fichier ». Le contenu SQL, scripts et macros ne sera pas exécuté. |
+| Stockage et suppression | La migration v11 de [`citadelle_memory.py`](../tools/citadelle_memory.py#L455) conserve texte extrait et métadonnées par propriétaire/session; l’index unique limite à un document par conversation. L’original passe par un répertoire temporaire nettoyé; le retrait supprime le contenu extrait, pas les messages. | Arbitrer si la limite d’un document par conversation demeure et quelle politique s’applique aux originaux, aux contenus extraits et aux données dérivées. |
+| Contexte modèle et historique | [`handle_get_messages`](../tools/login_server.py#L2546) retourne les métadonnées du document, pas son contenu ni l’original. [`_build_document_context`](../tools/login_server.py#L2617) transmet jusqu’à 6 000 caractères, ou jusqu’à 12 passages FTS5 dans cette limite; le prompt marque le document comme donnée non fiable et interdit les appels d’outils sur sa demande. Le budget actuel est estimé à 8 000 tokens, avec jusqu’à 1 024 pour la réponse; ces estimations ne sont pas des limites multiformat validées. | Définir les sorties normalisées, les résultats partiels et leurs indications UI par format; conserver la séparation instructions/données et ne donner aucun pouvoir au document. |
+
+**Décisions validées dans le GO 16-MULTIFORMAT-DOC** :
+
+- Les documents servent à lire, résumer et analyser; leur contenu n’est jamais
+  exécuté, ne modifie pas les instructions système et ne peut autoriser une
+  action ou un outil.
+- Le traitement reste local et confidentiel; aucun service externe ni
+  récupération automatique de ressources réseau n’est autorisé.
+- Les formats formeront une liste explicite et fermée, contrôlée côté serveur.
+  Les limites, refus et traitements partiels seront visibles.
+- Le libellé cible « Joindre un fichier » accompagne une prise en charge réelle
+  et testée. Ce GO n’autorise aucun format supplémentaire à l’implémentation.
+
+**Pistes, non engagements** : un premier palier textuel; PDF textuel si un
+extracteur local est validé; bureautique dans un palier distinct; images/OCR
+dans des lots séparés éventuels. Le `.md` reste le seul format pris en charge
+par le parcours actuel.
+
+**Arbitrages restant ouverts** :
+
+- allowlist initiale exacte, ordre des paliers et version cible de la capacité;
+- extracteurs et dépendances locales, notamment la disponibilité réelle de
+  `pypdf` avant de retenir le PDF;
+- limites par famille (octets, pages, volume extrait, durée, mémoire et volume
+  cumulé), isolation des parseurs et traitement des archives compressées;
+- maintien ou évolution du plafond actuel d’un document par conversation;
+- conservation et suppression des originaux et textes extraits, y compris
+  après erreur ou retrait;
+- erreurs, extraction partielle, affichage éventuel et besoins de téléchargement
+  de l’original.
+
+**Matrice besoin → changement → preuve future** :
+
+| Besoin | Composants à faire évoluer après arbitrage | Vérification attendue |
+|---|---|---|
+| Libellé et sélection | [`chat.html`](../tools/web/chat.html), [`chat.js`](../tools/web/chat.js); acceptation cohérente avec l’allowlist serveur. | Pour chaque format autorisé, sélection et affichage cohérents; refus UI/API concordants pour le reste. |
+| Validation et droits | [`login_server.py`](../tools/login_server.py), [`security_files.py`](../tools/security_files.py); type réel, nom, taille, authentification, CSRF, propriétaire et conversation. | Fichiers valides/invalides, noms et chemins malveillants, droits user/admin et isolation inter-comptes. |
+| Extraction | [`extract_text.py`](../tools/nodes/extract_text.py) ou extracteurs existants approuvés; aucun nouveau module ni paquet choisi par ce GO. | Fichiers corrompus, chiffrés, vides, sans texte, dépassant les limites ou provoquant une extraction bloquée. |
+| Limites et isolation | [`login_server.py`](../tools/login_server.py), parseur(s) et stockage après choix. | Dépassement de taille/durée/mémoire, archives excessives, nettoyage après succès/erreur; aucun réseau ni exécution. |
+| Stockage et suppression | [`citadelle_memory.py`](../tools/citadelle_memory.py), [`login_server.py`](../tools/login_server.py); conservation originale/extrait et cardinalité à arbitrer. | Accès propriétaire/conversation, retrait, suppression, reprise après rechargement et absence de fuite. |
+| Modèle et résultats | [`login_server.py`](../tools/login_server.py), [`chat.js`](../tools/web/chat.js); contenu traité comme donnée non fiable et état partiel visible. | Tentatives d’injection d’instructions, absence d’appel d’outil, rendu sûr et indication correcte des analyses partielles. |
+| Guides utilisateurs | [`README.md`](../../README.md) et [`README.fr.md`](../../README.fr.md), après validation réelle des formats. | Aucun format annoncé avant que son parcours soit pris en charge et vérifié. |
+
+**Validation future** : non-régression `.md`; succès/refus de chaque format
+autorisé/interdit; fichiers corrompus, chiffrés, compressés ou excessifs;
+limites et nettoyage; isolation utilisateur/conversation; absence d’exécution,
+macros et accès réseau; affichage sûr, injection d’instructions et signalement
+des traitements partiels. Aucun de ces tests n’est exécuté dans ce GO.
+
+**Tests existants** : quatorze cas dans
+[test_chat_documents.py](../tests/test_chat_documents.py) couvrent notamment
+migration, UTF-8/classification, limites `.md`, authentification et CSRF,
+isolation, refus d’un second document, suivi après rechargement, retrait,
+nettoyage temporaire et contrôles HTML. Ces tests décrivent le premier incrément;
+ils ne valident pas encore de formats multiformat.
+
+**Prochaine action** : obtenir l’arbitrage du Décideur sur l’allowlist initiale,
+le premier palier et la version cible, en vérifiant l’alignement avec la
+proposition V4 de `OBJECTIF.md`. Ensuite seulement, proposer un GO technique
+séparé pour extracteurs, dépendances, limites et conservation. Aucun GO
+d’implémentation n’est autorisé par ce cadrage documentaire.
+**Moment de traitement** : GO séparés; attendre les arbitrages avant tout code.
+
+**Point de reprise**
+
+- **Dernière étape terminée** : inspection ciblée et cadrage documentaire.
+- **Étape technique en cours** : aucune; implémentation non commencée.
+- **Prochaine action** : soumettre au Décideur une proposition d’allowlist
+  initiale, de premier palier et de version cible, avec les conséquences des
+  choix; aucun n’est déjà approuvé.
+- **Arbitrages suivants** : extracteurs/dépendances, limites, isolation,
+  cardinalité et conservation.
+- **Références à lire dans l’ordre** : [présente section](#16-multiformat);
+  [décision #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat);
+  [SPEC-FICHIERS-CHAT](./SPEC-FICHIERS-CHAT.md) pour le contrat actuel;
+  [OBJECTIF](./OBJECTIF.md) pour la proposition de version; dernière entrée
+  de [JOURNALDEBORD](./JOURNALDEBORD.md) pour l’état d’arrêt.
+- **Référence technique** : HEAD initial audité
+  `ee990535e039135cc0065136a71e3e4028ae9310`.
+- **Vérifications disponibles** : contrôles documentaires de ce GO; dernier
+  résultat applicatif rapporté, `338 passed in 85.71s`, provenant d’un GO
+  antérieur. Aucun test applicatif n’est relancé ici.
+
+Chaque futur GO 16-MULTIFORMAT met à jour ce point de reprise, le statut
+concerné et les journaux dans le même lot.
+
+**Étapes futures proposées** (découpage de travail, sans autoriser
+l’implémentation) :
+
+| Étape | Précondition | Résultat attendu | Preuve de validation | Condition d’arrêt |
+|---|---|---|---|---|
+| A. Arbitrage fonctionnel | Proposition soumise au Décideur; aucun choix présupposé. | Allowlist initiale, premier palier et version cible décidés. | Arbitrage explicite consigné. | Suspendre si les choix ou leurs conséquences ne sont pas validés. |
+| B. Cadrage technique | Étape A validée. | Extracteurs/dépendances, limites, isolation, stockage, cardinalité et conservation définis. | Spécification et stratégie de vérification approuvées. | Suspendre si une dépendance, limite ou mesure d’isolation reste incertaine. |
+| C. Implémentation séparément autorisée | Étape B validée et GO d’implémentation distinct. | Contrôles serveur, extraction et tests correspondants. | Tests ciblés des formats et refus prévus. | Arrêter sur un échec, un contournement de contrôle ou une limite non respectée. |
+| D. Intégration utilisateur | Étape C vérifiée et GO distinct. | Sélection, messages, résultats partiels; renommer le bouton seulement pour les capacités vérifiées. | Vérifications UI/API concordantes avec l’allowlist. | Arrêter si les formats annoncés diffèrent du support réel ou si les résultats partiels sont opaques. |
+| E. Validation et clôture | Étapes C et D vérifiées. | Preuves fonctionnelles/sécurité, documentation utilisateur et suivi réconcilié; livraison autorisée séparément. | Résultats de validation et journaux cohérents. | Ne pas clôturer ni livrer tant qu’une preuve manque ou qu’un échec reste ouvert. |
 
 #### 16-AUDIT-ACTOR
 
