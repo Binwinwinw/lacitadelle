@@ -84,9 +84,9 @@ décisions et objectifs du projet.
 
 #### 6. `16-MULTIFORMAT`
 
-- **État** : proposition de cadrage technique B préparée le 2026-11-25,
-  validation du Décideur en attente; implémentation non commencée. L’upload
-  chat reste `.md` seulement.
+- **État** : arbitrages fonctionnels A et techniques B terminés et consignés
+  le 2026-11-25 dans les décisions #135 et #136; implémentation C non
+  commencée. L’upload chat reste `.md` seulement.
 - **Description** : réaliser ultérieurement l’allowlist approuvée `.md`, `.txt`,
   `.csv`, `.json`, `.sql`; cela ne décrit pas la disponibilité actuelle.
 - **Faits clés** : le chat accepte `.md`; le helper générique `.txt`/PDF et le
@@ -96,16 +96,17 @@ décisions et objectifs du projet.
   permissions non issues du document et vérifications imposées côté serveur.
 - **Dépendances et arbitrages** : profondeur approuvée : CSV/JSON structurés,
   Markdown/TXT/SQL textuels, aucun contenu exécuté. La version cible est à
-  déterminer. La proposition B est préparée, validation du Décideur en attente;
-  C/D/E ne sont pas commencées. Extracteurs/dépendances, encodages et validation,
-  limites, isolation, stockage/nettoyage, cardinalité, conservation et résultats
-  partiels sont couverts dans la proposition. Voir le
+  déterminer. A et B sont arbitrées; C/D/E ne sont pas commencées. En C,
+  démontrer le pré-scan JSON avant `json.loads`, valider le worker et son
+  packaging Windows/Linux/macOS, puis mesurer les seuils candidats. Les valeurs
+  candidates ne sont pas approuvées; aucun paquet n’est choisi. Voir le
   [plan détaillé](./BACKLOG.md#16-multiformat), la
-  [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat), les
+  [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat), la
+  [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat) et les
   [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et la
   [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md).
-- **Prochaine action** : faire relire la proposition B et trancher ses
-  bloqueurs; aucune implémentation n’est autorisée par ce cadrage seul.
+- **Prochaine action** : proposer le découpage du GO d’implémentation C avec
+  lots, tests et conditions d’arrêt. Un GO distinct est requis avant C.
 - **Priorité** : moyenne, proposée; le BACKLOG la laisse à déterminer.
 
 #### 7. Validation persona post-Qwen3-4B (TODO sans identifiant)

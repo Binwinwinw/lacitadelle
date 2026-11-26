@@ -814,8 +814,9 @@ aucune règle de rétention des logs n’a été définie dans ce GO.
 
 #### 16-MULTIFORMAT
 
-**Statut** : arbitrage A approuvé (décision #135); proposition technique B
-préparée le 2026-11-25, validation en attente; C/D/E non commencées.
+**Statut** : arbitrages A (#135) et B (#136) terminés le 2026-11-25;
+C, D et E non commencées. Les conditions de validation précisées par #136
+restent à satisfaire en C.
 L’upload du chat accepte toujours `.md` seulement.
 **Priorité** : à déterminer.
 **Objectif** : faire évoluer le contrôle actuel « Joindre un .md » vers
@@ -824,12 +825,13 @@ charge sont définis et vérifiés. Le bouton ne promettra pas une compatibilit�
 universelle.
 **Références de reprise** : [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md),
 [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat),
+[décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat),
 [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et
 [OBJECTIF.md](./OBJECTIF.md#L64) comme contexte de la proposition V4 examinée,
 non comme version cible acquise.
 La spécification décrit le contrat actuel `.md`; l’allowlist approuvée dans
-la décision #135 est un périmètre fonctionnel futur, pas une capacité déjà
-disponible.
+la décision #135 et les conditions techniques de #136 restent un périmètre
+futur, pas une capacité déjà disponible.
 
 **Faits observés au HEAD audité `ee990535e039135cc0065136a71e3e4028ae9310`** :
 
@@ -839,7 +841,7 @@ disponible.
 | Réception et accès | [`login_server.py`](../tools/login_server.py#L2249) parse un seul identifiant de session et un fichier et réduit le nom à un basename. [`handle_post_chat_upload`](../tools/login_server.py#L2334) authentifie, vérifie le rôle, exige `.md`, contrôle la propriété de la session et refuse un second document. `do_POST` limite le corps général à 1 MiB et l’upload à `MAX_MARKDOWN_BYTES + 16 384`; le fichier est ensuite plafonné à 256 KiB. CSRF et rate limit sont appliqués. | Étendre l’allowlist fermée et faire appliquer côté serveur les règles propres à chaque format, en conservant authentification, CSRF et isolation utilisateur/conversation. |
 | Extraction et classification | [`extract_markdown_document`](../tools/nodes/extract_text.py#L21) seul est appelé par le téléversement : `.md`, UTF-8 strict, 256 KiB et 200 000 caractères. [`extract_text`](../tools/nodes/extract_text.py#L58) prend aussi `.txt` et `.pdf`, mais ce helper n’est pas branché à l’upload chat; PDF importe `pypdf` à la demande. [`security_files.py`](../tools/security_files.py#L15) classe aussi des extensions PDF, bureautiques et images. | Une classification d’extension ne constitue ni une allowlist d’upload ni un extracteur. Le constat `pypdf` concerne seulement le candidat PDF hors palier; ce helper TXT/PDF, pypdf et OCR ne sont pas des prérequis de l’étape B approuvée. |
 | Workflows distincts | [`workflow_runner.py`](../tools/workflow_runner.py#L23) et `analyse_pdf`/`analyse_sql` reçoivent des chemins serveur autorisés; ce parcours admin n’est pas le téléversement du chat. | Ne pas compter les capacités AIWorkflow comme formats déjà supportés par « Joindre un fichier ». Le contenu SQL, scripts et macros ne sera pas exécuté. |
-| Stockage et suppression | La migration v11 de [`citadelle_memory.py`](../tools/citadelle_memory.py#L455) conserve texte extrait et métadonnées par propriétaire/session; l’index unique limite à un document par conversation. L’original passe par un répertoire temporaire nettoyé; le retrait supprime le contenu extrait, pas les messages. | Arbitrer si la limite d’un document par conversation demeure et quelle politique s’applique aux originaux, aux contenus extraits et aux données dérivées. |
+| Stockage et suppression | La migration v11 de [`citadelle_memory.py`](../tools/citadelle_memory.py#L455) conserve texte extrait et métadonnées par propriétaire/session; l’index unique limite à un document par conversation. L’original passe par un répertoire temporaire nettoyé; le retrait supprime le contenu extrait, pas les messages. | Cardinalité maintenue à un document actif par conversation (décision #136); préciser la politique applicable aux originaux, aux contenus extraits et aux données dérivées. |
 | Contexte modèle et historique | [`handle_get_messages`](../tools/login_server.py#L2546) retourne les métadonnées du document, pas son contenu ni l’original. [`_build_document_context`](../tools/login_server.py#L2617) transmet jusqu’à 6 000 caractères, ou jusqu’à 12 passages FTS5 dans cette limite; le prompt marque le document comme donnée non fiable et interdit les appels d’outils sur sa demande. Le budget actuel est estimé à 8 000 tokens, avec jusqu’à 1 024 pour la réponse; ces estimations ne sont pas des limites multiformat validées. | Définir les sorties normalisées, les résultats partiels et leurs indications UI par format; conserver la séparation instructions/données et ne donner aucun pouvoir au document. |
 
 **Décisions validées dans le GO 16-MULTIFORMAT-DOC** :
@@ -893,8 +895,8 @@ base de discussion, sans approbation à cette date. L’arbitrage du 2026-11-25
 périmètre fonctionnel futur.
 
 Les options portent sur les formats, pas sur le nombre de pièces jointes. Le
-comportement actuel est d’un document par conversation; son maintien ou son
-évolution reste à décider à l’étape B.
+comportement actuel est d’un document par conversation; la décision #136
+maintient un document actif par conversation pour la première implémentation.
 
 **Contexte de version examiné avant arbitrage** : [OBJECTIF.md](./OBJECTIF.md#L64)
 présente V4 comme cible proposée pour les fichiers du chat; cette proposition
@@ -918,7 +920,19 @@ Ces formats sont approuvés pour une réalisation future, pas disponibles
 actuellement dans l’upload chat. Le seul format actuellement pris en charge
 reste `.md`.
 
-**Proposition technique B — non validée, non implémentée** :
+**Arbitrage technique B du Décideur — décision #136** :
+
+Les cinq recommandations du cadrage B ont reçu une réponse affirmative. `.sql`
+reste réservé aux administrateurs; CSV utilise la première ligne logique non
+vide comme en-tête et refuse les séparateurs ambigus; le mode sans en-tête est
+hors du premier palier. JSON reste dans l’allowlist, sous condition de preuve
+adverse du pré-scan avant `json.loads`. Le worker CSV/JSON est à valider en
+premier sur les trois systèmes. Un document actif par conversation et le
+nettoyage temporaire sont retenus, sans garantie de purge des sauvegardes,
+messages déjà écrits ou pages SQLite libres. Les détails et conditions sont
+consignés dans la [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat).
+
+**Proposition technique B — arbitrée, non implémentée** :
 
 Les constats ci-dessous proviennent d’une lecture ciblée des composants cités
 au HEAD initial `b3da82ea5e32734953efc11c998a53ad91070f85`. La cartographie
@@ -930,11 +944,11 @@ aucun audit général ni test n’a été exécuté.
 | Réception : [`do_POST`](../tools/login_server.py#L3272) borne le corps chat à 272 KiB avant lecture, puis vérifie authentification, gate de changement de mot de passe, CSRF et rate limit; [`handle_post_chat_upload`](../tools/login_server.py#L2334) répète l’authentification, vérifie le rôle, la session propriétaire et le document déjà attaché. | Garder route, séquence de confiance et champs `session_id`/`file`; refuser tout élément multipart non prévu et dispatcher uniquement les cinq suffixes approuvés. Garder serveur comme autorité; l’UI et le MIME client ne décident pas du type. | `.md` conserve les codes/résultats existants; non-authentifié 401, CSRF 403, session non possédée 404, second document 409. | API isolée : chacun des droits, codes et limites; champ/fichier supplémentaire refusé. |
 | Corps et nom : [`_parse_chat_upload`](../tools/login_server.py#L2249) parse le corps MIME complet; `_safe_chat_upload_filename` (même fichier, L2235) enlève les chemins et refuse nom vide, `.`/`..`, plus de 255 caractères, `:` et contrôles. Le parseur collecte une session et un fichier mais ignore les autres parts inconnues. | Exiger exactement deux parts `form-data`; suffixe final insensible à la casse sélectionne le parseur, nom complet conservé pour affichage. Les suffixes précédents ne changent pas le mode; `.py.txt` reste du texte `.txt`, jamais du code exécuté. MIME déclaré ignoré comme preuve de sécurité. | Maintenir l’assainissement du basename et la taille maximale du nom; ne jamais utiliser le nom comme chemin persistant. | Noms multi-suffixes, séparateurs Windows/Unix, absence/majuscules d’extension, contrôles et part MIME incohérente. |
 | Extraction : `_extract_chat_upload` (même fichier, L2295) écrit dans `TemporaryDirectory` et nettoie succès/erreur; [`extract_markdown_document`](../tools/nodes/extract_text.py#L21) contrôle `.md`, classe, UTF-8 strict, 256 KiB, NUL/vide et 200 000 caractères. [`extract_text`](../tools/nodes/extract_text.py#L58) lit aussi TXT/PDF ailleurs, sans intégration chat ni ces mêmes limites. | Conserver le chemin `.md`; ajouter un dispatch chat spécifique aux formats du palier, sans reprendre le helper PDF/TXT comme preuve de support. Refuser entièrement un document invalide ou trop complexe; ne pas stocker de résultat d’extraction tronqué. | Pas de dépendance nouvelle recommandée : `csv` et `json` sont dans la bibliothèque standard. L’original demeure temporaire. | Tests unitaires d’extraction temporaires et tests API des erreurs/cleanups. |
-| Classification : [`PUBLIC_EXTENSIONS`](../tools/security_files.py#L15) contient TXT/CSV/JSON/MD mais pas SQL; [`classify_file`](../tools/security_files.py#L60) classe par défaut un suffixe inconnu `SENSITIVE`, que [`can_read`](../tools/security_files.py#L96) réserve à `admin`. Les signatures ZIP/GZIP/BZIP sont aussi sensibles. | Ne pas reclassifier SQL silencieusement. **Blocage d’arbitrage** : choisir si `.sql` reste sensible/admin-seulement ou si les comptes `user` peuvent le lire; l’allowlist #135 ne tranche pas ce droit. Rejeter les signatures binaires/archives pour tous les rôles dans l’extracteur. | Les droits restent par propriétaire/conversation; `admin` ne voit pas les documents d’autrui. Une classification ne prouve ni le type ni l’innocuité. | Matrice `user`/`admin` propriétaire/non-propriétaire, SQL et fichiers déguisés; archive refusée même si suffixe autorisé. |
-| Stockage : [`migrate_to_v11`](../tools/citadelle_memory.py#L457) crée `conversation_documents(content TEXT, metadata JSON, user_id, session_id)` avec un index unique sur la session. `add/get/delete_conversation_document_for_user` (L941, L980, L1000) vérifient le propriétaire; suppression de conversation en cascade. | Recommandation : conserver un document/conversation et sérialiser le texte/structure normalisés dans `content`; ajouter `format`, version d’extraction et compteurs dans le JSON `metadata`. Pas de migration de schéma prévue si les colonnes existantes suffisent. | Garder le texte `.md` historique lisible et son comportement après rechargement; maintenir erreurs/ownership existants. | Régression de lecture des anciens documents; isolation et suppression active avec DB temporaire. |
-| Suppression et sauvegardes : le trigger d’audit de [`citadelle_memory.py`](../tools/citadelle_memory.py#L494) conserve identifiants/métadonnées et `content_redacted=true`, pas le contenu. La sauvegarde `VACUUM INTO` lue dans `migrate_to_v3` précède la table v11; aucune politique générale de rétention des copies n’est établie dans les sources ciblées. | Suppression active = effacer la ligne/document et empêcher sa réinjection; ne pas promettre l’effacement d’anciens snapshots, pages libres SQLite ou copies gérées hors de ce mécanisme. Toute politique de sauvegardes reste à arbitrer. | Messages déjà écrits peuvent conserver des informations dérivées, comme la SPEC le prévoit. | Vérifier audit redacted, cascade, nettoyage d’erreur; aucun test ne prétend prouver l’effacement de sauvegardes. |
+| Classification : [`PUBLIC_EXTENSIONS`](../tools/security_files.py#L15) contient TXT/CSV/JSON/MD mais pas SQL; [`classify_file`](../tools/security_files.py#L60) classe par défaut un suffixe inconnu `SENSITIVE`, que [`can_read`](../tools/security_files.py#L96) réserve à `admin`. Les signatures ZIP/GZIP/BZIP sont aussi sensibles. | Décision #136 : `.sql` reste réservé aux administrateurs pour la première implémentation; toute ouverture aux comptes `user` exige une décision explicite. Rejeter les signatures binaires/archives dans l’extracteur. | Les droits restent par propriétaire/conversation; `admin` ne voit pas les documents d’autrui. Une classification ne prouve ni le type ni l’innocuité. | Matrice `user`/`admin` propriétaire/non-propriétaire, SQL et fichiers déguisés; archive refusée même si suffixe autorisé. |
+| Stockage : [`migrate_to_v11`](../tools/citadelle_memory.py#L457) crée `conversation_documents(content TEXT, metadata JSON, user_id, session_id)` avec un index unique sur la session. `add/get/delete_conversation_document_for_user` (L941, L980, L1000) vérifient le propriétaire; suppression de conversation en cascade. | Décision #136 : garder un document actif par conversation. Le stockage de texte normalisé et de métadonnées dans les colonnes existantes reste une proposition; pas de migration de schéma décidée. | Garder le texte `.md` historique lisible et son comportement après rechargement; maintenir erreurs/ownership existants. | Régression de lecture des anciens documents; isolation et suppression active avec DB temporaire. |
+| Suppression et sauvegardes : le trigger d’audit de [`citadelle_memory.py`](../tools/citadelle_memory.py#L494) conserve identifiants/métadonnées et `content_redacted=true`, pas le contenu. La sauvegarde `VACUUM INTO` lue dans `migrate_to_v3` précède la table v11; aucune politique générale de rétention des copies n’est établie dans les sources ciblées. | Décision #136 : conserver l’original en temporaire et le nettoyer après succès ou erreur; aucune purge n’est garantie pour sauvegardes, messages déjà écrits ou pages SQLite libres. | Les messages déjà écrits peuvent conserver des informations dérivées; ne pas promettre l’effacement absolu de backups. | Vérifier audit redacted, cascade et nettoyage temporaire; aucun test ne prétend prouver l’effacement de sauvegardes. |
 | Contexte : [`_build_document_context`](../tools/login_server.py#L2617) transmet jusqu’à 6 000 caractères en entier; sinon FTS5 jusqu’à 12 passages et la limite totale. [`index_fts5`](../tools/nodes/index_fts5.py#L57) coupe par paragraphes en chunks de 500; `search_fts5` retourne contenu, chemin et metadata de chunk, mais le builder actuel conserve surtout le contenu. | Sérialiser CSV/JSON en segments auto-descriptifs (n° de ligne/colonne ou JSON Pointer) et ne retenir que des segments complets dans le budget; répéter le locator si un segment est divisé. Ne pas changer le comportement Markdown par défaut. | Maintenir budget actuel estimatif, recherche limitée au document courant, prompt « donnée non fiable » et absence d’outil. Le prompt seul ne constitue pas un contrôle d’autorisation. | Petit document complet; retrieval partiel avec locators; absence de mélange inter-documents; coverage générée par le serveur. |
-| Interface : [`chat.html`](../tools/web/chat.html#L41) annonce `.md` seulement et « Joindre un .md ». [`chat.js`](../tools/web/chat.js#L76) affiche le nom avec `textContent`, marque les documents longs comme extraits, envoie multipart avec CSRF; [`renderMarkdown`](../tools/web/chat.js#L43) assainit les réponses via DOMPurify. | Après validation de chaque parcours, aligner `accept` sur les cinq suffixes et afficher format, choix de séparateur/header, erreurs et couverture partielle en texte sûr. Garder le libellé actuel jusqu’à ce que les cinq formats soient réellement vérifiés. | Aucun HTML extrait directement injecté; pas de route de téléchargement de l’original; l’UX Markdown reste fonctionnelle. | Tests DOM/UI et vérification navigateur après implémentation, pas dans ce GO. |
+| Interface : [`chat.html`](../tools/web/chat.html#L41) annonce `.md` seulement et « Joindre un .md ». [`chat.js`](../tools/web/chat.js#L76) affiche le nom avec `textContent`, marque les documents longs comme extraits, envoie multipart avec CSRF; [`renderMarkdown`](../tools/web/chat.js#L43) assainit les réponses via DOMPurify. | Après validation de chaque parcours, aligner `accept` sur les cinq suffixes et afficher le format, le séparateur détecté, l’en-tête retenu, les erreurs et la couverture partielle en texte sûr. Garder le libellé actuel jusqu’à ce que les cinq formats soient réellement vérifiés. | Aucun HTML extrait directement injecté; pas de route de téléchargement de l’original; l’UX Markdown reste fonctionnelle. | Tests DOM/UI et vérification navigateur après implémentation, pas dans ce GO. |
 | Tests : [`test_chat_documents.py`](../tests/test_chat_documents.py) couvre déjà migration, Markdown, limites, CSRF, droits, retrait, nettoyage et HTML. [`api_test_context`](../tests/_helpers.py#L140) utilise une DB temporaire et un serveur loopback sur port éphémère. | Étendre les tests existants; toutes les DB/fichiers restent temporaires. Pas de fixture utilisant l’installation réelle. | Préserver la suite Markdown et ses fixtures; aucun test n’est lancé pendant le cadrage. | Plan de tests détaillé ci-dessous; validation manuelle multiplateforme requise avant release. |
 
 #### Lecteurs et représentation proposés
@@ -943,9 +957,9 @@ aucun audit général ni test n’a été exécuté.
 |---|---|---|---|
 | `.md` | Garder `extract_markdown_document` et son contrat actuel; éviter de changer le BOM ou le texte stocké existant. | Texte Markdown courant. | UTF-8 strict, vide/NUL et limites actuelles; aucune dépendance nouvelle. |
 | `.txt` | Lecteur chat dédié, pas le helper générique; décodage UTF-8 strict. | Texte brut, fins de ligne normalisées en LF. | Encodage invalide, vide/espaces seuls, NUL/contrôles refusés. |
-| `.csv` | `csv.reader(..., strict=True)` de la bibliothèque standard, flux logique ligne par ligne. | En-têtes et valeurs brutes indexés par numéro de colonne; chaque enregistrement porte son numéro de ligne. Aucune conversion numérique/formule. | Guillemets invalides refusés. Pas de dépendance. Limite globale de champ `csv.field_size_limit` est process-wide, donc préférable dans le worker proposé ou avec verrou et restauration sûre. |
-| `.json` | `json.loads` standard après pré-scan lexical borné; `object_pairs_hook` rejette clés dupliquées; `parse_constant` et parseur de nombres rejettent NaN/Infinity et valeurs non finies. | Ordre des listes et objets conservé; fragments annotés par JSON Pointer RFC 6901 (racine `""`, échappement `~0`/`~1`). Lexèmes numériques conservés en texte typé pour éviter de promettre des calculs/précision flottante. | Syntaxe invalide, doublons, profondeur/nœuds dépassés refusés. Aucun `eval`, schéma exécuté ou dereferencement externe. Pas de dépendance choisie. |
-| `.sql` | Lecture UTF-8 textuelle sans analyse SQL. | Texte source inchangé, hormis normalisation de fins de ligne commune aux nouveaux formats. | Ne jamais ouvrir de base, exécuter une requête, traiter les imports/includes ou utiliser le workflow admin `analyse_sql`. Classification `SENSITIVE` actuelle à arbitrer pour `user`. |
+| `.csv` | `csv.reader(..., strict=True)` de la bibliothèque standard, flux logique ligne par ligne. | Première ligne logique non vide comme en-tête selon #136; valeurs brutes indexées par colonne et enregistrement. Aucune conversion numérique/formule. | Virgule, point-virgule et tabulation candidats; séparation ambiguë refusée. Mode sans en-tête hors premier palier. Limite globale de champ `csv.field_size_limit` est process-wide, donc worker à valider en premier ou verrou/restauration à étudier. |
+| `.json` | `json.loads` standard après pré-scan lexical borné; `object_pairs_hook` rejette clés dupliquées; `parse_constant` et parseur de nombres rejettent NaN/Infinity et valeurs non finies. | Ordre des listes et objets conservé; fragments annotés par JSON Pointer RFC 6901 (racine `""`, échappement `~0`/`~1`). Lexèmes numériques conservés en texte typé pour éviter de promettre des calculs/précision flottante. | JSON reste approuvé fonctionnellement, mais son implémentation dépend de tests adverses concluant que profondeur/nœuds sont bornés avant `json.loads`, avec chaînes et échappements. Aucun `eval`, schéma exécuté ou déréférencement externe. |
+| `.sql` | Lecture UTF-8 textuelle sans analyse SQL. | Texte source inchangé, hormis normalisation de fins de ligne commune aux nouveaux formats. | Ne jamais ouvrir de base, exécuter une requête, traiter les imports/includes ou utiliser le workflow admin `analyse_sql`. Réservé aux administrateurs pour la première implémentation selon #136. |
 
 Aucune ligne de `.csv` ou valeur JSON n’est convertie en calcul. Dans un CSV,
 les cellules commençant par `=`, `+`, `-` ou `@` restent des chaînes de données;
@@ -988,10 +1002,9 @@ reste du texte même s’il contient des instructions valides.
   enregistrements logiques; retenir un seul séparateur cohérent, sinon refuser
   avec une erreur expliquant l’ambiguïté. `csv.Sniffer` est une heuristique,
   donc sa réponse n’est jamais acceptée sans validation de cohérence.
-- La première ligne logique non vide est proposée comme ligne d’en-tête; il
-  n’existe pas de détection fiable d’un header absent. L’absence de header doit
-  soit être explicitement déclarée par l’utilisateur (option UI à arbitrer),
-  soit être affichée comme hypothèse; ne pas deviner silencieusement.
+- Décision #136 : la première ligne logique non vide est l’en-tête. Le mode
+  sans en-tête est hors du premier palier; ne pas l’inférer ni l’exposer comme
+  option de ce palier.
 - En-têtes dupliqués/vide : garder le texte source et l’ordinal (`colonne 1`,
   `colonne 2`); nommer une colonne sans texte `column_N` sans écraser sa valeur
   d’origine. Cellules multilignes prises en charge par le parseur strict.
@@ -1038,23 +1051,25 @@ reste du texte même s’il contient des instructions valides.
 
 `login_server.py` utilise actuellement un `HTTPServer` séquentiel : un parser
 in-process long bloque le proxy; il n’existe pas de timeout parsing ni de
-plafond RSS. Deux options sont à arbitrer :
+plafond RSS. Deux options ont été comparées; selon #136, valider d’abord le
+worker CSV/JSON et son packaging. En cas d’échec, toute alternative sans délai
+ni limite mémoire durs exige une décision explicite.
 
 | Option | Avantage | Limite/portabilité |
 |---|---|---|
 | In-process, stdlib + petites bornes | Diff et packaging minimaux; pas de dépendance, fonctionne dans le serveur Python actuel. | Pas de timeout interruptible ni isolation mémoire; exceptions sont capturables, mais une boucle/pression mémoire bloque le service. |
 | Worker process pour CSV/JSON | Parent peut imposer le délai mural proposé et terminer un worker bloqué; seuls bytes en entrée et texte/métadonnées bornés en sortie; aucune DB/route/network n’est nécessaire au worker. | Pas un sandbox ni un plafond RSS portable. Le mode `spawn` et le lancement PyInstaller one-file doivent être vérifiés Windows/Linux/macOS; `login_server.py` ne peut pas être passé comme script à l’EXE gelé. Un worker dédié n’existe pas encore. |
 
-**Recommandation proposée** : évaluer un worker enfant pour les parseurs
-structurés si le Décideur exige un timeout dur; le texte `.md`/`.txt`/`.sql`
-reste un décodage borné. Ne pas annoncer une isolation réseau/fichiers par le
-seul fait de créer un processus; le code du worker doit n’opérer que sur les
-octets fournis. Le choix du worker et son packaging sont un bloqueur
-d’implémentation à valider, pas une décision de ce GO.
+**Recommandation proposée, précisée par #136** : valider d’abord le worker
+CSV/JSON et son packaging Windows/Linux/macOS. En cas d’échec, toute alternative
+sans délai ni limite mémoire durs exige une décision explicite. Le texte
+`.md`/`.txt`/`.sql` reste un décodage borné. Le worker n’est pas un sandbox et
+ne garantit pas l’isolation réseau/fichiers; son code doit n’opérer que sur les
+octets fournis.
 
 | Élément | Proposition | Compatibilité/limite |
 |---|---|---|
-| Cardinalité | Garder un document actif par conversation (index unique actuel). | Recommandée : aucune migration ni remplacement implicite; réexaminer seulement si un besoin est validé. |
+| Cardinalité | Garder un document actif par conversation (index unique actuel). | Décidée par #136; aucune migration ni remplacement implicite; réexaminer seulement si un besoin est validé. |
 | Original | Toujours fichier temporaire, nettoyé succès/erreur. | Ne pas persister ni servir de route download. Nettoyage échoué est erreur explicite. |
 | Dérivé | Garder texte normalisé complet dans `conversation_documents.content`; format/version/comptages dans `metadata` JSON. | Schéma v11 suffit pour ces champs; pas de migration prévue. Markdown sans nouveau parseur reste compatible. |
 | Retrait/suppression | Supprimer la ligne active; préserver messages historiques. La suppression de session cascade comme aujourd’hui. | Audit v12+ stocke identifiants/métadonnées et `content_redacted`, pas le texte. Le snapshot `VACUUM INTO` observé concerne la migration V3 avant table v11; la politique des copies/sauvegardes manuelles et la purge des pages SQLite ne sont pas établies. Ne pas promettre l’effacement absolu de backups. |
@@ -1129,28 +1144,24 @@ bornes exactes/+1, parser timeout, cleanup, auth/roles/CSRF/propriété, double
 upload, retrait/cascade, anciennes lignes Markdown, retrieval avec locators,
 partial visible, prompt injection et contenu non rendu en HTML.
 
-#### Questions techniques / bloqueurs à faire arbitrer
+#### Arbitrages B obtenus et conditions restant à satisfaire en C
 
-1. **SQL et rôles (bloqueur)** : `.sql` est approuvé comme texte, mais la
-   politique actuelle le classe `SENSITIVE`, donc `user` est refusé et `admin`
-   propriétaire seul peut lire. Garder admin-only ou approuver explicitement
-   une classification plus ouverte? Ne pas reclasser automatiquement.
-2. **CSV** : confirmer séparateurs proposés `, ; TAB` avec détection sans
-   ambiguïté; première ligne non vide toujours header ou prévoir un réglage
-   explicite pour les fichiers headerless? Il n’existe pas de détection fiable.
-3. **Pré-scan JSON (bloqueur)** : quelle méthode fiable borne profondeur et
-   nombre de nœuds avant `json.loads`, y compris avec chaînes et échappements?
-   Les limites appliquées après le parsing ne protègent pas les ressources déjà
-   consommées; la fiabilité du pré-scan reste à démontrer.
-4. **Ressources** : accepter l’architecture in-process bornée sans timeout/RSS
-   dur, ou financer/valider un worker cross-platform; confirmer les caps CSV/
-   JSON et le délai 5s à mesurer. La mémoire n’a pas de limite portable établie.
-5. **Dérivés et backups** : confirmer maintien d’un document/conversation; les
-   snapshots/manuels et pages SQLite ne font pas l’objet d’une purge prouvée.
+Les cinq recommandations ont reçu une réponse affirmative et sont consignées
+dans la [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat).
+`.sql` reste admin-only; le contrat d’en-tête et les séparateurs CSV sont
+tranchés; JSON reste dans l’allowlist; le worker CSV/JSON doit être validé en
+premier; cardinalité et nettoyage temporaire sont fixés. La liste de formats
+n’est pas réduite.
 
-Ces questions ne retirent aucun format de l’allowlist #135. Tant qu’un blocage
-n’est pas tranché, conserver la proposition comme PARTIELLE; ne pas coder ni
-réduire silencieusement `.sql`, CSV ou JSON.
+Avant de déclarer les traitements disponibles en C :
+- démontrer par des tests adverses que le pré-scan JSON borne profondeur et
+  nœuds avant `json.loads`, y compris chaînes et échappements; en cas d’échec,
+  revenir à l’arbitrage sans retirer JSON silencieusement;
+- valider le worker et son packaging Windows/Linux/macOS; si cela échoue,
+  aucune approche sans délai/mémoire durs n’est acceptée sans nouvelle décision
+  explicite du Décideur;
+- mesurer le délai candidat de 5 s et les seuils CSV/JSON, qui restent des
+  candidats non approuvés. Aucune limite mémoire portable n’est promise.
 
 **Matrice besoin → changement → preuve future** :
 
@@ -1160,7 +1171,7 @@ réduire silencieusement `.sql`, CSV ou JSON.
 | Validation et droits | [`login_server.py`](../tools/login_server.py), [`security_files.py`](../tools/security_files.py); type réel, nom, taille, authentification, CSRF, propriétaire et conversation. | Fichiers valides/invalides, noms et chemins malveillants, droits user/admin et isolation inter-comptes. |
 | Extraction | [`extract_text.py`](../tools/nodes/extract_text.py) ou extracteurs existants approuvés; aucun nouveau module ni paquet choisi par ce GO. | Fichiers corrompus, chiffrés, vides, sans texte, dépassant les limites ou provoquant une extraction bloquée. |
 | Limites et isolation | [`login_server.py`](../tools/login_server.py), parseur(s) et stockage après choix. | Dépassement de taille/durée/mémoire, archives excessives, nettoyage après succès/erreur; aucun réseau ni exécution. |
-| Stockage et suppression | [`citadelle_memory.py`](../tools/citadelle_memory.py), [`login_server.py`](../tools/login_server.py); conservation originale/extrait et cardinalité à arbitrer. | Accès propriétaire/conversation, retrait, suppression, reprise après rechargement et absence de fuite. |
+| Stockage et suppression | [`citadelle_memory.py`](../tools/citadelle_memory.py), [`login_server.py`](../tools/login_server.py); cardinalité et limites de purge selon la décision #136. | Accès propriétaire/conversation, retrait, suppression, reprise après rechargement et absence de fuite. |
 | Modèle et résultats | [`login_server.py`](../tools/login_server.py), [`chat.js`](../tools/web/chat.js); contenu traité comme donnée non fiable et état partiel visible. | Tentatives d’injection d’instructions, absence d’appel d’outil, rendu sûr et indication correcte des analyses partielles. |
 | Guides utilisateurs | [`README.md`](../../README.md) et [`README.fr.md`](../../README.fr.md), après validation réelle des formats. | Aucun format annoncé avant que son parcours soit pris en charge et vérifié. |
 
@@ -1177,33 +1188,34 @@ isolation, refus d’un second document, suivi après rechargement, retrait,
 nettoyage temporaire et contrôles HTML. Ces tests décrivent le premier incrément;
 ils ne valident pas encore de formats multiformat.
 
-**Prochaine action** : faire relire la proposition B et trancher ses bloqueurs;
-si elle est validée, demander séparément l’autorisation d’implémentation C.
-Aucun choix d’extracteur, de dépendance ou de seuil n’est acquis.
-**Moment de traitement** : validation du présent cadrage; C/D/E attendent un
-GO distinct après résolution des questions bloquantes.
+**Prochaine action** : proposer le découpage du GO d’implémentation C avec
+lots, tests et conditions d’arrêt. B est terminée et arbitrée; C exige un GO
+distinct et les preuves de pré-scan JSON, de packaging worker et de mesure des
+seuils. Aucun choix de dépendance ou valeur candidate n’est acquis.
+**Moment de traitement** : après validation de cette consignation; C/D/E restent
+non commencées jusqu’à autorisation distincte.
 
 **Point de reprise**
 
-- **Dernière étape terminée** : arbitrage fonctionnel A validé et consigné le
-  2026-11-25 dans la décision #135.
-- **Étape B** : proposition technique préparée; validation en attente, aucun
-  choix technique acquis. Les étapes C, D et E ne sont pas commencées.
+- **Étapes A et B** : terminées et arbitrées le 2026-11-25 par les décisions
+  #135 et #136.
+- **Étape C** : non commencée; GO distinct requis. D et E ne sont pas
+  commencées.
 - **Capacité actuelle** : l’upload chat accepte `.md` seulement.
 - **Périmètre futur approuvé** : `.md`, `.txt`, `.csv`, `.json`, `.sql`;
   CSV/JSON structurés, Markdown/TXT/SQL textuels, aucun contenu exécuté.
 - **Version cible** : à déterminer.
-- **Prochaine action** : faire relire B et répondre aux bloqueurs; ensuite,
-  demander un GO distinct pour C si la proposition est approuvée.
-- **Bloqueurs et questions techniques encore ouvertes** : droits du rôle `user`
-  sur `.sql`; séparateur et règle d’en-tête CSV; fiabilité du pré-scan JSON;
-  choix in-process/worker et timeout/RSS cross-platform. Restent aussi les
-  limites à calibrer, cardinalité, stockage/nettoyage, conservation/backups et
-  restitution des locators/états partiels.
-- **Autorisation** : ce GO prépare B seulement; aucun choix technique n’est
-  approuvé et aucune implémentation C n’est autorisée.
+- **Prochaine action** : proposer le découpage du GO C, avec lots, tests et
+  conditions d’arrêt.
+- **Conditions C** : tests adverses du pré-scan JSON avant `json.loads`;
+  validation du worker et packaging multiplateforme; mesure du délai 5 s et
+  des seuils CSV/JSON candidats. Si le worker échoue, l’alternative sans limites
+  dures requiert une décision explicite.
+- **Autorisation** : les arbitrages B sont consignés; aucune implémentation C
+  n’est autorisée sans GO distinct.
 - **Références à lire dans l’ordre** : [présente section](#16-multiformat);
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat);
+  [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat);
   [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat);
   [SPEC-FICHIERS-CHAT](./SPEC-FICHIERS-CHAT.md) pour le contrat actuel;
   [PHASE16-RESTE](./PHASE16-RESTE.md) et [ETAT-PROJET](./ETAT-PROJET.md);
@@ -1226,8 +1238,8 @@ ce tableau n’autorise pas l’implémentation) :
 | Étape | Précondition | Résultat attendu | Preuve de validation | Condition d’arrêt |
 |---|---|---|---|---|
 | A. Arbitrage fonctionnel — terminé le 2026-11-25 | Proposition examinée et arbitrage explicite du Décideur. | Allowlist et profondeur approuvées; version cible à déterminer. | Décision #135 consignée. | Aucun travail technique n’est autorisé par cette étape seule. |
-| B. Cadrage technique — proposition préparée, validation en attente | GO 16-MULTIFORMAT-CADRAGE-B autorisant la préparation d’une proposition. | Proposition sur extracteurs, validations, limites, isolation, stockage, cardinalité et conservation. | Sections techniques BACKLOG/SPEC relues et bloqueurs tranchés. | Ne pas implémenter si les choix restent ambigus ou si aucune protection applicable n’est démontrée. |
-| C. Implémentation séparément autorisée | Étape B validée et GO d’implémentation distinct. | Contrôles serveur, extraction et tests correspondants. | Tests ciblés des formats et refus prévus. | Arrêter sur un échec, un contournement de contrôle ou une limite non respectée. |
+| B. Cadrage technique — terminé et arbitré le 2026-11-25 | Décision #136 répondant aux cinq recommandations du cadrage. | Proposition B arbitrée; aucune implémentation n’en découle. | Décisions #135/#136 consignées, conditions C explicites. | Les conditions de preuve restent obligatoires avant support effectif. |
+| C. Implémentation séparément autorisée | GO distinct après B arbitrée. | Contrôles serveur, extraction et tests correspondants selon le périmètre approuvé. | Tests adverses JSON, validation packaging worker et mesures seuils; tests ciblés des formats. | Revenir à l’arbitrage si le pré-scan échoue; aucune alternative sans limites dures sans décision explicite. |
 | D. Intégration utilisateur | Étape C vérifiée et GO distinct. | Sélection, messages, résultats partiels; renommer le bouton seulement pour les capacités vérifiées. | Vérifications UI/API concordantes avec l’allowlist. | Arrêter si les formats annoncés diffèrent du support réel ou si les résultats partiels sont opaques. |
 | E. Validation et clôture | Étapes C et D vérifiées. | Preuves fonctionnelles/sécurité, documentation utilisateur et suivi réconcilié; livraison autorisée séparément. | Résultats de validation et journaux cohérents. | Ne pas clôturer ni livrer tant qu’une preuve manque ou qu’un échec reste ouvert. |
 

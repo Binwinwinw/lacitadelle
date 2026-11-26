@@ -278,9 +278,10 @@ consignés dans la [décision #129](../../.memory/decisions.md#L2941).
 
 ## 14. Proposition de contrat multiformat — non implémentée
 
-**Statut** : proposition technique préparée pour revue au GO
-16-MULTIFORMAT-CADRAGE-B; aucune dépendance, limite ou architecture de parsing
-n’est approuvée. Les sections 1–13 restent le contrat livré du `.md`.
+**Statut** : cadrage B terminé et arbitré par la
+[décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat),
+mais toujours non implémenté. Les sections 1–13 restent le contrat livré du
+`.md`; aucune dépendance ni valeur candidate de limite n’est approuvée.
 Vérifications ciblées du code au HEAD
 `b3da82ea5e32734953efc11c998a53ad91070f85`; l’upload chat accepte toujours
 `.md` seulement.
@@ -288,15 +289,17 @@ Vérifications ciblées du code au HEAD
 Le périmètre fonctionnel approuvé par la
 [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat)
 est `.md`, `.txt`, `.csv`, `.json`, `.sql`, pour une réalisation future. La
-version cible reste à déterminer; la proposition V4 n’est pas acquise.
+version cible reste à déterminer; la proposition V4 n’est pas acquise. Les
+conditions d’implémentation décidées par #136 ne rendent aucun format nouveau
+disponible.
 
 | Format | Lecture proposée | Validation et résultat |
 |---|---|---|
 | `.md` | Conserver le lecteur UTF-8 et le texte du contrat courant. | Garder les limites, la classification, l’attachement et la récupération actuels. |
 | `.txt` | Lire du texte UTF-8 brut, sans interprétation. | Nouveau chemin d’upload chat; le helper générique existant ne vaut pas intégration. |
-| `.csv` | Lire enregistrements et cellules avec leurs en-têtes et positions. Aucune conversion numérique ni formule exécutée. | Parseur CSV strict; séparateur, règle d’en-tête et limites restent à valider. Les valeurs sont conservées comme chaînes. |
-| `.json` | Lire objets, listes, clés, valeurs et racine structurée; localiser chaque fragment par JSON Pointer. | JSON strict, pas de `eval`; doublons/constantes non standard et bornes structurelles à arbitrer. |
-| `.sql` | Lire le fichier comme texte source seulement. | Aucune analyse contre une base, exécution de requête ou ouverture de DB. `.sql` n’est pas dans `PUBLIC_EXTENSIONS` et est classé `SENSITIVE` par défaut; l’accès d’un compte `user` reste à trancher. |
+| `.csv` | Lire enregistrements et cellules avec leurs en-têtes et positions. Aucune conversion numérique ni formule exécutée. | Première ligne logique non vide comme en-tête; virgule, point-virgule et tabulation candidats. Une ambiguïté est refusée; mode sans en-tête hors premier palier. Valeurs conservées comme chaînes. |
+| `.json` | Lire objets, listes, clés, valeurs et racine structurée; localiser chaque fragment par JSON Pointer. | JSON strict, pas de `eval`; acceptation en implémentation conditionnée aux tests adverses du pré-scan avant `json.loads`. |
+| `.sql` | Lire le fichier comme texte source seulement. | Aucune analyse contre une base, exécution de requête ou ouverture de DB. `.sql` reste réservé aux administrateurs pour la première implémentation selon la classification actuelle; ouverture aux comptes `user` soumise à une décision ultérieure. |
 
 ### Codes HTTP : comportement actuel et proposition
 
@@ -330,10 +333,10 @@ lecteur concerné. Les archives compressées sont refusées, pas extraites.
   garde une entrée compatible avec les cellules multilignes avant normalisation.
 - NUL et contrôles non autorisés refusés. Les lignes vides, contrôles et erreurs
   de structure produisent un refus visible, jamais un succès partiel silencieux.
-- Pour CSV, aucun heuristique silencieux de headerless : la proposition traite
-  le premier enregistrement logique non vide comme en-tête. Les doublons sont
-  conservés par ordinal; lignes incomplètes ou cellules supplémentaires sont
-  identifiées, pas supprimées.
+- Pour CSV, conformément à #136, le premier enregistrement logique non vide
+  est l’en-tête et le mode sans en-tête est hors du premier palier. Les doublons
+  sont conservés par ordinal; lignes incomplètes ou cellules supplémentaires
+  sont identifiées, pas supprimées.
 - Pour JSON, la limite de profondeur/nœuds doit être contrôlée avant la
   construction complète de l’arbre. Une limite seulement après `json.loads`
   ne protège pas les ressources déjà consommées.
@@ -342,8 +345,9 @@ lecteur concerné. Les archives compressées sont refusées, pas extraites.
 
 ### Stockage, contexte et restitution proposés
 
-Maintenir un document par conversation, l’original temporaire et le nettoyage
-sur tous les chemins. Garder la chaîne normalisée dans `content TEXT` et les
+La décision #136 maintient un document actif par conversation et impose que
+l’original temporaire soit nettoyé après succès ou erreur. Garder la chaîne
+normalisée dans `content TEXT` et les
 métadonnées de format/version/compteurs dans le JSON existant; aucune migration
 n’est proposée à ce stade. Le contenu actif reste filtré par propriétaire.
 Le retrait supprime la ligne active, pas les messages déjà écrits. L’audit
@@ -363,22 +367,28 @@ le contenu/role des anciens messages. L’interface affiche ce statut par
 actuel de contexte reste une approximation et n’est pas une garantie d’analyse
 exhaustive.
 
-### Questions bloquantes avant validation du contrat B
+### Arbitrages B et conditions restant à satisfaire en C
 
-- `.sql` demeure sensible/admin-only selon la classification actuelle. Confirmer
-  si ce niveau s’applique aussi au palier futur pour les comptes `user`; aucune
-  extension à PUBLIC n’est déduite de l’allowlist.
-- Confirmer le contrat CSV : séparateur détecté sans ambiguïté et première
-  ligne logique traitée comme header, ou proposer un mode explicite headerless.
-- Accepter un worker enfant pour imposer un timeout structuré, avec validation
-  PyInstaller Windows/Linux/macOS; ou confirmer qu’une limite de durée/RSS dure
-  n’est pas promise. Le worker n’est pas un sandbox.
-- Le cadrage propose un timeout candidat de 5 s; il n’a pas été mesuré. Aucune
-  limite RSS portable n’est disponible dans les mécanismes observés. Décider si
-  une mesure ou protection OS-spécifique est un prérequis.
+- **SQL** : admin-only pour la première implémentation; aucune ouverture aux
+  comptes `user` sans décision explicite ultérieure.
+- **CSV** : en-tête = première ligne logique non vide; séparateurs candidats
+  virgule, point-virgule et tabulation; ambiguïté refusée explicitement. Mode
+  sans en-tête hors premier palier.
+- **JSON** : reste dans l’allowlist. Avant de déclarer son support, des tests
+  adverses doivent démontrer le contrôle de profondeur et de nombre de nœuds
+  avant `json.loads`, avec chaînes et échappements. En cas d’échec, revenir à
+  l’arbitrage plutôt que retirer JSON silencieusement.
+- **Worker et limites** : valider d’abord le worker CSV/JSON et son packaging
+  Windows/Linux/macOS. S’il échoue, l’absence de délai ou limite mémoire dure
+  exige une décision explicite. Le worker n’est pas un sandbox; 5 s et les
+  seuils CSV/JSON restent candidats à mesurer. Aucune limite mémoire portable
+  n’est promise.
+- **Stockage** : un document actif par conversation et original temporaire
+  nettoyé après succès/erreur; aucune purge garantie des sauvegardes, messages
+  déjà écrits ou pages SQLite libres.
 
-Les seuils candidats, la comparaison in-process/worker, les contrats d’erreur,
-le plan de code/tests et les bloqueurs sont détaillés dans le
-[BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat). Ce contrat reste une
-proposition à valider; il ne démarre pas l’étape C, ne change pas le bouton et
-ne rend aucun des quatre nouveaux formats disponible.
+Les seuils candidats, les détails de proposition et le plan de code/tests sont
+détaillés dans le [BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat). A et B
+sont terminées et arbitrées; C requiert un GO distinct et les preuves ci-dessus.
+Ce contrat reste non implémenté, ne change pas le bouton et ne rend aucun des
+quatre nouveaux formats disponible.

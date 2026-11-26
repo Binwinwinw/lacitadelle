@@ -140,10 +140,14 @@ tâche terminée est supprimée ici; sa trace reste dans
 **Phase 16** : AIWorkflow, Fichiers Chat, Audit SQL clôturés. Tâches restantes :
 voir [PHASE16-RESTE.md](dev/docs/PHASE16-RESTE.md).
 
-- [ ] **16-MULTIFORMAT** : proposition technique B préparée le 2026-11-25;
-  validation du Décideur en attente. L’allowlist future reste `.md`, `.txt`,
-  `.csv`, `.json`, `.sql`; l’upload chat actuel accepte `.md` seulement.
-  Répondre aux bloqueurs du cadrage avant tout GO d’implémentation. Voir le
-  [plan 16-MULTIFORMAT](dev/docs/BACKLOG.md#16-multiformat), la
-  [décision #135](.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat) et les
+- [ ] **16-MULTIFORMAT** : arbitrages A (#135) et B (#136) terminés le
+  2026-11-25; C non commencée, GO distinct requis. L’allowlist future reste
+  `.md`, `.txt`, `.csv`, `.json`, `.sql`; l’upload actuel accepte `.md` seulement
+  et le bouton reste inchangé. Version cible à déterminer. En C, démontrer le
+  pré-scan JSON, valider le packaging du worker et mesurer les seuils candidats.
+  Prochaine action :
+  proposer le découpage du GO C avec lots, tests et conditions d’arrêt. Voir le
+  [plan 16-MULTIFORMAT](dev/docs/BACKLOG.md#16-multiformat), les décisions
+  [#135](.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat)
+  et [#136](.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat), ainsi que les
   [invariants #134](.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat). — Propriétaire : à planifier.

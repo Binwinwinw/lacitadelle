@@ -2,6 +2,22 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-25] GO 16-MULTIFORMAT-ARBITRAGE-B — conditions techniques arbitrées
+
+**HEAD de référence** : `753e8c1b55c0e3504fec70a5f2dc59eb6a6f8de8`.
+Aucun commit n’est créé dans ce GO.
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`, `TODO.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/SPEC-FICHIERS-CHAT.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/ETAT-PROJET.md`,
+`dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
+**Raison** : consigner les cinq réponses affirmatives du Décideur aux
+recommandations du cadrage B, sous la décision #136.
+**Impact** : documentation seulement; les 136 décisions et 17 tâches sont
+maintenues. A et B sont arbitrées; C/D/E ne sont pas commencées. L’upload
+reste `.md` seulement; le pré-scan JSON, le worker multiplateforme et la mesure
+des seuils restent des conditions de C. Aucun code, test, configuration,
+dépendance ou DB n’est modifié.
+
 ## [2026-11-25] GO 16-MULTIFORMAT-CADRAGE-B — proposition technique
 
 **HEAD de référence audité** : `b3da82ea5e32734953efc11c998a53ad91070f85`.

@@ -3145,3 +3145,43 @@ audité `ee990535e039135cc0065136a71e3e4028ae9310`.
 futur, mais `.md` demeure le seul format actuellement disponible par l’upload
 du chat et le bouton reste inchangé. La version n’est pas attribuée; le
 cadrage technique et toute implémentation attendent un GO distinct. 135 décisions.
+
+## [2026-11-25] Arbitrage des conditions techniques multiformat
+
+**Contexte** : les décisions #134 et #135 fixent les invariants de sécurité et
+le périmètre fonctionnel futur `.md`, `.txt`, `.csv`, `.json`, `.sql`. La
+proposition de cadrage technique B a présenté cinq recommandations; le
+Décideur a répondu « oui » aux cinq le 2026-11-25. L’upload du chat reste
+limité à `.md`.
+
+**Décision(s)** :
+1. `.sql` reste réservé aux administrateurs pour la première implémentation,
+   selon la classification actuelle. Aucune ouverture aux comptes `user` n’est
+   approuvée; toute ouverture ultérieure requiert une décision explicite.
+2. Pour CSV, la première ligne logique non vide est l’en-tête. Les séparateurs
+   candidats sont virgule, point-virgule et tabulation; une ambiguïté doit
+   entraîner un refus avec une erreur explicite. Le mode sans en-tête est hors
+   du premier palier et pourra être réexaminé ultérieurement.
+3. JSON reste dans l’allowlist approuvée. Son acceptation en implémentation est
+   conditionnée à des tests adverses démontrant que profondeur et nombre de
+   nœuds sont contrôlés avant `json.loads`, y compris avec chaînes et
+   échappements. Si cette démonstration échoue, revenir à l’arbitrage; ne pas
+   retirer JSON silencieusement.
+4. Valider en premier le worker pour CSV et JSON, y compris son packaging sur
+   Windows, Linux et macOS. S’il échoue, des bornes sans délai ni limite mémoire
+   dures ne sont acceptables qu’après une décision explicite du Décideur. Le
+   worker n’est pas un sandbox. Le délai candidat de 5 s et les seuils CSV/JSON
+   restent à mesurer; aucune limite mémoire portable n’est promise.
+5. Garder un document actif par conversation et l’original temporaire, nettoyé
+   après succès comme après erreur. Aucune purge n’est garantie pour les
+   sauvegardes, les messages déjà écrits ou les pages SQLite libres.
+6. Maintenir l’allowlist `.md`, `.txt`, `.csv`, `.json`, `.sql`, la version
+   cible à déterminer, l’upload actuel `.md` seulement et le libellé actuel du
+   bouton. Les étapes A et B sont terminées et arbitrées; C, D et E ne sont pas
+   commencées. L’implémentation C requiert un GO distinct.
+
+**Conséquences** : les conditions de preuve du pré-scan JSON, de validation
+multiplateforme du worker et de mesure des seuils restent à satisfaire pendant
+C avant d’annoncer ces capacités. Aucun extracteur, paquet ou seuil numérique
+n’est choisi par cette décision. Les décisions #134 et #135 continuent de
+s’appliquer. 136 décisions.

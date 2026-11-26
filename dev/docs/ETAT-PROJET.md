@@ -1,6 +1,6 @@
 # État du projet La Citadelle
 
-**Mis à jour** : 2026-11-24
+**Mis à jour** : 2026-11-25
 
 **Dernier commit de code audité** : `6e8ef08` (audit SQL v12; HEAD observé
 au préflight GO 16-PHASE-CLOSE-FINAL, avant les changements documentaires).
@@ -43,11 +43,11 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 - **Dernière suite complète enregistrée** : `338 passed in 85.71s` au GO
   16-FIX-FLAKY-TESTS du 2026-11-24. Cette exécution précède le présent GO
   documentaire; aucune suite n’a été relancée ici.
-- **Décisions datées** : 135 entrées, comptées dans
+- **Décisions datées** : 136 entrées, comptées dans
   [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-25. Le comptage
   est calculé sur les titres `## [AAAA-MM-JJ]`; les décisions #134 et #135
-  cadrent les invariants et l’arbitrage fonctionnel de 16-MULTIFORMAT, sans
-  autoriser son implémentation.
+  cadrent les invariants et l’arbitrage fonctionnel, et #136 consigne les
+  arbitrages techniques de 16-MULTIFORMAT sans autoriser son implémentation.
 - **Décision modèle la plus récente** : Ornith recommandé s'il est local et
   whitelisté; Qwen3-4B reste le modèle intégré de fallback; Qwen3.5 reste local;
   Granite est retiré de la whitelist ([decisions.md](../../.memory/decisions.md#L2882)).
@@ -83,15 +83,19 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
   [décision #129](../../.memory/decisions.md#L2941)). Le test live a ensuite
   vérifié le parcours et les limites. La clôture finale des livrables centraux
   est consignée par la décision #132; les autres tâches restent des reports.
-- `16-MULTIFORMAT` reste ouvert après arbitrage fonctionnel : `.md`, `.txt`,
+- `16-MULTIFORMAT` reste ouvert après arbitrages A/B : `.md`, `.txt`,
   `.csv`, `.json` et `.sql` sont approuvés comme périmètre futur; CSV/JSON
   seront lus structurellement et Markdown/TXT/SQL comme texte non exécuté.
-  Une proposition de cadrage technique B est documentée et attend validation;
-  ses choix ne sont pas approuvés. La version cible reste à déterminer, sans
-  capacité nouvelle livrée. L’upload chat disponible accepte `.md` seulement.
+  Les arbitrages #135/#136 sont consignés; C reste non commencée et requiert
+  un GO distinct. En C, les preuves du pré-scan JSON et du packaging worker
+  sont requises, et les seuils candidats doivent être mesurés. Aucun paquet ni
+  seuil n’est approuvé. La version cible reste à déterminer, sans capacité
+  nouvelle livrée. L’upload chat disponible accepte `.md` seulement et le
+  bouton n’est pas renommé.
   Voir
   [BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat),
-  [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat) et
+  [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat),
+  [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat) et
   [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat).
 - L’audit v12 journalise les suppressions avec le propriétaire de la ligne,
   pas nécessairement l’acteur. Le test #62 via UI et #63 par DELETE direct
