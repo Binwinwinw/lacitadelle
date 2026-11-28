@@ -3185,3 +3185,100 @@ multiplateforme du worker et de mesure des seuils restent à satisfaire pendant
 C avant d’annoncer ces capacités. Aucun extracteur, paquet ou seuil numérique
 n’est choisi par cette décision. Les décisions #134 et #135 continuent de
 s’appliquer. 136 décisions.
+
+## [2026-11-27] Développement Windows d'abord pour le multiformat
+
+**Contexte** : Seul un poste Windows est disponible. La sonde C0A-3
+(SHA-256 9251e6a6742a161031a7956652c56c3715a194c93a02b55c2e0ac8d0b1d8e169)
+est validée sous Windows. Les retours C0b Linux et macOS ne peuvent pas
+être obtenus pour l'instant. La distribution source du projet prend en
+charge Windows, Linux et macOS. Les décisions #134, #135 et #136 restent
+en vigueur.
+
+**Décision(s)** :
+1. Le chantier 16-MULTIFORMAT se poursuit sous Windows. C0b Linux/macOS
+   est reporté jusqu'à ce que le projet soit disponible sur un poste
+   Linux ou macOS.
+2. C1 et C2 n'attendent pas C0b. C3 et C4 peuvent être développés sous
+   Windows, mais leurs preuves multiplateformes restent à produire.
+3. Tant que C0b n'est pas validé pour une plateforme, les formats CSV et
+   JSON, qui dépendent du worker, ne sont pas activés sur cette
+   plateforme. Le bouton de joindre un fichier ne propose que les formats
+   réellement disponibles sur la machine. Aucun format n'est annoncé dans
+   les README avant sa vérification.
+4. Le report n'est pas une validation : aucun résultat Linux ou macOS
+   n'est présumé. C0b devient un verrou avant livraison et clôture
+   (étape E) pour ces plateformes.
+5. Les choix d'architecture du worker restent à arbitrer en C3. Le
+   critère de portabilité est à considérer, notamment un module dédié
+   lancé par subprocess et un envoi borné par le délai.
+
+**Conséquences** : le Décideur peut avancer avec le matériel disponible.
+Le risque d'une divergence POSIX est assumé et borné par l'activation par
+plateforme. Les documents indiquent « C0b reporté (décision #137) »
+au lieu de « en attente du Décideur ».
+
+## [2026-11-27] Arbitrage du découpage C1–C4 du multiformat
+
+**Contexte** : la proposition de découpage C1–C4 figure dans
+PHASE16-RESTE.md. Elle s'appuie sur les mesures synthétiques de la sonde
+C0A-3 (SHA-256 9251e6a6742a161031a7956652c56c3715a194c93a02b55c2e0ac8d0b1d8e169),
+qui ne représentent ni le serveur ni un worker de production. Les
+décisions #134 à #137 restent en vigueur. Le Décideur a accepté les cinq
+recommandations d'arbitrage.
+
+**Décision(s)** :
+1. Architecture du worker (C3) : l'orientation est un module dédié lancé
+   par subprocess. L'option spawn depuis le serveur n'est retenue que si
+   une mesure sur le protocole réel la justifie. Le dispatch figé doit
+   quitter avant les imports lourds.
+2. Le délai couvre toute la durée (envoi, analyse, réponse, terminaison).
+   Un test avec un enfant qui ne lit pas est obligatoire.
+3. Plafonds CSV candidats conservés : 5 000 lignes, 100 colonnes,
+   20 000 cellules, champ de 64 KiB. Le comptage précède l'analyse. Chaque
+   frontière est testée à la valeur exacte et à +1. Les plafonds restent
+   révisables si les mesures du protocole réel l'exigent.
+4. Les capacités par plateforme sont décidées et refusées côté serveur.
+   Le client les affiche seulement et ne constitue pas une barrière.
+5. En C4, les JSON décodés rejettent NUL, les contrôles C0 hors
+   TAB/CR/LF, DEL, C1 et les substituts isolés. Les tests adverses sont
+   écrits avant le code.
+
+**Conséquences** : le lot C1 peut être demandé sous Windows par un GO
+distinct. Points ouverts, non tranchés : (a) livraison de .txt et .sql
+sur Linux et macOS, qui ne dépendent pas du worker; (b) budget de contexte
+des documents (24 064 tokens par slot dans les logs du serveur local) et
+mode de découpage ou de troncature des CSV et JSON. Aucun format n'est
+annoncé avant sa vérification.
+
+## [2026-11-27] Texte simple multiplateforme et stratégie de contexte
+
+**Contexte** : la décision #138 laissait deux points ouverts. Les logs du
+serveur local indiquent 24 064 tokens par slot. Un fichier de 256 Ko
+dépasse donc largement ce contexte. Le Décideur a tranché les deux points.
+
+**Décision(s)** :
+1. Les formats .txt et .sql ne dépendent pas du worker. Leur livraison sur
+   Linux et macOS n'attend pas C0b : #137 ne bloque que CSV et JSON. Les
+   règles de droits de #135 et #136 restent inchangées.
+2. Option C pour le contexte. Un petit fichier (environ 6 000 tokens ou
+   moins) est injecté en entier. Au-delà, une fiche toujours présente
+   (environ 1 000 tokens : nom, format, taille, lignes et colonnes, noms
+   et types, quelques lignes d'exemple, statistiques simples calculées par
+   le parseur) est accompagnée de segments retrouvés selon la question.
+3. Segments CSV : de 3 à 10 lignes (environ 500 à 1 000 tokens), l'en-tête
+   étant répété dans chaque segment. Segments JSON : un élément de premier
+   niveau, préfixé de son chemin JSON Pointer; un élément trop gros est
+   découpé par enfants en gardant le chemin.
+4. Budget de départ, révisable après mesure sur le protocole réel : 6 à 9
+   segments (environ 8 000 tokens), la fiche en plus, et au moins 12 000
+   tokens laissés à la conversation et à la réponse.
+5. L'interface indique « analyse partielle : N segments sur M consultés ».
+   Aucune troncature silencieuse.
+6. Le modèle n'écrit ni n'exécute de code (SQL, pandas) sur les fichiers.
+
+**Conséquences** : C2 spécifie la fiche, les segments et leurs tests.
+L'étape D affiche l'indication d'analyse partielle. Il reste à vérifier en
+C2 que l'index FTS5 existant convient à ces segments. Les valeurs chiffrées
+ne sont pas verrouillées avant mesure. Aucun format n'est annoncé avant sa
+vérification.

@@ -85,8 +85,12 @@ décisions et objectifs du projet.
 #### 6. `16-MULTIFORMAT`
 
 - **État** : arbitrages fonctionnels A et techniques B terminés et consignés
-  le 2026-11-25 dans les décisions #135 et #136; implémentation C non
-  commencée. L’upload chat reste `.md` seulement.
+  le 2026-11-25 dans les décisions #135 et #136; décisions #137–#139 du
+  2026-11-27 : poursuite Windows-first, arbitrage C1–C4 et stratégie de
+  contexte. C1 peut être demandé sous Windows par un GO distinct. C0a Windows
+  est validé par C0A-3; C0b Linux/macOS est reporté, sans résultat présumé.
+  L’implémentation C n’est pas commencée;
+  l’upload chat reste `.md` seulement.
 - **Description** : réaliser ultérieurement l’allowlist approuvée `.md`, `.txt`,
   `.csv`, `.json`, `.sql`; cela ne décrit pas la disponibilité actuelle.
 - **Faits clés** : le chat accepte `.md`; le helper générique `.txt`/PDF et le
@@ -96,17 +100,102 @@ décisions et objectifs du projet.
   permissions non issues du document et vérifications imposées côté serveur.
 - **Dépendances et arbitrages** : profondeur approuvée : CSV/JSON structurés,
   Markdown/TXT/SQL textuels, aucun contenu exécuté. La version cible est à
-  déterminer. A et B sont arbitrées; C/D/E ne sont pas commencées. En C,
-  démontrer le pré-scan JSON avant `json.loads`, valider le worker et son
-  packaging Windows/Linux/macOS, puis mesurer les seuils candidats. Les valeurs
-  candidates ne sont pas approuvées; aucun paquet n’est choisi. Voir le
+  déterminer. C0a a produit les preuves Windows; C0b Linux/macOS est reporté
+  (décision #137), sans prétendre valider ces plateformes. Selon #139, `.txt`
+  et `.sql` peuvent être livrés sur Linux/macOS après leur vérification propre,
+  sans attendre C0b; CSV/JSON restent bloqués sur chaque plateforme jusqu'à
+  validation de son C0b. C1 peut être demandé sous Windows; C1/C2 n'attendent
+  pas C0b et C3/C4 peuvent y être développés, preuves multiplateformes avant
+  livraison. Les README n'annoncent aucun format non vérifié. Les décisions
+  #138/#139 tranchent architecture, deadline totale, candidats CSV, validation
+  serveur par plateforme, contrôles JSON décodés et option C de contexte. Les
+  plafonds et budgets restent révisables après mesure du protocole réel. Le
+  script
+  autonome et sa notice sont dans la
+  section C0 du BACKLOG. Voir le
   [plan détaillé](./BACKLOG.md#16-multiformat), la
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat), la
   [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat) et les
   [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et la
   [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md).
-- **Prochaine action** : proposer le découpage du GO d’implémentation C avec
-  lots, tests et conditions d’arrêt. Un GO distinct est requis avant C.
+- **Prochaine action** : demander un GO distinct pour C1 sous Windows.
+  C0b reste le verrou pour activer CSV/JSON et clore le multiformat POSIX;
+  il ne bloque pas la livraison de `.txt`/`.sql` après vérification propre
+  (#139).
+- **Proposition de découpage C1–C4** (à arbitrer; ne constitue pas une
+  autorisation d’implémentation) :
+
+| Lot | Objectif et fichiers visés | Tests à écrire en premier | Preuve, arrêt, dépendances et plateformes |
+|---|---|---|---|
+| **C1 — texte simple** | Ajouter un lecteur chat UTF-8 borné pour `.txt` et `.sql` texte; `.sql` demeure admin-only selon #136. Adapter le dispatch et la réponse d’upload dans [login_server.py](../tools/login_server.py) et ajouter un point d’entrée chat dédié dans [extract_text.py](../tools/nodes/extract_text.py). Réutiliser les contrôles d’ownership et de stockage existants; aucune migration prévue. | Étendre [test_chat_documents.py](../tests/test_chat_documents.py) avec UTF-8, BOM, vide/contrôles, limites, rôle `user`/`admin`, session non propriétaire, erreur et nettoyage. Étendre [test_nodes.py](../tests/test_nodes.py) si le lecteur partagé change. | API de test isolée avec DB/temporaire; `.md` inchangé et SQL refusé aux non-admins. Arrêt si le nettoyage, les droits ou les codes existants changent sans décision. Dépend de #135/#136, pas de C0b. Développement et preuve initiale sous Windows; selon #139, `.txt`/`.sql` POSIX peuvent être livrés après validation propre sans attendre C0b. |
+| **C2 — parseurs structurés et contexte** | Implémenter les fonctions CSV/JSON pures et la fiche/segmentation Option C, sans activation avant C3. Nouveau module proposé : `dev/tools/nodes/extract_structured.py`; vérifier aussi [index_fts5.py](../tools/nodes/index_fts5.py). Le prototype [json_prescan_prototype.py](../tools/json_prescan_prototype.py) et ses [tests](../tests/test_json_prescan_prototype.py) restent une référence C0, pas une dépendance de production. | Nouveau `dev/tests/test_chat_structured_documents.py` : parsing, limites exact/+1, fiche complète, segments CSV avec en-tête répété, segments JSON avec Pointer, éléments volumineux divisés par enfants, contexte total et absence de troncature silencieuse. Étendre [test_nodes_fts5_improve.py](../tests/test_nodes_fts5_improve.py) pour vérifier l’adéquation de FTS5 aux segments/locators. | Option C #139 : fichier ≤≈6 000 tokens entier; sinon fiche toujours présente (≈1 000 tokens) + segments retrouvés selon la question. CSV : 3–10 lignes/segment (≈500–1 000 tokens), en-tête répété. JSON : élément de premier niveau avec Pointer, divisé par enfants s’il est trop gros. Budget de départ : 6–9 segments (≈8 000 tokens), fiche en plus, ≥12 000 tokens réservés à conversation/réponse; valeurs à réviser après mesures. Aucune troncature silencieuse. C2 n’attend pas C0b; arrêter si FTS5 ne préserve pas les locators/coverage. |
+| **C3 — worker borné et packaging** | Intégrer le module dédié `dev/tools/nodes/structured_worker.py` via [login_server.py](../tools/login_server.py). Orientation #138 : lancement par subprocess; spawn depuis le serveur seulement si une mesure du protocole réel le justifie. Pour l’EXE, dispatch frozen avant les imports lourds dans [lancer.py](../tools/lancer.py), imports de [build.spec](../tools/packaging/build.spec) et, si nécessaire, [build.py](../tools/packaging/build.py). | Nouveau `dev/tests/test_structured_worker.py` : protocole, requête/réponse bornées, enfant bloqué ou qui ne lit pas, délai couvrant l’envoi, parsing et retour, arrêt/cleanup sans orphelin. Étendre [test_chat_documents.py](../tests/test_chat_documents.py) pour les erreurs API; étendre [test_packaging.py](../tests/test_packaging.py) pour le dispatch gelé si le contrat le permet. | Tests ciblés puis smoke PyInstaller one-file Windows, sans installation implicite. Arrêt si l’envoi peut dépasser le délai, si un worker reste actif ou si le smoke échoue; pas de fallback in-process sans mesure réelle favorable. C3 dépend de C2. Développement/validation sous Windows seulement; aucune preuve Linux/macOS. |
+| **C4 — durcissement et disponibilité** | Rejeter les contrôles JSON décodés et substituts isolés selon #138, avec locators et erreurs finales dans `extract_structured.py` et [login_server.py](../tools/login_server.py). Capacités par plateforme déterminées/refusées côté serveur; [chat.html](../tools/web/chat.html) et [chat.js](../tools/web/chat.js) restent hors du lot C (D les reflète seulement). | Compléter `test_chat_structured_documents.py` avec échappements décodés dans valeurs et clés, NUL, C0 hors TAB/CR/LF, DEL, C1, substituts isolés, absence de persistance sur rejet, locators et frontières des limites. Compléter [test_chat_documents.py](../tests/test_chat_documents.py) pour l’échec API et le nettoyage. | Suite ciblée Windows et smoke empaqueté; toute capacité doit échouer fermée. Arrêt si une valeur interdite est acceptée ou si le client peut contourner la capacité serveur. Dépend de C2/C3. C3/C4 peuvent être développés sous Windows; CSV/JSON restent désactivés jusqu’à validation C0b de la plateforme. `.txt`/`.sql` POSIX ne l’attendent pas (#139). |
+
+- **Hors C** : l’interface et la présentation des formats restent dans D.
+  Jusqu’à sa validation, le sélecteur conserve `.md` seulement. Aucun README
+  n’annonce de format avant la vérification effective. D affiche pour l’analyse
+  partielle « analyse partielle : N segments sur M consultés »; aucun résultat
+  n’est tronqué silencieusement.
+- **Livraison minimale recommandée** : après C1 puis un GO D distinct, proposer
+  `.md` + `.txt` sur Windows; `.txt`/`.sql` POSIX peuvent suivre après validation
+  propre sans attendre C0b (#139). Garder `.sql` admin-only; ne pas annoncer
+  CSV/JSON avant le worker C3, le durcissement C4 et le C0b de la plateforme.
+
+##### Décisions #138–#139 consignées
+
+1. **Architecture du worker (C3)** : l’orientation est le module
+   dédié lancé par `subprocess`; `spawn` depuis le serveur n’est retenu que si
+   une mesure sur le protocole réel la justifie. Le dispatch frozen quitte avant
+   les imports lourds. Les mesures C0A-3 ci-dessous sont celles du harnais
+   synthétique, pas du worker de production : spawn source
+   `239.609/252.539 ms`, subprocess source `97.900/136.836 ms` (médiane/max,
+   5 essais); spawn figé `1 136.476/1 257.691 ms`, subprocess figé
+   `1 027.486/2 107.919 ms`.
+2. **Envoi et délai** : le délai mural couvre toute la durée :
+   envoi, analyse, réponse et terminaison. Le test d’un enfant qui ne lit pas
+   est obligatoire.
+   - Le C0A-3 a arrêté un worker bloqué après `5.022 s` et une boucle CPU après
+     `5.024 s`; le harnais borne l’entrée à 256 KiB et sa réponse à 512 octets.
+     Dans `_call_worker`, `send_bytes` précède `poll(timeout)` : ce résultat ne
+     prouve donc pas que l’envoi lui-même respecte le délai; le test
+     obligatoire doit couvrir ce chemin.
+3. **Plafonds CSV (C2)** : candidats conservés par #138 : 5 000 lignes,
+   100 colonnes, 20 000 cellules et un champ de 64 KiB sont conservés.
+   Le comptage précède l’analyse; chaque frontière est testée à exact et +1.
+   Les candidats peuvent être révisés si les mesures réelles l’exigent. C0A-3
+   a mesuré sur
+   Windows, sur données synthétiques, 20 000 cellules à `265/855 ms` worker
+   médiane/max; 131 000 lignes d’un caractère à `1.158/1.780 s`; et une ligne
+   de virgules de 256 KiB à `475/711 ms`. Le dernier cas atteint environ 8.04 MB
+   de pic `tracemalloc`. Les mesures ne sont ni RSS ni garantie de portabilité.
+4. **Activation par plateforme** : les capacités sont décidées et refusées
+   côté serveur; le client les affiche seulement. #139 précise que C0b bloque
+   CSV/JSON seulement; `.txt`/`.sql` peuvent être livrés POSIX après validation
+   propre à ces formats. Les README n’annoncent aucun format avant vérification.
+5. **Échappements JSON décodés (C4)** : rejeter NUL, contrôles C0
+   hors TAB/CR/LF, DEL, C1 et substituts isolés; les tests adverses précèdent
+   le code. C0A-3 n’a pas couvert les contrôles
+   obtenus via `\u0000`/`\u007f` ni les substituts isolés comme `\ud800`.
+6. **Contexte (C2, Option C)** : injecter entièrement un fichier d’environ
+   6 000 tokens ou moins. Au-delà, toujours joindre une fiche d’environ 1 000
+   tokens (nom, format, taille, lignes/colonnes, noms/types, exemples et
+   statistiques calculées par le parseur), puis retrouver des segments selon
+   la question. CSV : 3–10 lignes, 500–1 000 tokens, en-tête répété; JSON :
+   élément de premier niveau avec JSON Pointer, divisé par enfants s’il est
+   trop gros. Budget de départ : 6–9 segments (≈8 000 tokens), fiche en plus,
+   au moins 12 000 tokens pour conversation/réponse; valeurs à mesurer et
+   réviser, sans troncature silencieuse. D affiche « analyse partielle : N
+   segments sur M consultés ». Le modèle n’écrit ni n’exécute de code sur les
+   fichiers.
+
+##### Vérifications de suivi en C2
+
+Décision #139 résout les deux points ouverts de #138. C2 doit encore vérifier
+que l’index FTS5 existant convient aux segments et locators, puis mesurer le
+protocole réel pour ajuster les budgets de départ; ces validations ne changent
+pas l’Option C sans nouveau GO.
+
 - **Priorité** : moyenne, proposée; le BACKLOG la laisse à déterminer.
 
 #### 7. Validation persona post-Qwen3-4B (TODO sans identifiant)

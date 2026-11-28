@@ -4,7 +4,7 @@
 tâche terminée est supprimée ici; sa trace reste dans
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 
-**Dernière mise à jour** : 2026-11-24.
+**Dernière mise à jour** : 2026-11-27.
 
 ## Actif
 
@@ -140,13 +140,17 @@ tâche terminée est supprimée ici; sa trace reste dans
 **Phase 16** : AIWorkflow, Fichiers Chat, Audit SQL clôturés. Tâches restantes :
 voir [PHASE16-RESTE.md](dev/docs/PHASE16-RESTE.md).
 
-- [ ] **16-MULTIFORMAT** : arbitrages A (#135) et B (#136) terminés le
-  2026-11-25; C non commencée, GO distinct requis. L’allowlist future reste
-  `.md`, `.txt`, `.csv`, `.json`, `.sql`; l’upload actuel accepte `.md` seulement
-  et le bouton reste inchangé. Version cible à déterminer. En C, démontrer le
-  pré-scan JSON, valider le packaging du worker et mesurer les seuils candidats.
-  Prochaine action :
-  proposer le découpage du GO C avec lots, tests et conditions d’arrêt. Voir le
+- [ ] **16-MULTIFORMAT** : décisions #135–#139 consignées; C0a Windows validé
+  par C0A-3; C0b Linux/macOS reporté, sans résultat présumé. CSV/JSON attendent
+  C0b; `.txt`/`.sql` peuvent être livrés POSIX après validation propre (#139).
+  C reste non commencée; l’allowlist future est `.md`, `.txt`, `.csv`, `.json`,
+  `.sql`, tandis que l’upload actuel accepte `.md` seulement et le bouton reste
+  inchangé. Version cible à déterminer. C1/C2 n'attendent pas C0b; C3/C4
+  peuvent être développés sous Windows, avec preuves multiplateformes requises
+  avant activation CSV/JSON. Option C de contexte adoptée (#139); les budgets
+  sont révisables après mesure. C2 doit vérifier l’adéquation de FTS5 aux
+  segments/locators. Prochaine action : demander un GO distinct pour C1 sous
+  Windows. Voir le
   [plan 16-MULTIFORMAT](dev/docs/BACKLOG.md#16-multiformat), les décisions
   [#135](.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat)
   et [#136](.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat), ainsi que les

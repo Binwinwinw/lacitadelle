@@ -2,17 +2,112 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-27] GO 16-MULTIFORMAT-COMMIT-LOCAL - documentation et carte
+
+**Commit** : voir le message Git de sauvegarde documentaire.
+**Fichiers modifies** : `AGENTS.md`, `TODO.md`, `.memory/decisions.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/ETAT-PROJET.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/PHASE16-RESTE.md` et `dev/docs/CARTE-DEPOT.md`.
+**Raison** : sauvegarder les décisions 137–139, résultats C0A et carte du dépôt
+dans un commit local distinct du code et des tests.
+**Impact** : documentation consolidée; aucun push ni changement de comportement.
+
 ## [2026-11-27] GO 16-MULTIFORMAT-COMMIT-LOCAL - code et tests C0A
 
-**Commit** : hash a reporter dans le commit documentaire.
+**Commit** : `f302789`.
 **Fichiers modifies** : `dev/tools/json_prescan_prototype.py`,
 `dev/tools/c0_multiformat_probe.py`,
 `dev/tests/test_json_prescan_prototype.py`,
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 **Raison** : sauvegarder localement le pre-scan, la sonde et leurs tests C0A
 valides, sans integration au produit.
-**Impact** : prototypes et preuves C0A conserves; aucun code de production ni
+**Impact** : prototypes et preuves C0A conservés; aucun code de production ni
 format livre.
+
+## [2026-11-27] GO 16-DEV-CARTE-DEPOT — carte et nettoyage du POC Graphify
+
+**Commit** : aucun; le GO n’autorise pas de commit.
+**Fichiers modifiés** : `dev/docs/CARTE-DEPOT.md`, `AGENTS.md`,
+`dev/docs/JOURNALDEBORD.md` et `dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : retenir une carte concise du dépôt après le POC Graphify de
+développement, qui n’a pas atteint le seuil de succès (3/8).
+**Impact** : liens vers les domaines et tests ajoutés dans la carte; outil uv
+et graphe externe nettoyés. Aucun code, test ni sonde modifié.
+
+## [2026-11-27] GO 16-MULTIFORMAT-TEXTE-CONTEXTE — décision #139
+
+**Commit** : aucun; le GO n’autorise pas de commit.
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/ETAT-PROJET.md`, `dev/docs/PHASE16-RESTE.md`,
+`dev/docs/BACKLOG.md`, `TODO.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : consigner le support POSIX du texte sans dépendance au worker et
+la stratégie de fiche/segments Option C.
+**Impact** : compte de décisions à 139; C1 peut être demandé sous Windows par
+un GO distinct. FTS5 et les budgets réels restent à vérifier en C2; aucun code,
+test, sonde, transfert ou format annoncé n’a changé.
+
+## [2026-11-27] GO 16-MULTIFORMAT-ARBITRAGE-C — décision #138
+
+**Commit** : aucun; le GO n’autorise pas de commit.
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`,
+`dev/docs/ETAT-PROJET.md`, `dev/docs/PHASE16-RESTE.md`,
+`dev/docs/BACKLOG.md`, `TODO.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : consigner les cinq arbitrages C1–C4 et réconcilier la prochaine
+action et les deux questions ouvertes.
+**Impact** : 138 décisions datées; C1 peut être demandé sous Windows par un GO
+distinct. Aucun code, test, sonde, format disponible ou résultat POSIX ajouté.
+
+## [2026-11-27] GO 16-MULTIFORMAT-WINDOWS-FIRST — décision #137
+
+**Commit** : aucun; le GO n’autorise pas de commit.
+**Fichiers modifiés** : `.memory/decisions.md`, `AGENTS.md`, `TODO.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/ETAT-PROJET.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/JOURNALDEBORD.md` et
+`dev/docs/JOURNALDESMODIFS.md`.
+**Raison** : consigner le choix Windows-first et reporter C0b Linux/macOS
+jusqu’à disponibilité des plateformes, sans présenter le report comme une
+validation.
+**Impact** : compte de décisions à 137; C1/C2 n’attendent pas C0b, C3/C4
+peuvent avancer sous Windows avec preuves multiplateformes avant livraison.
+Aucun code, test, sonde, transfert ou format disponible n’a changé.
+
+## [2026-11-26] GO 16-MULTIFORMAT-C0A-2 — corrections et isolation
+
+**HEAD de référence** : `da70406d63c622fd7df0a01621f1f267fe09f787`.
+Aucun commit n’est créé dans ce GO.
+**Fichiers modifiés** : `dev/tools/json_prescan_prototype.py`,
+`dev/tests/test_json_prescan_prototype.py`,
+`dev/tools/c0_multiformat_probe.py`, `AGENTS.md`, `TODO.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/ETAT-PROJET.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/JOURNALDESMODIFS.md` et
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : compléter les limites du pré-scan et comparer empiriquement
+l’isolation spawn/subprocess, dont le packaging PyInstaller.
+**Impact** : aucune intégration produit ni format disponible. La suite complète
+est passée de 375 à 396 tests (+21); Ruff 0.17.5 est propre; la sonde Windows
+réussit avec PyInstaller 6.22.3. C0b Linux/macOS reste en attente de relecture
+et de résultats; aucun paquet n’a été installé.
+
+## [2026-11-25] GO 16-MULTIFORMAT-C0A — preuves préalables Windows
+
+**HEAD de référence** : `da70406d63c622fd7df0a01621f1f267fe09f787`.
+Aucun commit n’est créé dans ce GO.
+**Fichiers modifiés** : `dev/tools/json_prescan_prototype.py`,
+`dev/tests/test_json_prescan_prototype.py`,
+`dev/tools/c0_multiformat_probe.py`, `AGENTS.md`, `TODO.md`,
+`dev/docs/BACKLOG.md`, `dev/docs/ETAT-PROJET.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/JOURNALDESMODIFS.md` et
+`dev/docs/JOURNALDEBORD.md`.
+**Raison** : établir les preuves C0a sur Windows avant toute intégration au
+parcours d’upload, et fournir un script autonome pour C0b.
+**Impact** : le produit et l’allowlist ne changent pas. Suite complète :
+338 tests avant les ajouts, 375 après (+37); 37 tests adverses ciblés passent.
+Le pré-scan et le worker sont des prototypes de mesure, pas du code de
+production. C0a Windows est terminé; C0b Linux/macOS reste en attente.
+Aucun paquet installé ni DB/service/document utilisateur utilisé.
 
 ## [2026-11-25] GO 16-MULTIFORMAT-ARBITRAGE-B — conditions techniques arbitrées
 

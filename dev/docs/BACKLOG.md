@@ -814,10 +814,13 @@ aucune règle de rétention des logs n’a été définie dans ce GO.
 
 #### 16-MULTIFORMAT
 
-**Statut** : arbitrages A (#135) et B (#136) terminés le 2026-11-25;
-C, D et E non commencées. Les conditions de validation précisées par #136
-restent à satisfaire en C.
-L’upload du chat accepte toujours `.md` seulement.
+**Statut** : arbitrages A/B (#135/#136), Windows-first (#137), découpage
+C1–C4 (#138) et texte/contexte (#139) consignés. C1 peut être demandé sous
+Windows par un GO distinct; C2–C4 restent à exécuter. C0b Linux/macOS est
+reporté, sans résultat présumé; CSV/JSON attendent C0b et la clôture
+multiformat POSIX reste bloquée. `.txt`/`.sql` peuvent être livrés POSIX après
+validation propre sans attendre C0b (#139). L’upload du chat accepte toujours
+`.md` seulement.
 **Priorité** : à déterminer.
 **Objectif** : faire évoluer le contrôle actuel « Joindre un .md » vers
 « Joindre un fichier » uniquement lorsque les formats effectivement pris en
@@ -1163,6 +1166,294 @@ Avant de déclarer les traitements disponibles en C :
 - mesurer le délai candidat de 5 s et les seuils CSV/JSON, qui restent des
   candidats non approuvés. Aucune limite mémoire portable n’est promise.
 
+#### C0 — résultats
+
+**Statut** : C0a Windows corrigé et validé par C0A-3. C0b Linux/macOS est
+reporté (décision #137) jusqu'à disponibilité du projet sur ces plateformes;
+aucun résultat POSIX n'est présumé. C0b reste un verrou pour CSV/JSON et la
+clôture multiformat POSIX, mais ne bloque pas la livraison de `.txt`/`.sql`
+après leur validation propre (#139). C1/C2 n'attendent pas C0b; C3/C4 peuvent
+être développés sous Windows, mais leurs preuves multiplateformes restent
+requises avant l’activation CSV/JSON. Les README n'annoncent pas de format non
+vérifié.
+
+**Fichiers créés** :
+
+- [prototype `json_prescan_prototype.py`](../tools/json_prescan_prototype.py),
+  isolé et non importé par le code de production;
+- [tests `test_json_prescan_prototype.py`](../tests/test_json_prescan_prototype.py),
+  58 cas ciblés, incluant le différentiel à graine fixe sur des octets
+  structurels et l’identité de la copie embarquée;
+- [sonde autonome `c0_multiformat_probe.py`](../tools/c0_multiformat_probe.py),
+  bibliothèque standard seulement, sans dépôt requis.
+
+Le script autonome embarque une copie du scanner pour pouvoir être transféré
+seul; le test d’identité compare les définitions du scanner et de son chargeur
+dans les deux fichiers. Les tests et la sonde utilisent des données
+synthétiques/mémoire ou temporaires seulement : aucune DB, document utilisateur,
+serveur ou réseau n’a été utilisé. Le worker n’est pas un sandbox.
+
+**Référence C0A initiale** (Python du projet
+`.\.venv\Scripts\python.exe -m pytest -q`) :
+
+- avant modification : `338 passed in 92.40s (0:01:32)`, code de sortie 0;
+- après ajout des tests : `375 passed in 96.36s (0:01:36)`, code de sortie 0;
+- variation : +37 cas attendus dans `test_json_prescan_prototype.py`.
+
+**Sonde Windows C0A initiale (historique, remplacée pour transfert)** :
+commande
+`.\.venv\Scripts\python.exe dev\tools\c0_multiformat_probe.py`.
+Résultat initial `RÉUSSI`, code de sortie 0, durée 49.669 s. Machine rapportée :
+Windows 11, Python 3.15.2, Intel64 Family 6 Model 158 Stepping 10, 12 cœurs
+logiques, mémoire physique 63.94 GiB. SHA-256 source :
+`7ff6277dec71132cc04c0ac865e7d8e37e7cab7b876c2a04a9874da08031900b`.
+
+Tableau historique de la première sonde C0A; les résultats Windows actuels
+sont consignés dans le complément C0A-2 ci-dessous.
+
+| Vérification | Windows — résultat | Linux — résultat | macOS — résultat |
+|---|---|---|---|
+| Pré-scan JSON adverse | RÉUSSI; limites exactes/+1, chaînes/échappements, UTF-8, BOM, données après racine et propriété à graine fixe | En attente; à saisir dans le bloc de retour | En attente; à saisir dans le bloc de retour |
+| Délai du worker bloqué | RÉUSSI; terminé à 5.024 s | En attente; observer spawn et arrêt | En attente; observer spawn et arrêt |
+| Absence d’orphelins | RÉUSSI; aucun enfant restant | En attente; rapporter PID éventuel | En attente; rapporter PID éventuel |
+| Échanges bornés | RÉUSSI; réponse normale bornée, réponse excessive refusée par le parent | En attente | En attente |
+| Isolation des imports | RÉUSSI historiquement, non probant (voir C0A-2) | En attente | En attente |
+| `csv.field_size_limit` | RÉUSSI; changement enfant sans effet sur le parent | En attente | En attente |
+| Coût de démarrage | RÉUSSI; ping spawn médiane/max 0.206/0.244 s, sonde légère et non serveur | En attente | En attente |
+| Mesures synthétiques | RÉUSSI; 9 scénarios × 20 exécutions, détails ci-dessous | En attente | En attente |
+| Packaging figé | RÉUSSI; PyInstaller 6.22.3 one-file et smoke worker, code 0; aucun outil installé | Facultatif si PyInstaller est déjà présent | Facultatif si PyInstaller est déjà présent |
+
+Mesures Windows. Les temps worker incluent création du processus et échange IPC;
+les pics `tracemalloc` ne sont pas la mémoire résidente (RSS).
+
+| Scénario | In-process médiane/max (ms) | Pic tracemalloc (B) | Worker médiane/max (ms) | Pic tracemalloc enfant (B) |
+|---|---:|---:|---:|---:|
+| CSV — 5 000 lignes, 1 colonne | 28.141 / 31.845 | 136 869 | 206.914 / 219.622 | 136 869 |
+| CSV — 100 colonnes | 0.098 / 0.140 | 25 808 | 186.249 / 233.545 | 25 784 |
+| CSV — 20 000 cellules | 4.445 / 6.436 | 219 439 | 184.506 / 200.326 | 219 439 |
+| CSV — champ 64 KiB | 0.935 / 1.259 | 721 574 | 183.516 / 257.204 | 721 574 |
+| CSV — fichier ~256 KiB | 2.878 / 3.272 | 1 662 806 | 183.699 / 193.574 | 1 662 806 |
+| JSON — profondeur 64 | 0.117 / 0.276 | 5 029 | 180.988 / 213.249 | 4 997 |
+| JSON — 20 000 nœuds | 41.596 / 53.755 | 1 351 167 | 220.816 / 255.767 | 1 351 298 |
+| JSON — chaîne longue | 28.928 / 43.324 | 402 726 | 210.921 / 245.513 | 402 870 |
+| JSON — fichier ~256 KiB | 40.625 / 58.923 | 526 906 | 218.568 / 242.832 | 527 147 |
+
+Les limites 64, 20 000, 64 KiB et 256 KiB restent des valeurs candidates,
+non des seuils approuvés. Ces mesures décrivent cette machine et ne promettent
+aucune limite RSS portable.
+
+**Sortie de retour C0A initiale (historique; ne pas transférer)** :
+
+```text
+C0A|status=RÉUSSI|mode=complet|system=Windows 11|python=3.15.2|python_path=<répertoire masqué>/python.exe|cpu=Intel64 Family 6 Model 158 Stepping 10, GenuineIntel|logical_cpus=12|ram_GiB=63.94|sha256=7ff6277dec71132cc04c0ac865e7d8e37e7cab7b876c2a04a9874da08031900b|checks=Pré-scan JSON adverse=OK,Worker spawn et protections=OK,Mesures synthétiques=OK|measures=csv_5000_lignes_1_colonne:in_ms=28.141/31.845,in_peak_B=136869,worker_ms=206.914/219.622,worker_peak_B=136869,csv_100_colonnes:in_ms=0.098/0.140,in_peak_B=25808,worker_ms=186.249/233.545,worker_peak_B=25784,csv_20000_cellules:in_ms=4.445/6.436,in_peak_B=219439,worker_ms=184.506/200.326,worker_peak_B=219439,csv_champ_64KiB:in_ms=0.935/1.259,in_peak_B=721574,worker_ms=183.516/257.204,worker_peak_B=721574,csv_proche_256KiB:in_ms=2.878/3.272,in_peak_B=1662806,worker_ms=183.699/193.574,worker_peak_B=1662806,json_profondeur_64:in_ms=0.117/0.276,in_peak_B=5029,worker_ms=180.988/213.249,worker_peak_B=4997,json_20000_noeuds:in_ms=41.596/53.755,in_peak_B=1351167,worker_ms=220.816/255.767,worker_peak_B=1351298,json_chaine_longue:in_ms=28.928/43.324,in_peak_B=402726,worker_ms=210.921/245.513,worker_peak_B=402870,json_proche_256KiB:in_ms=40.625/58.923,in_peak_B=526906,worker_ms=218.568/242.832,worker_peak_B=527147|orphans=none|duration_s=49.669
+```
+
+#### C0A-2 — corrections et preuve comparative d’isolation (Windows, 2026-11-26)
+
+**Résultat** : la première sonde C0A-2 a signalé que son auto-vérification
+classait encore le BOM simple comme invalide; ce cas de test de la sonde a été
+corrigé. La sonde complète finale réussit, code 0, sans orphelin. Aucun
+comportement du produit ne change.
+
+- Référence avant modification : `375 passed in 96.67s`, code 0.
+- Suite finale : `396 passed in 97.03s`, code 0, soit +21 tests.
+- Tests ciblés : `58 passed`; le différentiel décrit ci-dessous couvre les
+  octets structurels et scalaires, vérifie l’acceptation dans les deux sens et
+  compare exactement les comptes.
+- Ruff 0.17.5 : aucun problème sur les trois fichiers Python.
+- Sonde : Windows 11, Python 3.15.2, Intel64 Family 6 Model 158 Stepping 10,
+  12 cœurs logiques, 63.94 GiB; `RÉUSSI`, 187.684 s.
+- SHA-256 du script exécuté par C0A-2 (historique) :
+  `b748eb05e082ec4188ec3ea00013a92ba96e2fccc66711118b0cecd6babf0b7a`.
+
+Le candidat de longueur maximale d’un littéral numérique est 1 000 caractères;
+il n’est pas approuvé. Le pré-scan refuse la limite +1 et un entier de 5 000
+chiffres avant tout appel à `json.loads`. Un BOM UTF-8 initial est retiré; le
+double BOM est rejeté. `load_json_bounded` détecte aussi les clés dupliquées
+après décodage, y compris les clés rendues identiques par un échappement.
+Restent volontairement hors couverture, à traiter en C4 : validation des
+caractères de contrôle obtenus par `\u0000` et `\u007f`, et rejet des
+substituts isolés comme `\ud800`. Aucun de ces cas n’est implémenté ici.
+
+**Comparaison d’isolation C0A-2 (historique)** — la sonde a créé dans son répertoire temporaire
+un faux module principal important `sqlite3` et `http.server` au niveau
+supérieur. Les modules cités sont ceux présents dans l’enfant parmi les
+imports sondés; les temps sont une seule exécution par architecture et ne
+constituent pas les mesures comparatives à cinq essais de C0A-3.
+
+| Architecture | Modules sondés présents dans l’enfant | Démarrage mesuré | Observation |
+|---|---|---:|---|
+| `spawn`, source | `__main__`, `__mp_main__`, `light_worker`, `sqlite3`, `http.server` | 209.684 ms | Le démarrage réimporte le module principal et ses imports lourds. |
+| `subprocess`, source | `__main__` seulement; 62 modules au total | 118.094 ms | Le module worker dédié n’importe ni `sqlite3` ni `http.server`. |
+| `spawn`, PyInstaller one-file | `__main__`, `__mp_main__`, `light_worker`, `sqlite3`, `http.server` | 947.590 ms | Les imports du faux principal sont présents dans l’enfant figé. |
+| `subprocess`, PyInstaller one-file | `__main__` seulement | 1 802.097 ms | Le worker figé dédié n’importe pas les deux modules du principal. |
+
+PyInstaller 6.22.3 était déjà installé. Les deux exécutables one-file ont été
+construits dans le répertoire temporaire de la sonde, puis exécutés; aucun
+outil n’a été installé. Ces observations comparent les deux architectures,
+sans en choisir une.
+
+Mesures sur 16 scénarios; la première exécution de chaque cas a été écartée,
+puis 20 exécutions ont été mesurées. Le temps worker inclut démarrage du
+processus et échange IPC; `tracemalloc` mesure les allocations Python et ne
+représente pas la mémoire résidente (RSS).
+
+| Scénario | In-process médiane/max (ms) | Pic (B) | Worker médiane/max (ms) | Pic enfant (B) | Résultat |
+|---|---:|---:|---:|---:|---|
+| CSV — 5 000 lignes, 1 colonne | 32.065 / 40.731 | 136 869 | 231.219 / 265.025 | 136 869 | Accepté |
+| CSV — 100 colonnes | 0.093 / 0.188 | 25 784 | 205.473 / 238.099 | 25 784 | Accepté |
+| CSV — 20 000 cellules | 5.068 / 8.250 | 219 439 | 195.612 / 231.978 | 219 439 | Accepté |
+| CSV — champ 64 KiB | 0.639 / 1.015 | 721 574 | 198.833 / 299.041 | 721 574 | Accepté |
+| CSV — fichier ~256 KiB | 2.748 / 3.064 | 1 662 806 | 198.947 / 219.555 | 1 662 806 | Accepté |
+| CSV — 256 KiB de virgules, une ligne | 26.600 / 35.690 | 8 037 660 | 224.125 / 259.228 | 8 037 660 | Accepté |
+| CSV — 131 000 lignes d’un caractère | 690.332 / 905.170 | 1 327 348 | 848.662 / 977.061 | 1 327 348 | Accepté |
+| CSV — champ cité multiligne 256 KiB | 58.060 / 75.572 | 1 835 947 | 274.967 / 352.440 | 1 835 947 | Rejet `csv.Error` |
+| CSV — 100 colonnes × 300 lignes | 9.589 / 11.534 | 319 444 | 226.348 / 260.849 | 319 444 | Accepté |
+| JSON — profondeur 64 | 0.119 / 0.157 | 5 002 | 203.743 / 283.111 | 6 677 | Accepté |
+| JSON — 20 000 nœuds | 47.313 / 58.227 | 1 351 490 | 273.320 / 465.876 | 1 353 874 | Accepté |
+| JSON — chaîne longue | 36.280 / 51.431 | 402 914 | 239.530 / 290.545 | 403 206 | Accepté |
+| JSON — fichier ~256 KiB | 40.148 / 52.889 | 527 238 | 235.361 / 301.655 | 527 483 | Accepté |
+| JSON — 20 000 flottants | 189.364 / 246.251 | 84 342 | 416.873 / 485.144 | 84 454 | Rejet `JsonPreScanError` |
+| JSON — 20 000 objets à clés longues | 129.638 / 151.291 | 264 344 | 345.273 / 379.556 | 264 456 | Rejet `JsonPreScanError` |
+| JSON — 128 000 scalaires, rejet au nœud 20 001 | 185.423 / 222.645 | 260 342 | 364.188 / 427.265 | 260 454 | Rejet `JsonPreScanError` |
+
+Ces mesures décrivent cette machine uniquement. Les seuils de profondeur 64,
+20 000 nœuds, champ 64 KiB, fichier 256 KiB, littéral numérique 1 000 et délai
+5 s restent des candidats non approuvés; aucune limite mémoire portable n’est
+établie. Le worker n’est pas un sandbox.
+
+**Sortie finale à copier — sonde C0A-2 (Windows)** :
+
+```text
+C0A|status=RÉUSSI|mode=complet|system=Windows 11|python=3.15.2|python_path=<répertoire masqué>/python.exe|python_supported=true|cpu=Intel64 Family 6 Model 158 Stepping 10, GenuineIntel|logical_cpus=12|ram_GiB=63.94|sha256=b748eb05e082ec4188ec3ea00013a92ba96e2fccc66711118b0cecd6babf0b7a|checks=Pré-scan JSON adverse=OK,Worker spawn et protections=OK,Isolation spawn source=OK,Isolation subprocess source=OK,Isolation PyInstaller=OK,Mesures synthétiques=OK|measures=csv_5000_lignes_1_colonne:outcome=accepted,in_ms=32.065/40.731,in_peak_B=136869,worker_ms=231.219/265.025,worker_peak_B=136869,csv_100_colonnes:outcome=accepted,in_ms=0.093/0.188,in_peak_B=25784,worker_ms=205.473/238.099,worker_peak_B=25784,csv_20000_cellules:outcome=accepted,in_ms=5.068/8.250,in_peak_B=219439,worker_ms=195.612/231.978,worker_peak_B=219439,csv_champ_64KiB:outcome=accepted,in_ms=0.639/1.015,in_peak_B=721574,worker_ms=198.833/299.041,worker_peak_B=721574,csv_proche_256KiB:outcome=accepted,in_ms=2.748/3.064,in_peak_B=1662806,worker_ms=198.947/219.555,worker_peak_B=1662806,csv_virgules_256KiB_une_ligne:outcome=accepted,in_ms=26.600/35.690,in_peak_B=8037660,worker_ms=224.125/259.228,worker_peak_B=8037660,csv_131000_lignes_un_caractere:outcome=accepted,in_ms=690.332/905.170,in_peak_B=1327348,worker_ms=848.662/977.061,worker_peak_B=1327348,csv_champ_multiligne_256KiB_rejete:outcome=rejected_Error,in_ms=58.060/75.572,in_peak_B=1835947,worker_ms=274.967/352.440,worker_peak_B=1835947,csv_100_colonnes_300_lignes:outcome=accepted,in_ms=9.589/11.534,in_peak_B=319444,worker_ms=226.348/260.849,worker_peak_B=319444,json_profondeur_64:outcome=accepted,in_ms=0.119/0.157,in_peak_B=5002,worker_ms=203.743/283.111,worker_peak_B=6677,json_20000_noeuds:outcome=accepted,in_ms=47.313/58.227,in_peak_B=1351490,worker_ms=273.320/465.876,worker_peak_B=1353874,json_chaine_longue:outcome=accepted,in_ms=36.280/51.431,in_peak_B=402914,worker_ms=239.530/290.545,worker_peak_B=403206,json_proche_256KiB:outcome=accepted,in_ms=40.148/52.889,in_peak_B=527238,worker_ms=235.361/301.655,worker_peak_B=527483,json_20000_flottants_rejete:outcome=rejected_JsonPreScanError,in_ms=189.364/246.251,in_peak_B=84342,worker_ms=416.873/485.144,worker_peak_B=84454,json_20000_objets_cles_longues_rejete:outcome=rejected_JsonPreScanError,in_ms=129.638/151.291,in_peak_B=264344,worker_ms=345.273/379.556,worker_peak_B=264456,json_128000_scalaires_rejete_20001:outcome=rejected_JsonPreScanError,in_ms=185.423/222.645,in_peak_B=260342,worker_ms=364.188/427.265,worker_peak_B=260454|orphans=none|duration_s=187.684
+```
+
+#### C0A-3 — corrections ciblées et validation Windows (2026-11-27)
+
+Le différentiel déterministe couvre les octets JSON structurels et scalaires;
+les valeurs non finies et les clés dupliquées sont rejetées côté référence.
+L’acceptation est vérifiée dans les deux sens et les comptes de nœuds/profondeur
+sont comparés exactement. Le nombre de tests reste inchangé : 58 ciblés et
+396 dans la suite complète.
+
+- Suite complète : `396 passed in 114.25s`, code 0.
+- Tests ciblés : `58 passed`, code 0; Ruff ne signale aucun problème sur les
+  trois fichiers Python.
+- Sonde Windows complète : `RÉUSSI`, code 0, `291.472 s`, aucun orphelin.
+- SHA-256 actuel de la sonde à transférer :
+  `9251e6a6742a161031a7956652c56c3715a194c93a02b55c2e0ac8d0b1d8e169`.
+- Le ping spawn mesure une sonde légère, pas le serveur : médiane/max
+  `0.237/0.365 s`.
+
+| Comparaison | Démarrage médiane/max (ms, 5 mesures) | Résultat attendu |
+|---|---:|---|
+| Spawn source | 239.609 / 252.539 | Non isolé |
+| Subprocess source | 97.900 / 136.836 | Isolé |
+| Spawn PyInstaller figé | 1 136.476 / 1 257.691 | Non isolé |
+| Subprocess PyInstaller figé | 1 027.486 / 2 107.919 | Isolé |
+
+Sous Linux/macOS, le contrôle PyInstaller est `SKIP` par défaut et ne change
+pas le succès global. `--frozen` l’active explicitement; sous Windows, le
+comportement existant est conservé.
+
+#### Notice autonome pour le Décideur — C0b Linux/macOS (sonde C0A-3)
+
+Le fichier [c0_multiformat_probe.py](../tools/c0_multiformat_probe.py) est
+autonome, utilise la bibliothèque standard, n’importe pas le dépôt et ne fait
+aucun accès réseau/DB/service. Il requiert Python 3.10 ou plus récent et
+signale dans son résumé si l’interpréteur est inférieur à 3.10. La sonde crée
+et supprime son propre répertoire temporaire; elle ne lit aucun document
+utilisateur. La sonde Windows C0A-3 est validée. C0b Linux/macOS est reporté
+par la décision #137 jusqu'à disponibilité des plateformes; aucun résultat
+n'est présumé. Reprendre cette notice lorsque le projet sera disponible sur
+Linux ou macOS.
+
+1. Transférer uniquement le script par copie directe ou support amovible. Après
+   publication, il pourra aussi être récupéré depuis le dépôt.
+2. Vérifier son empreinte dans le dossier contenant le script.
+   Linux : `sha256sum c0_multiformat_probe.py`.
+   macOS : `shasum -a 256 c0_multiformat_probe.py`.
+   Comparer le résultat à `9251e6a6742a161031a7956652c56c3715a194c93a02b55c2e0ac8d0b1d8e169`.
+3. Noter la version et le chemin de l’interpréteur :
+   `python3 --version` puis `python3 -c 'import sys; print(sys.executable)'`.
+   Si la version diffère de 3.15.2, la consigner; Python 3.10+ est requis.
+4. Lancer la sonde complète, sans `chmod` nécessaire :
+   Linux et macOS : `python3 c0_multiformat_probe.py`.
+   Sous Windows, la durée observée était de 291.472 s; elle varie selon la
+   machine. Le délai global est de 900 s. En cas d’expiration, la sonde émet
+   un rapport partiel et termine avec le code 124; traiter cela comme un échec.
+   Le contrôle PyInstaller est `SKIP` par défaut hors Windows. S’il est déjà
+   installé et que cette comparaison est souhaitée, lancer
+   `python3 c0_multiformat_probe.py --frozen`; ne rien installer.
+   Résultat attendu : `RÉUSSI`, puis un bloc `C0A|...` unique.
+5. En cas d’échec, copier la sortie humaine et le bloc `C0A|...`; ne pas
+   modifier l’application ni relancer en boucle. Si Python est absent ou
+   inférieur à 3.10, noter « non testable » et utiliser uniquement un
+   interpréteur déjà disponible ou demander une décision distincte avant toute
+   installation.
+6. Sous POSIX, `multiprocessing` peut créer un processus auxiliaire
+   `resource_tracker`. Il peut apparaître pendant que Python exécute la sonde;
+   ne pas le confondre avec un worker orphelin et ne pas l’arrêter pendant
+   l’exécution. Vérifier les PID après la fin de la sonde : un tracker qui
+   subsisterait après la sortie de son parent doit être signalé.
+7. Le script liste les PID enfants encore actifs et la commande pour les arrêter.
+   Linux/macOS : vérifier un PID indiqué avec `ps -p <PID> -o pid=,ppid=,comm=`;
+   arrêter uniquement ce PID avec `kill -TERM <PID>`, puis `kill -KILL <PID>`
+   seulement s’il reste actif. macOS : noter spécifiquement le démarrage `spawn`,
+   la fin de chaque enfant et tout PID qui survivrait à son parent.
+
+Tableau à compléter avec les retours du Décideur (ne préremplir que Windows;
+aucun résultat Linux/macOS n’est présumé) :
+
+| Plateforme | Vérification | Résultat | Version de Python | Remarques |
+|---|---|---|---|---|
+| Windows | Pré-scan adverse | RÉUSSI | 3.15.2 | 58 tests ciblés; différentiel à graine fixe sur octets structurels, comptes exacts |
+| Windows | Délai worker | RÉUSSI, 5.022 s | 3.15.2 | `spawn` bloqué sur tube; CPU 5.024 s |
+| Windows | Orphelins | RÉUSSI, aucun | 3.15.2 | Timeout, boucle CPU et erreurs de réception |
+| Windows | Échange borné | RÉUSSI | 3.15.2 | Réponse normale bornée; dépassement refusé |
+| Windows | Isolation spawn source | RÉUSSI | 3.15.2 | Non isolé attendu; médiane/max 239.609/252.539 ms, 5 mesures |
+| Windows | Isolation subprocess source | RÉUSSI | 3.15.2 | Isolé attendu; médiane/max 97.900/136.836 ms, 5 mesures |
+| Windows | Coût de démarrage | RÉUSSI, ping 0.237/0.365 s médiane/max | 3.15.2 | 20 mesures; sonde légère, pas le serveur |
+| Windows | Mesures | RÉUSSI, 16 × 20 | 3.15.2 | Rejets chronométrés; `tracemalloc`, pas RSS |
+| Windows | Isolation figée | RÉUSSI | 3.15.2 | PyInstaller 6.22.3; spawn 1 136.476/1 257.691 ms, subprocess 1 027.486/2 107.919 ms, médiane/max sur 5 mesures |
+| Windows | Packaging figé | RÉUSSI | 3.15.2 | Build et exécution worker temporaires, code 0 |
+| Linux | Pré-scan adverse | En attente | À renseigner | Exécuter le même script |
+| Linux | Délai worker | En attente | À renseigner | Vérifier `spawn` et arrêt |
+| Linux | Orphelins | En attente | À renseigner | Rapporter PID éventuel |
+| Linux | Échange borné | En attente | À renseigner | Vérifier refus de surcharge |
+| Linux | Isolation des imports | En attente | À renseigner | Aucun résultat présumé |
+| Linux | Coût de démarrage | En attente | À renseigner | 20 exécutions |
+| Linux | Mesures | En attente | À renseigner | `tracemalloc`, pas RSS |
+| Linux | Packaging figé | SKIP par défaut | À renseigner | Opt-in avec `--frozen` si PyInstaller est déjà présent |
+| macOS | Pré-scan adverse | En attente | À renseigner | Exécuter le même script |
+| macOS | Délai worker | En attente | À renseigner | Observer le comportement `spawn` |
+| macOS | Orphelins | En attente | À renseigner | Vérifier l’enfant après timeout |
+| macOS | Échange borné | En attente | À renseigner | Vérifier refus de surcharge |
+| macOS | Isolation des imports | En attente | À renseigner | Aucun résultat présumé |
+| macOS | Coût de démarrage | En attente | À renseigner | 20 exécutions |
+| macOS | Mesures | En attente | À renseigner | `tracemalloc`, pas RSS |
+| macOS | Packaging figé | SKIP par défaut | À renseigner | Opt-in avec `--frozen` si PyInstaller est déjà présent |
+
+Essai PyInstaller Windows exécuté sans installation, avec `$python` pointant
+sur `.venv\Scripts\python.exe` et `$script` sur le chemin absolu de la sonde :
+
+```powershell
+rtk $python -m PyInstaller --noconfirm --onefile --name c0a-multiformat-probe --distpath $dist --workpath $work --specpath $spec $script
+rtk $exe --smoke
+```
+
+Sorties : `Build complete!`, `pyinstaller_build_exit=0`,
+`packaged_smoke_exit=0`, smoke `RÉUSSI`, orphelins `aucun`. Les dossiers
+temporaires dist/work/spec hors dépôt ont été supprimés après la vérification.
+
+**Point de reprise C0** : C0a Windows validé par C0A-3; C0b Linux/macOS est
+reporté (décision #137) jusqu'à disponibilité des plateformes, sans résultat
+présumé. C0b reste un verrou pour CSV/JSON et la clôture multiformat POSIX,
+mais ne bloque pas la livraison de `.txt`/`.sql` après validation propre (#139).
+C1/C2 n'attendent pas C0b; C3/C4 peuvent être développés sous Windows, avec
+preuves multiplateformes requises avant activation CSV/JSON. Aucune capacité
+nouvelle n’est livrée.
+
 **Matrice besoin → changement → preuve future** :
 
 | Besoin | Composants à faire évoluer après arbitrage | Vérification attendue |
@@ -1179,7 +1470,9 @@ Avant de déclarer les traitements disponibles en C :
 autorisé/interdit; fichiers corrompus, chiffrés, compressés ou excessifs;
 limites et nettoyage; isolation utilisateur/conversation; absence d’exécution,
 macros et accès réseau; affichage sûr, injection d’instructions et signalement
-des traitements partiels. Aucun de ces tests n’est exécuté dans ce GO.
+des traitements partiels. Ces tests portent sur la future intégration au chat;
+C0a ne la modifie pas. La suite actuelle `.md` et les tests isolés du prototype
+ont été exécutés, sans rendre de format supplémentaire disponible.
 
 **Tests existants** : quatorze cas dans
 [test_chat_documents.py](../tests/test_chat_documents.py) couvrent notamment
@@ -1188,31 +1481,46 @@ isolation, refus d’un second document, suivi après rechargement, retrait,
 nettoyage temporaire et contrôles HTML. Ces tests décrivent le premier incrément;
 ils ne valident pas encore de formats multiformat.
 
-**Prochaine action** : proposer le découpage du GO d’implémentation C avec
-lots, tests et conditions d’arrêt. B est terminée et arbitrée; C exige un GO
-distinct et les preuves de pré-scan JSON, de packaging worker et de mesure des
-seuils. Aucun choix de dépendance ou valeur candidate n’est acquis.
-**Moment de traitement** : après validation de cette consignation; C/D/E restent
-non commencées jusqu’à autorisation distincte.
+**Prochaine action** : demander un GO distinct pour C1 sous Windows.
+C0b Linux/macOS reste reporté (#137), sans résultat présumé; CSV/JSON et la
+clôture multiformat POSIX restent bloqués par C0b. `.txt`/`.sql` peuvent être
+livrés POSIX après leur validation propre sans attendre C0b (#139). C1/C2
+n'attendent pas C0b; C3/C4 peuvent être développés sous Windows, avec preuves
+multiplateformes requises avant activation CSV/JSON.
+**Moment de traitement** : C0a Windows validé; C0b Linux/macOS reporté
+(décision #137). C0 reste ouvert pour CSV/JSON jusqu'à validation C0b; la
+livraison textuelle `.txt`/`.sql` n'en dépend pas (#139).
 
 **Point de reprise**
 
 - **Étapes A et B** : terminées et arbitrées le 2026-11-25 par les décisions
-  #135 et #136.
+  #135 et #136; Windows-first et arbitrages C1–C4 consignés par #137/#138;
+  texte POSIX et contexte arbitrés par #139 le 2026-11-27.
 - **Étape C** : non commencée; GO distinct requis. D et E ne sont pas
   commencées.
 - **Capacité actuelle** : l’upload chat accepte `.md` seulement.
 - **Périmètre futur approuvé** : `.md`, `.txt`, `.csv`, `.json`, `.sql`;
   CSV/JSON structurés, Markdown/TXT/SQL textuels, aucun contenu exécuté.
 - **Version cible** : à déterminer.
-- **Prochaine action** : proposer le découpage du GO C, avec lots, tests et
-  conditions d’arrêt.
+- **Prochaine action** : demander un GO distinct pour C1 sous Windows.
+- **Contexte (Option C, décision #139)** : jusqu’à ≈6 000 tokens, fichier entier;
+  au-delà, fiche ≈1 000 tokens et segments selon la question. CSV : 3–10 lignes
+  par segment avec en-tête; JSON : élément de premier niveau avec JSON Pointer,
+  subdivisé par enfants au besoin. Budget de départ : 6–9 segments (≈8 000
+  tokens) et ≥12 000 tokens pour conversation/réponse; valeurs à réviser après
+  mesure réelle. D affiche le compte N/M des segments consultés, sans
+  troncature silencieuse. C2 vérifie l’adéquation de FTS5 aux segments/locators.
+- **C1/C2** : peuvent avancer sans attendre C0b.
+- **C3/C4** : peuvent être développés sous Windows; preuves multiplateformes
+  requises avant livraison.
 - **Conditions C** : tests adverses du pré-scan JSON avant `json.loads`;
-  validation du worker et packaging multiplateforme; mesure du délai 5 s et
-  des seuils CSV/JSON candidats. Si le worker échoue, l’alternative sans limites
-  dures requiert une décision explicite.
-- **Autorisation** : les arbitrages B sont consignés; aucune implémentation C
-  n’est autorisée sans GO distinct.
+  subprocess dédié, délai total envoi→terminaison, plafonds CSV candidats
+  comptés avant analyse et packaging worker; preuves C0b avant activation
+  CSV/JSON et clôture POSIX. Plafonds/budgets révisables après mesure réelle.
+- **Points de suivi** : livraison `.txt`/`.sql` POSIX après validation propre,
+  sans attendre C0b; aucun format annoncé avant vérification.
+- **Autorisation** : C1 peut être demandé par un GO distinct sous Windows;
+  aucune implémentation C n’est autorisée sans ce GO.
 - **Références à lire dans l’ordre** : [présente section](#16-multiformat);
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat);
   [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat);
@@ -1221,13 +1529,16 @@ non commencées jusqu’à autorisation distincte.
   [PHASE16-RESTE](./PHASE16-RESTE.md) et [ETAT-PROJET](./ETAT-PROJET.md);
   dernière entrée de [JOURNALDEBORD](./JOURNALDEBORD.md) et
   [JOURNALDESMODIFS](./JOURNALDESMODIFS.md) pour l’arrêt.
-- **Référence technique vérifiée pendant ce GO** : HEAD initial
-  `b3da82ea5e32734953efc11c998a53ad91070f85`; cartographie antérieure conservée
-  au HEAD `ee990535e039135cc0065136a71e3e4028ae9310`.
-- **Vérifications disponibles** : lectures ciblées du code et contrôles
-  documentaires uniquement; aucun test applicatif/parser/benchmark n’est lancé.
-  Le dernier résultat applicatif `338 passed in 85.71s` vient du GO
-  16-FIX-FLAKY-TESTS antérieur.
+- **Référence C0a** : préflight au HEAD
+  `da70406d63c622fd7df0a01621f1f267fe09f787`; les faits de code du cadrage B
+  restent rattachés au HEAD `b3da82ea5e32734953efc11c998a53ad91070f85` et à la
+  cartographie antérieure `ee990535e039135cc0065136a71e3e4028ae9310`.
+- **Vérifications C0a** : suite historique `338 passed in 92.40s`, puis
+  `375 passed in 96.36s`; C0A-2 : `396 passed in 97.03s`; C0A-3 :
+  `396 passed in 114.25s`, 58 tests ciblés. Pré-scan, worker, comparaisons
+  d’isolation (cinq mesures), mesures et packaging Windows réussis. Détails et
+  limites dans « C0 — résultats » ci-dessus. Aucun code de production, DB
+  utilisateur ou format d’upload n’a changé.
 
 Chaque futur GO 16-MULTIFORMAT met à jour ce point de reprise, le statut
 concerné et les journaux dans le même lot.

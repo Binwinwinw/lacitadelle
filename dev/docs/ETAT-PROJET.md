@@ -1,6 +1,6 @@
 # État du projet La Citadelle
 
-**Mis à jour** : 2026-11-25
+**Mis à jour** : 2026-11-27
 
 **Dernier commit de code audité** : `6e8ef08` (audit SQL v12; HEAD observé
 au préflight GO 16-PHASE-CLOSE-FINAL, avant les changements documentaires).
@@ -40,14 +40,16 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 
 ## Tests et décisions
 
-- **Dernière suite complète enregistrée** : `338 passed in 85.71s` au GO
-  16-FIX-FLAKY-TESTS du 2026-11-24. Cette exécution précède le présent GO
-  documentaire; aucune suite n’a été relancée ici.
-- **Décisions datées** : 136 entrées, comptées dans
-  [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-25. Le comptage
+- **Dernière suite complète enregistrée** : `396 passed in 114.25s` au GO
+  16-MULTIFORMAT-C0A-3 du 2026-11-27. Le total reste à 396; C0A-2 avait
+  enregistré `396 passed in 97.03s` le 2026-11-26.
+- **Décisions datées** : 139 entrées, comptées dans
+  [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-27. Le comptage
   est calculé sur les titres `## [AAAA-MM-JJ]`; les décisions #134 et #135
-  cadrent les invariants et l’arbitrage fonctionnel, et #136 consigne les
-  arbitrages techniques de 16-MULTIFORMAT sans autoriser son implémentation.
+  cadrent les invariants et l’arbitrage fonctionnel; #136 arbitre les
+  conditions techniques, #137 autorise la poursuite Windows-first, #138
+  arbitre les lots C1–C4 et #139 tranche les formats texte POSIX et l’option C
+  de contexte.
 - **Décision modèle la plus récente** : Ornith recommandé s'il est local et
   whitelisté; Qwen3-4B reste le modèle intégré de fallback; Qwen3.5 reste local;
   Granite est retiré de la whitelist ([decisions.md](../../.memory/decisions.md#L2882)).
@@ -83,15 +85,18 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
   [décision #129](../../.memory/decisions.md#L2941)). Le test live a ensuite
   vérifié le parcours et les limites. La clôture finale des livrables centraux
   est consignée par la décision #132; les autres tâches restent des reports.
-- `16-MULTIFORMAT` reste ouvert après arbitrages A/B : `.md`, `.txt`,
-  `.csv`, `.json` et `.sql` sont approuvés comme périmètre futur; CSV/JSON
-  seront lus structurellement et Markdown/TXT/SQL comme texte non exécuté.
-  Les arbitrages #135/#136 sont consignés; C reste non commencée et requiert
-  un GO distinct. En C, les preuves du pré-scan JSON et du packaging worker
-  sont requises, et les seuils candidats doivent être mesurés. Aucun paquet ni
-  seuil n’est approuvé. La version cible reste à déterminer, sans capacité
-  nouvelle livrée. L’upload chat disponible accepte `.md` seulement et le
-  bouton n’est pas renommé.
+- `16-MULTIFORMAT` reste ouvert après arbitrages A/B et décisions #137–#139 :
+  poursuite Windows-first, C0b Linux/macOS reporté jusqu’à disponibilité des
+  plateformes, sans résultat présumé. #139 permet la livraison de `.txt`/`.sql`
+  sur Linux/macOS sans attendre C0b, après vérification propre à ces formats;
+  CSV/JSON restent désactivés sur une plateforme avant validation de son C0b.
+  `.md`, `.txt`, `.csv`, `.json` et `.sql` sont approuvés comme périmètre futur;
+  CSV/JSON seront lus structurellement et Markdown/TXT/SQL comme texte non
+  exécuté. L’option C de contexte est retenue avec valeurs de départ révisables;
+  C2 doit vérifier l’adéquation de FTS5 aux segments. Les README n'annoncent
+  aucun format non vérifié. Aucun paquet ni nouvelle capacité n’est livré. La
+  version cible reste à déterminer; l’upload chat disponible accepte `.md`
+  seulement et le bouton n’est pas renommé.
   Voir
   [BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat),
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat),
