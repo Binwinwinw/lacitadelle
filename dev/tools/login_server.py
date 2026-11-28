@@ -124,6 +124,8 @@ HTTP_TIMEOUT = 120
 SQLITE_TIMEOUT = 5.0
 MAX_POST_BODY_SIZE = 1_048_576
 MAX_CHAT_UPLOAD_BODY_SIZE = MAX_MARKDOWN_BYTES + 16_384
+CHAT_UPLOAD_PLATFORM = sys.platform
+POSIX_CHAT_TEXT_UPLOADS_ENABLED = False
 MAX_DOCUMENT_CONTEXT_TOKENS = 1_500
 MAX_DOCUMENT_CONTEXT_CHARS = MAX_DOCUMENT_CONTEXT_TOKENS * 4
 MAX_DOCUMENT_PASSAGES = 12
@@ -2247,6 +2249,27 @@ def _safe_chat_upload_filename(filename: str) -> str:
     return name
 
 
+def _chat_upload_extensions_for_platform(platform: str) -> list[str]:
+    if platform == "win32" or (
+        POSIX_CHAT_TEXT_UPLOADS_ENABLED
+        and platform in {"linux", "darwin"}
+    ):
+        return list(CHAT_DOCUMENT_EXTENSIONS)
+    return [".md"]
+
+
+def get_chat_upload_capabilities(
+    user_role: str,
+    platform: str | None = None,
+) -> list[str]:
+    """Retourne les extensions d'upload visibles pour le rôle et la plateforme."""
+    current_platform = CHAT_UPLOAD_PLATFORM if platform is None else platform
+    extensions = _chat_upload_extensions_for_platform(current_platform)
+    if user_role != "admin":
+        extensions = [extension for extension in extensions if extension != ".sql"]
+    return extensions
+
+
 def _parse_chat_upload(handler: BaseHTTPRequestHandler) -> tuple[int, str, bytes]:
     """Extrait session_id et fichier d'une requête multipart bornée."""
     content_type = handler.headers.get("Content-Type", "")
@@ -2332,6 +2355,34 @@ def _extract_chat_upload(
     return result
 
 
+def handle_get_chat_upload_capabilities(handler: BaseHTTPRequestHandler) -> None:
+    """Retourne les formats d'upload disponibles pour la session courante."""
+    user_id = get_authenticated_user_id(handler)
+    if user_id is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    try:
+        user_role = get_user_role(user_id)
+    except sqlite3.Error as exc:
+        sys.stderr.write(
+            "[chat-upload] user role could not be read "
+            f"({type(exc).__name__})\n"
+        )
+        error_response(
+            handler,
+            "Impossible de vérifier les droits du compte.",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+        return
+    if user_role is None:
+        error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
+        return
+    json_response(
+        handler,
+        {"extensions": get_chat_upload_capabilities(user_role)},
+    )
+
+
 def handle_post_chat_upload(handler: BaseHTTPRequestHandler) -> None:
     """Attache un document texte pris en charge à une conversation du compte."""
     user_id = get_authenticated_user_id(handler)
@@ -2366,10 +2417,14 @@ def handle_post_chat_upload(handler: BaseHTTPRequestHandler) -> None:
     except ValueError as exc:
         error_response(handler, str(exc), HTTPStatus.BAD_REQUEST)
         return
-    if Path(filename).suffix.lower() not in CHAT_DOCUMENT_EXTENSIONS:
+    platform_extensions = _chat_upload_extensions_for_platform(
+        CHAT_UPLOAD_PLATFORM
+    )
+    if Path(filename).suffix.lower() not in platform_extensions:
         error_response(
             handler,
-            "Seuls les fichiers .md, .txt et .sql sont pris en charge.",
+            "Format non pris en charge. Formats disponibles : "
+            f"{', '.join(get_chat_upload_capabilities(user_role))}.",
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
         return
@@ -3245,6 +3300,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 handle_get_preferences(self)
             elif path == "/api/me":
                 handle_get_api_me(self)
+            elif path == "/api/chat/upload/capabilities":
+                handle_get_chat_upload_capabilities(self)
             elif path == "/api/llamafile/v1/models":
                 proxy_llamafile(self, LLAMAFILE_MODELS_URL, "GET")
             elif path == "/api/settings/model":

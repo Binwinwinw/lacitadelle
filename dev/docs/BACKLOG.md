@@ -815,18 +815,17 @@ aucune règle de rétention des logs n’a été définie dans ce GO.
 #### 16-MULTIFORMAT
 
 **Statut** : arbitrages A/B (#135/#136), Windows-first (#137), découpage
-C1–C4 (#138) et texte/contexte (#139) consignés. C1 est livré sous Windows
-pour l’API seulement : `.md`, `.txt` et `.sql` sont lus comme texte, `.sql`
-reste admin-only; l’interface propose toujours `.md` seulement. Prochaine
-action : GO D. C2–C4 restent à exécuter. C0b Linux/macOS est reporté, sans
+C1–C4 (#138) et texte/contexte (#139) consignés. C1 et D sont livrés sous
+Windows : l’API prend en charge `.md`/`.txt` pour `user` et `.sql` pour `admin`;
+l’interface affiche les capacités authentifiées du serveur. POSIX reste `.md`
+tant que le drapeau explicite est désactivé. C0b Linux/macOS est reporté, sans
 résultat présumé; CSV/JSON attendent C0b et la clôture multiformat POSIX reste
 bloquée. `.txt`/`.sql` peuvent être livrés POSIX après validation propre sans
-attendre C0b (#139).
+attendre C0b (#139). C2–C4 restent à exécuter; le prochain GO est à choisir.
 **Priorité** : à déterminer.
-**Objectif** : faire évoluer le contrôle actuel « Joindre un .md » vers
-« Joindre un fichier » uniquement lorsque les formats effectivement pris en
-charge sont définis et vérifiés. Le bouton ne promettra pas une compatibilité
-universelle.
+**Objectif** : le bouton « Joindre un fichier » et son attribut `accept` sont
+alimentés par un endpoint authentifié de capacités; la validation d’upload reste
+côté serveur. Aucun format n’est annoncé dans les README avant sa vérification.
 **Références de reprise** : [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md),
 [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat),
 [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat),
@@ -1480,13 +1479,14 @@ des traitements partiels. C1 a validé l’API texte `.md`/`.txt`/`.sql` sous
 Windows; le support POSIX reste à vérifier et CSV/JSON restent bloqués par C0b.
 La suite C0A du prototype reste distincte de l’intégration chat.
 
-**Tests existants** : vingt cas dans
+**Tests existants** : 27 cas dans
 [test_chat_documents.py](../tests/test_chat_documents.py) couvrent migration,
-UTF-8/BOM/NUL, limites, classification, upload `.md`/`.txt`/`.sql`,
+UTF-8/BOM/NUL, limites, classification, capacités par rôle/plateforme,
+upload `.md`/`.txt`/`.sql`, refus d’un format non listé, rendu HTML servi,
 authentification, CSRF, isolation, refus d’un second document, retrait, suivi
 après rechargement, nettoyage temporaire et contrôles HTML.
 
-**Prochaine action** : demander un GO D après C1 sous Windows.
+**Prochaine action** : le Décideur choisit le GO suivant après D.
 C0b Linux/macOS reste reporté (#137), sans résultat présumé; CSV/JSON et la
 clôture multiformat POSIX restent bloqués par C0b. `.txt`/`.sql` peuvent être
 livrés POSIX après leur validation propre sans attendre C0b (#139). C1/C2
@@ -1502,13 +1502,14 @@ livraison textuelle `.txt`/`.sql` n'en dépend pas (#139).
   #135 et #136; Windows-first et arbitrages C1–C4 consignés par #137/#138;
   texte POSIX et contexte arbitrés par #139 le 2026-11-27.
 - **Étape C** : C1 livré sous Windows via l’API; C2–C4 restent à réaliser par
-  GO distincts. D et E ne sont pas commencées.
-- **Capacité actuelle** : l’API accepte `.md`, `.txt` et `.sql` comme texte;
-  `.sql` est admin-only. L’interface propose toujours `.md` seulement.
+  GO distincts. D (bouton et capacités) est livré; E reste à faire.
+- **Capacité actuelle** : Windows `user` reçoit `.md`/`.txt`; Windows `admin`
+  reçoit aussi `.sql`. Linux/macOS ne reçoivent que `.md` tant que le drapeau
+  explicite reste désactivé.
 - **Périmètre futur approuvé** : `.md`, `.txt`, `.csv`, `.json`, `.sql`;
   CSV/JSON structurés, Markdown/TXT/SQL textuels, aucun contenu exécuté.
 - **Version cible** : à déterminer.
-- **Prochaine action** : GO D.
+- **Prochaine action** : prochain GO à choisir par le Décideur.
 - **Contexte (Option C, décision #139)** : jusqu’à ≈6 000 tokens, fichier entier;
   au-delà, fiche ≈1 000 tokens et segments selon la question. CSV : 3–10 lignes
   par segment avec en-tête; JSON : élément de premier niveau avec JSON Pointer,

@@ -22,6 +22,7 @@ const statusDiv = document.getElementById("status");
 const adminLink = document.getElementById("admin-link");
 const chatDocumentFile = document.getElementById("chat-document-file");
 const attachChatDocumentButton = document.getElementById("attach-chat-document");
+const chatDocumentFormats = document.getElementById("chat-document-formats");
 const chatDocumentName = document.getElementById("chat-document-name");
 const removeChatDocumentButton = document.getElementById("remove-chat-document");
 const analyzeDocumentButton = document.getElementById("analyze-document-button");
@@ -39,6 +40,7 @@ const workflowsByExtension = {
 	".pdf": "analyse_pdf",
 	".sql": "analyse_sql",
 };
+const allowedChatUploadExtensions = new Set([".md", ".txt", ".sql"]);
 
 function renderMarkdown(content) {
 	if (!window.marked || !window.DOMPurify) {
@@ -61,6 +63,44 @@ function renderMarkdown(content) {
 function showStatus(message, isError = false) {
 	statusDiv.textContent = message;
 	statusDiv.className = isError ? "status error" : "status";
+}
+
+async function loadChatDocumentCapabilities() {
+	try {
+		const response = await fetch("/api/chat/upload/capabilities", {
+			credentials: "same-origin",
+		});
+		if (response.status === 401) {
+			window.location.href = "/login";
+			return;
+		}
+		const data = await response.json().catch(() => ({}));
+		if (!response.ok) {
+			chatDocumentFormats.textContent =
+				typeof data.error === "string"
+					? `Formats indisponibles : ${data.error}`
+					: "Impossible de charger les formats disponibles.";
+			return;
+		}
+		const extensions = data.extensions;
+		if (
+			!Array.isArray(extensions)
+			|| !extensions.includes(".md")
+			|| extensions.some(
+				(extension) => !allowedChatUploadExtensions.has(extension),
+			)
+			|| new Set(extensions).size !== extensions.length
+		) {
+			chatDocumentFormats.textContent = "Réponse de capacités invalide.";
+			return;
+		}
+		chatDocumentFile.accept = extensions.join(",");
+		chatDocumentFormats.textContent =
+			`Formats disponibles : ${extensions.join(", ")}`;
+	} catch (error) {
+		chatDocumentFormats.textContent =
+			`Erreur de chargement des formats : ${error.message}`;
+	}
 }
 
 function updateAnalyzeDocumentButton() {
@@ -718,6 +758,7 @@ chatDocumentFile.addEventListener("change", () => {
 removeChatDocumentButton.addEventListener("click", removeChatDocument);
 
 updateChatDocumentControls();
+loadChatDocumentCapabilities();
 loadPreferences();
 loadAdminLink();
 loadSessions();

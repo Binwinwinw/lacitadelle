@@ -87,11 +87,12 @@ décisions et objectifs du projet.
 - **État** : arbitrages fonctionnels A et techniques B terminés et consignés
   le 2026-11-25 dans les décisions #135 et #136; décisions #137–#139 du
   2026-11-27 : poursuite Windows-first, arbitrage C1–C4 et stratégie de
-  contexte. C1 est livré sous Windows pour l’API : `.md`, `.txt` et `.sql`
-  sont lus comme texte, `.sql` reste réservé aux admins. L’interface propose
-  toujours `.md` seulement. C0a Windows est validé par C0A-3; C0b Linux/macOS
-  est reporté, sans résultat présumé. CSV/JSON restent bloqués par C0b.
-  Prochaine action : demander un GO D; C2–C4 restent à réaliser.
+  contexte. C1 et D sont livrés sous Windows : l’API et l’interface utilisent
+  les capacités authentifiées par rôle; `user` reçoit `.md`/`.txt`, `admin`
+  aussi `.sql`. Linux/macOS ne reçoivent que `.md` tant que le drapeau explicite
+  est désactivé. C0b Linux/macOS est reporté, sans résultat présumé; CSV/JSON
+  restent bloqués par C0b. C2–C4 restent à réaliser; le prochain GO est à
+  choisir par le Décideur.
 - **Description** : réaliser ultérieurement l’allowlist approuvée `.md`, `.txt`,
   `.csv`, `.json`, `.sql`; cela ne décrit pas la disponibilité actuelle.
 - **Faits clés** : l’API chat accepte maintenant `.md`, `.txt` et `.sql` comme
@@ -119,7 +120,7 @@ décisions et objectifs du projet.
   [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat) et les
   [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et la
   [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md).
-- **Prochaine action** : demander un GO D; C1 est terminé côté API Windows.
+- **Prochaine action** : D est livré; le prochain GO est à choisir.
   C0b reste le verrou pour activer CSV/JSON et clore le multiformat POSIX;
   il ne bloque pas la livraison de `.txt`/`.sql` après vérification propre
   (#139).
@@ -133,15 +134,15 @@ décisions et objectifs du projet.
 | **C3 — worker borné et packaging** | Intégrer le module dédié `dev/tools/nodes/structured_worker.py` via [login_server.py](../tools/login_server.py). Orientation #138 : lancement par subprocess; spawn depuis le serveur seulement si une mesure du protocole réel le justifie. Pour l’EXE, dispatch frozen avant les imports lourds dans [lancer.py](../tools/lancer.py), imports de [build.spec](../tools/packaging/build.spec) et, si nécessaire, [build.py](../tools/packaging/build.py). | Nouveau `dev/tests/test_structured_worker.py` : protocole, requête/réponse bornées, enfant bloqué ou qui ne lit pas, délai couvrant l’envoi, parsing et retour, arrêt/cleanup sans orphelin. Étendre [test_chat_documents.py](../tests/test_chat_documents.py) pour les erreurs API; étendre [test_packaging.py](../tests/test_packaging.py) pour le dispatch gelé si le contrat le permet. | Tests ciblés puis smoke PyInstaller one-file Windows, sans installation implicite. Arrêt si l’envoi peut dépasser le délai, si un worker reste actif ou si le smoke échoue; pas de fallback in-process sans mesure réelle favorable. C3 dépend de C2. Développement/validation sous Windows seulement; aucune preuve Linux/macOS. |
 | **C4 — durcissement et disponibilité** | Rejeter les contrôles JSON décodés et substituts isolés selon #138, avec locators et erreurs finales dans `extract_structured.py` et [login_server.py](../tools/login_server.py). Capacités par plateforme déterminées/refusées côté serveur; [chat.html](../tools/web/chat.html) et [chat.js](../tools/web/chat.js) restent hors du lot C (D les reflète seulement). | Compléter `test_chat_structured_documents.py` avec échappements décodés dans valeurs et clés, NUL, C0 hors TAB/CR/LF, DEL, C1, substituts isolés, absence de persistance sur rejet, locators et frontières des limites. Compléter [test_chat_documents.py](../tests/test_chat_documents.py) pour l’échec API et le nettoyage. | Suite ciblée Windows et smoke empaqueté; toute capacité doit échouer fermée. Arrêt si une valeur interdite est acceptée ou si le client peut contourner la capacité serveur. Dépend de C2/C3. C3/C4 peuvent être développés sous Windows; CSV/JSON restent désactivés jusqu’à validation C0b de la plateforme. `.txt`/`.sql` POSIX ne l’attendent pas (#139). |
 
-- **Hors C** : l’interface et la présentation des formats restent dans D.
-  Jusqu’à sa validation, le sélecteur conserve `.md` seulement. Aucun README
-  n’annonce de format avant la vérification effective. D affiche pour l’analyse
-  partielle « analyse partielle : N segments sur M consultés »; aucun résultat
-  n’est tronqué silencieusement.
-- **Livraison minimale recommandée** : après C1 puis un GO D distinct, proposer
-  `.md` + `.txt` sur Windows; `.txt`/`.sql` POSIX peuvent suivre après validation
-  propre sans attendre C0b (#139). Garder `.sql` admin-only; ne pas annoncer
-  CSV/JSON avant le worker C3, le durcissement C4 et le C0b de la plateforme.
+- **D — interface (bouton et capacités, livré)** : « Joindre un fichier » lit
+  les extensions de l’API authentifiée. Sous Windows, `user` voit `.md`/`.txt`
+  et `admin` voit aussi `.sql`; POSIX reste `.md` avec le drapeau désactivé.
+  Aucun README n’annonce de format non vérifié. L’indication N/M des segments
+  partiels reste liée au futur parcours C2/C4.
+- **Livraison minimale recommandée** : `.md`/`.txt` sont visibles sous Windows;
+  `.sql` reste admin-only. `.txt`/`.sql` POSIX attendent leur vérification propre
+  sans attendre C0b (#139). CSV/JSON attendent le worker C3, le durcissement C4
+  et le C0b de la plateforme.
 
 ##### Décisions #138–#139 consignées
 

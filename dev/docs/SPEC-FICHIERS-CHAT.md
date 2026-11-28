@@ -1,9 +1,10 @@
 # Spécification fonctionnelle — fichiers dans les conversations
 
-**Statut** : Premier incrément implémenté (GO 25); GO 16-MULTIFORMAT-C1 ajoute
-`.txt` et `.sql` comme texte à l’API sous Windows, avec `.sql` réservé aux
-admins. L’interface reste limitée à `.md`; CSV/JSON et les plateformes POSIX
-ne sont pas déclarés disponibles. Prochaine action : GO D.
+**Statut** : Premier incrément implémenté (GO 25); C1 ajoute `.txt`/`.sql`
+comme texte à l’API Windows et D affiche les capacités du serveur. Windows
+`user` reçoit `.md`/`.txt`, `admin` aussi `.sql`; POSIX reste `.md` tant que
+le drapeau explicite est désactivé. CSV/JSON et POSIX ne sont pas annoncés.
+Le prochain GO est à choisir.
 
 **Commit de référence** : `83305fe` (HEAD observé au préflight GO 25).
 
@@ -119,11 +120,11 @@ pas l’existence d’un extracteur ou d’une capacité visuelle.
 | Famille | Usage attendu | Contenu à rendre disponible | Limite connue | Premier incrément / évolution |
 |---|---|---|---|---|
 | Markdown `.md` | Commenter, résumer, reformuler, expliquer ou analyser | Texte UTF-8 extrait, soumis aux limites appliquées | Le parcours AIWorkflow existant utilise un chemin serveur; il n’est pas un téléversement du chat. | **Premier incrément implémenté** : un document associé à une conversation. |
-| Texte `.txt` | Même usage textuel | Texte UTF-8 strict; limites identiques au lecteur `.md`. | C1 : API Windows livrée; interface `.md` inchangée. POSIX à vérifier proprement, sans attendre C0b (#139). |
+| Texte `.txt` | Même usage textuel | Texte UTF-8 strict; limites identiques au lecteur `.md`. | C1 : API Windows livrée; D affiche `.txt` quand l’API l’annonce. POSIX reste `.md` par défaut, à valider proprement (#139). |
 | PDF | Résumer et questionner le texte extrait | Texte extrait; les scans peuvent nécessiter OCR | L’extraction actuelle dépend de `pypdf` et n’assure pas l’OCR ([extract_text.py](../tools/nodes/extract_text.py#L14)). | **Cible multiformat future**. |
 | Bureautique `.docx`, `.xlsx`, `.pptx`, etc. | Lire et expliquer | Texte ou structures extraites | Une extension classée publique n’atteste pas l’existence d’un extracteur. | **Cible multiformat future**. |
 | Photos et images | Décrire ou analyser | Pixels, OCR ou représentation visuelle | Ni OCR ni capacité vision du modèle n’est établie par la classification d’extension. | **Cible multiformat future**, capacité à vérifier séparément. |
-| SQL `.sql` | Lire le texte source seulement | Texte UTF-8 strict, sans analyse ni exécution SQL; réservé aux admins. | AIWorkflow SQL est un autre parcours et peut interroger la base de l’application ([analyse_sql.py](../workflows/analyse_sql.py#L41)). | C1 : API Windows livrée; interface `.md` inchangée. POSIX à vérifier proprement, sans attendre C0b (#139). |
+| SQL `.sql` | Lire le texte source seulement | Texte UTF-8 strict, sans analyse ni exécution SQL; réservé aux admins. | AIWorkflow SQL est un autre parcours et peut interroger la base de l’application ([analyse_sql.py](../workflows/analyse_sql.py#L41)). | C1 : API Windows livrée; D affiche `.sql` seulement quand l’API l’annonce au rôle admin. POSIX reste `.md` par défaut, à valider proprement (#139). |
 | Dockerfiles et scripts | Expliquer le texte seulement | Texte; aucune exécution | Aucun lecteur chat n’est implémenté pour ces formats; ils restent hors allowlist. | **Cible multiformat future**; contenu non exécuté. |
 
 ## 5. Conservation et suppression — règles validées
@@ -281,14 +282,15 @@ consignés dans la [décision #129](../../.memory/decisions.md#L2941).
 
 ## 14. Proposition de contrat multiformat — C1 partiellement implémenté
 
-**Statut** : cadrage B terminé et arbitré par la
+**Statut** : C1 (API texte) et D (bouton/capacités) sont livrés sous Windows;
+le C2/C3/C4 structuré reste à réaliser. Le cadrage B a été arbitré par la
 [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat),
-et C1 implémente sous Windows l’upload API `.txt`/`.sql` comme texte; `.sql`
-reste réservé aux admins. L’interface demeure `.md`; CSV/JSON et la validation
-POSIX restent à faire. C1 conserve la lecture UTF-8 stricte du `.md` : BOM
-conservé comme texte, contenu vide et NUL refusés; les autres contrôles gardent
-le comportement existant. Les règles proposées ci-dessous ne décrivent pas les
-comportements C1 lorsqu’elles diffèrent du lecteur `.md`.
+les capacités serveur n’annoncent que les extensions permises par rôle et
+plateforme. Linux/macOS restent `.md`; CSV/JSON et la validation POSIX restent
+à faire. C1 conserve la lecture UTF-8 stricte du `.md` : BOM conservé comme
+texte, contenu vide et NUL refusés; les autres contrôles gardent le comportement
+existant. Les règles proposées ci-dessous ne décrivent pas les comportements
+C1 lorsqu’elles diffèrent du lecteur `.md`.
 Vérifications ciblées du code au HEAD
 `b3da82ea5e32734953efc11c998a53ad91070f85`, avant C1 : l’upload chat acceptait
 `.md` seulement.

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from security_files import can_read, classify_file
 
-CHAT_DOCUMENT_EXTENSIONS = {".md", ".txt", ".sql"}
+CHAT_DOCUMENT_EXTENSIONS = (".md", ".txt", ".sql")
 MAX_MARKDOWN_BYTES = 256 * 1024
 MAX_MARKDOWN_CHARS = 200_000
 

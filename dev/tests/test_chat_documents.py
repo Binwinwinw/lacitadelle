@@ -83,6 +83,19 @@ def _delete_document(opener, base_url: str, token: str, document_id: int):
     return open_no_redirect(opener, request)
 
 
+def _get_upload_capabilities(opener, base_url: str, session_cookie: str | None = None):
+    headers = (
+        {"Cookie": f"{SESSION_COOKIE_NAME}={session_cookie}"}
+        if session_cookie is not None
+        else {}
+    )
+    request = urllib.request.Request(
+        f"{base_url}/api/chat/upload/capabilities",
+        headers=headers,
+    )
+    return open_no_redirect(opener, request)
+
+
 def _json_response(response) -> dict:
     try:
         return json.loads(response.read().decode("utf-8"))
@@ -346,6 +359,113 @@ def test_upload_enforces_format_classification_and_size_limits():
                 opener, base_url, cookie, session_id, filename, content
             ) as response:
                 assert response.code == expected_status
+
+
+@pytest.mark.parametrize(
+    ("role", "platform", "expected"),
+    (
+        ("user", "win32", [".md", ".txt"]),
+        ("admin", "win32", [".md", ".txt", ".sql"]),
+        ("user", "linux", [".md"]),
+        ("admin", "darwin", [".md"]),
+    ),
+)
+def test_chat_upload_capabilities_are_role_and_platform_scoped(
+    role,
+    platform,
+    expected,
+):
+    assert login_server.get_chat_upload_capabilities(role, platform) == expected
+
+
+def test_posix_text_capabilities_require_explicit_enablement(monkeypatch):
+    monkeypatch.setattr(login_server, "POSIX_CHAT_TEXT_UPLOADS_ENABLED", False)
+    assert login_server.get_chat_upload_capabilities("admin", "linux") == [".md"]
+    assert login_server.get_chat_upload_capabilities("admin", "darwin") == [".md"]
+
+    monkeypatch.setattr(login_server, "POSIX_CHAT_TEXT_UPLOADS_ENABLED", True)
+    assert login_server.get_chat_upload_capabilities(
+        "user",
+        "linux",
+    ) == [".md", ".txt"]
+    assert login_server.get_chat_upload_capabilities(
+        "admin",
+        "darwin",
+    ) == [".md", ".txt", ".sql"]
+
+
+def test_chat_upload_capabilities_api_is_authenticated_and_role_scoped(
+    monkeypatch,
+):
+    monkeypatch.setattr(login_server, "CHAT_UPLOAD_PLATFORM", "win32")
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v11(db_path)
+
+        with _get_upload_capabilities(opener, base_url) as response:
+            assert response.code == 401
+
+        user_credential = "alice"
+        admin_credential = "admin"
+        create_test_user(db_path, "alice", user_credential)
+        create_test_user(
+            db_path,
+            "admin",
+            admin_credential,
+            role="admin",
+        )
+        user_cookie = login_as(opener, base_url, "alice", user_credential)
+        admin_cookie = login_as(opener, base_url, "admin", admin_credential)
+
+        with _get_upload_capabilities(
+            opener,
+            base_url,
+            user_cookie,
+        ) as response:
+            assert response.code == 200
+            user_capabilities = _json_response(response)
+        with _get_upload_capabilities(
+            opener,
+            base_url,
+            admin_cookie,
+        ) as response:
+            assert response.code == 200
+            admin_capabilities = _json_response(response)
+
+        assert user_capabilities == {"extensions": [".md", ".txt"]}
+        assert admin_capabilities == {
+            "extensions": [".md", ".txt", ".sql"]
+        }
+
+
+def test_upload_refuses_extensions_disabled_for_simulated_platform(monkeypatch):
+    monkeypatch.setattr(login_server, "CHAT_UPLOAD_PLATFORM", "linux")
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v11(db_path)
+        credential = "alice"
+        user_id = create_test_user(db_path, "alice", credential)
+        session_cookie = login_as(opener, base_url, "alice", credential)
+        session_id = _new_session(user_id, db_path)
+
+        with _upload(
+            opener,
+            base_url,
+            session_cookie,
+            session_id,
+            "notes.md",
+            b"markdown",
+        ) as response:
+            assert response.code == 201
+
+        text_session_id = _new_session(user_id, db_path)
+        with _upload(
+            opener,
+            base_url,
+            session_cookie,
+            text_session_id,
+            "notes.txt",
+            b"plain text",
+        ) as response:
+            assert response.code == 415
 
 
 @pytest.mark.parametrize(
@@ -785,14 +905,31 @@ def test_temporary_upload_files_are_removed_after_success_and_error(
 
 
 def test_chat_html_exposes_document_controls():
-    web_dir = Path(login_server.WEB_DIR)
-    html = (web_dir / "chat.html").read_text(encoding="utf-8")
-    script = (web_dir / "chat.js").read_text(encoding="utf-8")
+    with api_test_context() as (base_url, opener, db_path):
+        citadelle_memory.migrate_to_v11(db_path)
+        credential = "alice"
+        user_id = create_test_user(db_path, "alice", credential)
+        session_cookie = login_as(opener, base_url, "alice", credential)
+        _new_session(user_id, db_path)
+        with open_no_redirect(
+            opener,
+            urllib.request.Request(
+                base_url + "/",
+                headers={"Cookie": f"{SESSION_COOKIE_NAME}={session_cookie}"},
+            ),
+        ) as response:
+            assert response.code == 200
+            html = response.read().decode("utf-8")
+    script = (Path(login_server.WEB_DIR) / "chat.js").read_text(encoding="utf-8")
 
     assert 'id="attach-chat-document"' in html
     assert 'id="chat-document-file"' in html
+    assert 'id="chat-document-formats"' in html
     assert 'id="chat-document-name"' in html
     assert 'id="remove-chat-document"' in html
-    assert "Joindre un .md" in html
+    assert "Joindre un fichier" in html
+    assert "Formats disponibles : .md" in html
     assert "/api/chat/upload" in script
+    assert "/api/chat/upload/capabilities" in script
+    assert "chatDocumentFile.accept" in script
     assert "/api/chat/document/" in script

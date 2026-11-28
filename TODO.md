@@ -4,7 +4,7 @@
 tâche terminée est supprimée ici; sa trace reste dans
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
 
-**Dernière mise à jour** : 2026-11-27.
+**Dernière mise à jour** : 2026-11-28.
 
 ## Actif
 
@@ -141,14 +141,14 @@ tâche terminée est supprimée ici; sa trace reste dans
 voir [PHASE16-RESTE.md](dev/docs/PHASE16-RESTE.md).
 
 - [ ] **16-MULTIFORMAT** : décisions #135–#139 consignées; C0a Windows validé
-  par C0A-3; C0b Linux/macOS reporté, sans résultat présumé. CSV/JSON attendent
-  C0b; C1 est livré sous Windows via l’API pour `.md`, `.txt` et `.sql` texte,
-  avec `.sql` réservé aux admins. L’interface reste inchangée et propose `.md`
-  seulement; aucun CSV/JSON n’est activé. `.txt`/`.sql` POSIX attendent leur
-  validation propre (#139). C2–C4 restent à faire; C0b reste requis pour
-  CSV/JSON et les preuves multiplateformes. Option C de contexte adoptée (#139);
-  les budgets sont révisables après mesure; C2 vérifiera FTS5 pour les
-  segments/locators. Prochaine action : demander un GO D. Voir le
+  par C0A-3; C0b Linux/macOS reporté, sans résultat présumé. C1 et D sont livrés
+  sous Windows : l’API permet `.md`/`.txt` aux comptes `user` et `.sql` aux
+  admins; l’interface affiche les capacités du serveur. POSIX reste `.md` tant
+  que le drapeau explicite est désactivé; `.txt`/`.sql` y attendent une validation
+  propre (#139). CSV/JSON attendent C0b; C2–C4 restent à faire. Option C de
+  contexte adoptée (#139); les budgets sont révisables et C2 vérifiera FTS5 pour
+  les segments/locators. Prochaine action : le Décideur choisit le GO suivant.
+  Voir le
   [plan 16-MULTIFORMAT](dev/docs/BACKLOG.md#16-multiformat), les décisions
   [#135](.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat)
   et [#136](.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat), ainsi que les

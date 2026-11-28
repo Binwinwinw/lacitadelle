@@ -1,6 +1,6 @@
 # État du projet La Citadelle
 
-**Mis à jour** : 2026-11-27
+**Mis à jour** : 2026-11-28
 
 **Dernier commit de code audité** : `6e8ef08` (audit SQL v12; HEAD observé
 au préflight GO 16-PHASE-CLOSE-FINAL, avant les changements documentaires).
@@ -40,9 +40,9 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 
 ## Tests et décisions
 
-- **Dernière suite complète enregistrée** : `402 passed in 113.83s` au GO
-  16-MULTIFORMAT-C1 du 2026-11-27. C0A-3 avait enregistré `396 passed in
-  114.25s`; C0A-2 avait enregistré `396 passed in 97.03s`.
+- **Dernière suite complète enregistrée** : `409 passed in 112.56s` au GO
+  16-MULTIFORMAT-D du 2026-11-28. C1 avait enregistré `402 passed in 113.83s`;
+  C0A-3 avait enregistré `396 passed in 114.25s`.
 - **Décisions datées** : 139 entrées, comptées dans
   [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-27. Le comptage
   est calculé sur les titres `## [AAAA-MM-JJ]`; les décisions #134 et #135
@@ -86,18 +86,18 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
   vérifié le parcours et les limites. La clôture finale des livrables centraux
   est consignée par la décision #132; les autres tâches restent des reports.
 - `16-MULTIFORMAT` reste ouvert après arbitrages A/B et décisions #137–#139.
-  C1 livre sous Windows l’upload API `.md`, `.txt` et `.sql` comme texte; `.sql`
-  reste réservé aux admins. L’interface n’a pas changé et propose `.md`
-  seulement. C0b Linux/macOS reste reporté, sans résultat présumé; CSV/JSON
-  restent désactivés sur chaque plateforme avant validation de son C0b. #139
-  permet `.txt`/`.sql` POSIX après vérification propre, sans attendre C0b.
+  C1 et D sont livrés sous Windows : les capacités authentifiées alimentent le
+  bouton et l’attribut `accept`; `user` reçoit `.md`/`.txt`, `admin` aussi `.sql`.
+  Linux/macOS ne reçoivent que `.md` tant que le drapeau explicite est désactivé.
+  C0b Linux/macOS reste reporté, sans résultat présumé; CSV/JSON attendent C0b.
+  #139 permet `.txt`/`.sql` POSIX après vérification propre. C2–C4 restent à
+  réaliser; le prochain GO est à choisir.
   `.md`, `.txt`, `.csv`, `.json` et `.sql` sont approuvés comme périmètre futur;
   CSV/JSON seront lus structurellement et Markdown/TXT/SQL comme texte non
   exécuté. L’option C de contexte est retenue avec valeurs de départ révisables;
   C2 doit vérifier l’adéquation de FTS5 aux segments. Les README n'annoncent
-  aucun format non vérifié. Aucun paquet, schéma ni changement d’interface
-  n’est livré; C1 ajoute les formats texte à l’API Windows. La version cible
-  reste à déterminer; la prochaine action est un GO D.
+  aucun format non vérifié. Aucun paquet, schéma ni dépendance n’est ajouté; la
+  version cible reste à déterminer; le prochain GO est à choisir.
   Voir
   [BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat),
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat),

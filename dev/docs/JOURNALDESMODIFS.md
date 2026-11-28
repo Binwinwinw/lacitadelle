@@ -2,6 +2,21 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-28] GO 16-MULTIFORMAT-D — bouton et capacités d’upload
+
+**Commit** : ce commit local; hash vérifiable dans l’historique Git.
+**Fichiers modifiés** : `AGENTS.md`, `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/ETAT-PROJET.md`, `dev/docs/JOURNALDESMODIFS.md`,
+`dev/docs/JOURNALDEBORD.md`, `dev/docs/PHASE16-RESTE.md`,
+`dev/docs/SPEC-FICHIERS-CHAT.md`, `dev/tools/login_server.py`,
+`dev/tools/web/chat.html`, `dev/tools/web/chat.js` et
+`dev/tests/test_chat_documents.py`.
+**Raison** : afficher les formats réellement disponibles côté serveur sans
+modifier les README ni élargir l’allowlist aux formats structurés.
+**Impact** : capacités authentifiées et lecture seule par rôle/plateforme;
+interface alimentée par cette réponse; suite complète à 409 tests.
+Prochaine étape : GO distinct à choisir par le Décideur.
+
 ## [2026-11-27] GO 16-MULTIFORMAT-C1-COMMIT — upload API texte
 
 **Commit** : ce commit local; hash vérifiable dans l’historique Git.

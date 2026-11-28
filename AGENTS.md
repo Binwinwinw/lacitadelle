@@ -13,11 +13,11 @@ V3.1 fonctionnelle localement. La distribution source-only prend en charge
 Windows, Linux et macOS via `install.py`/`lancer.py` et les wrappers natifs.
 Un build PyInstaller Windows autonome est disponible; il télécharge runtime et
 GGUF au premier lancement et conserve les données sous `%APPDATA%\LaCitadelle\`.
-La suite compte 402 tests permanents et `.memory/decisions.md` 139 décisions.
+La suite compte 409 tests permanents et `.memory/decisions.md` 139 décisions.
 V3.0/V3.1 désignent les versions du périmètre d'authentification.
 
-<!-- Décisions comptées le 2026-11-27; 402 tests = suite complète C1 du
-2026-11-27; C0A-3 avait 396 tests. Sources :
+<!-- Décisions comptées le 2026-11-27; 409 tests = suite complète D du
+2026-11-28; C1 avait 402 tests. Sources :
 .memory/decisions.md + dernier pytest -q. -->
 
 ## Références projet
