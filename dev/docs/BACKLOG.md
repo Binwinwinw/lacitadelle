@@ -815,12 +815,13 @@ aucune règle de rétention des logs n’a été définie dans ce GO.
 #### 16-MULTIFORMAT
 
 **Statut** : arbitrages A/B (#135/#136), Windows-first (#137), découpage
-C1–C4 (#138) et texte/contexte (#139) consignés. C1 peut être demandé sous
-Windows par un GO distinct; C2–C4 restent à exécuter. C0b Linux/macOS est
-reporté, sans résultat présumé; CSV/JSON attendent C0b et la clôture
-multiformat POSIX reste bloquée. `.txt`/`.sql` peuvent être livrés POSIX après
-validation propre sans attendre C0b (#139). L’upload du chat accepte toujours
-`.md` seulement.
+C1–C4 (#138) et texte/contexte (#139) consignés. C1 est livré sous Windows
+pour l’API seulement : `.md`, `.txt` et `.sql` sont lus comme texte, `.sql`
+reste admin-only; l’interface propose toujours `.md` seulement. Prochaine
+action : GO D. C2–C4 restent à exécuter. C0b Linux/macOS est reporté, sans
+résultat présumé; CSV/JSON attendent C0b et la clôture multiformat POSIX reste
+bloquée. `.txt`/`.sql` peuvent être livrés POSIX après validation propre sans
+attendre C0b (#139).
 **Priorité** : à déterminer.
 **Objectif** : faire évoluer le contrôle actuel « Joindre un .md » vers
 « Joindre un fichier » uniquement lorsque les formats effectivement pris en
@@ -1373,7 +1374,12 @@ Linux ou macOS.
 2. Vérifier son empreinte dans le dossier contenant le script.
    Linux : `sha256sum c0_multiformat_probe.py`.
    macOS : `shasum -a 256 c0_multiformat_probe.py`.
-   Comparer le résultat à `9251e6a6742a161031a7956652c56c3715a194c93a02b55c2e0ac8d0b1d8e169`.
+   Copie directe depuis Windows (CRLF) :
+   `9251e6a6742a161031a7956652c56c3715a194c93a02b55c2e0ac8d0b1d8e169`.
+   Version récupérée par Git (blob LF) :
+   `bad95975d4186b4e5997ca66271bfa16debd0faf3974dbf28bc55a61720e0ce0`.
+   Sur le poste Windows de référence, `core.autocrlf=true`; choisir l’empreinte
+   correspondant au mode de transfert.
 3. Noter la version et le chemin de l’interpréteur :
    `python3 --version` puis `python3 -c 'import sys; print(sys.executable)'`.
    Si la version diffère de 3.15.2, la consigner; Python 3.10+ est requis.
@@ -1470,18 +1476,17 @@ nouvelle n’est livrée.
 autorisé/interdit; fichiers corrompus, chiffrés, compressés ou excessifs;
 limites et nettoyage; isolation utilisateur/conversation; absence d’exécution,
 macros et accès réseau; affichage sûr, injection d’instructions et signalement
-des traitements partiels. Ces tests portent sur la future intégration au chat;
-C0a ne la modifie pas. La suite actuelle `.md` et les tests isolés du prototype
-ont été exécutés, sans rendre de format supplémentaire disponible.
+des traitements partiels. C1 a validé l’API texte `.md`/`.txt`/`.sql` sous
+Windows; le support POSIX reste à vérifier et CSV/JSON restent bloqués par C0b.
+La suite C0A du prototype reste distincte de l’intégration chat.
 
-**Tests existants** : quatorze cas dans
-[test_chat_documents.py](../tests/test_chat_documents.py) couvrent notamment
-migration, UTF-8/classification, limites `.md`, authentification et CSRF,
-isolation, refus d’un second document, suivi après rechargement, retrait,
-nettoyage temporaire et contrôles HTML. Ces tests décrivent le premier incrément;
-ils ne valident pas encore de formats multiformat.
+**Tests existants** : vingt cas dans
+[test_chat_documents.py](../tests/test_chat_documents.py) couvrent migration,
+UTF-8/BOM/NUL, limites, classification, upload `.md`/`.txt`/`.sql`,
+authentification, CSRF, isolation, refus d’un second document, retrait, suivi
+après rechargement, nettoyage temporaire et contrôles HTML.
 
-**Prochaine action** : demander un GO distinct pour C1 sous Windows.
+**Prochaine action** : demander un GO D après C1 sous Windows.
 C0b Linux/macOS reste reporté (#137), sans résultat présumé; CSV/JSON et la
 clôture multiformat POSIX restent bloqués par C0b. `.txt`/`.sql` peuvent être
 livrés POSIX après leur validation propre sans attendre C0b (#139). C1/C2
@@ -1496,13 +1501,14 @@ livraison textuelle `.txt`/`.sql` n'en dépend pas (#139).
 - **Étapes A et B** : terminées et arbitrées le 2026-11-25 par les décisions
   #135 et #136; Windows-first et arbitrages C1–C4 consignés par #137/#138;
   texte POSIX et contexte arbitrés par #139 le 2026-11-27.
-- **Étape C** : non commencée; GO distinct requis. D et E ne sont pas
-  commencées.
-- **Capacité actuelle** : l’upload chat accepte `.md` seulement.
+- **Étape C** : C1 livré sous Windows via l’API; C2–C4 restent à réaliser par
+  GO distincts. D et E ne sont pas commencées.
+- **Capacité actuelle** : l’API accepte `.md`, `.txt` et `.sql` comme texte;
+  `.sql` est admin-only. L’interface propose toujours `.md` seulement.
 - **Périmètre futur approuvé** : `.md`, `.txt`, `.csv`, `.json`, `.sql`;
   CSV/JSON structurés, Markdown/TXT/SQL textuels, aucun contenu exécuté.
 - **Version cible** : à déterminer.
-- **Prochaine action** : demander un GO distinct pour C1 sous Windows.
+- **Prochaine action** : GO D.
 - **Contexte (Option C, décision #139)** : jusqu’à ≈6 000 tokens, fichier entier;
   au-delà, fiche ≈1 000 tokens et segments selon la question. CSV : 3–10 lignes
   par segment avec en-tête; JSON : élément de premier niveau avec JSON Pointer,
@@ -1519,8 +1525,8 @@ livraison textuelle `.txt`/`.sql` n'en dépend pas (#139).
   CSV/JSON et clôture POSIX. Plafonds/budgets révisables après mesure réelle.
 - **Points de suivi** : livraison `.txt`/`.sql` POSIX après validation propre,
   sans attendre C0b; aucun format annoncé avant vérification.
-- **Autorisation** : C1 peut être demandé par un GO distinct sous Windows;
-  aucune implémentation C n’est autorisée sans ce GO.
+- **Autorisation** : C1 est terminé côté API Windows; le GO distinct suivant
+  est D. C2–C4 conservent leurs GO distincts.
 - **Références à lire dans l’ordre** : [présente section](#16-multiformat);
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat);
   [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat);

@@ -2,10 +2,24 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
-## [2026-11-27] GO 16-MULTIFORMAT-COMMIT-LOCAL - documentation et carte
+## [2026-11-27] GO 16-MULTIFORMAT-C1-COMMIT — upload API texte
+
+**Commit** : ce commit local; hash vérifiable dans l’historique Git.
+**Fichiers modifiés** : `AGENTS.md`, `TODO.md`, `dev/docs/BACKLOG.md`,
+`dev/docs/ETAT-PROJET.md`,
+`dev/docs/JOURNALDESMODIFS.md`, `dev/docs/JOURNALDEBORD.md`,
+`dev/docs/PHASE16-RESTE.md`, `dev/docs/SPEC-FICHIERS-CHAT.md`,
+`dev/tools/login_server.py`, `dev/tools/nodes/extract_text.py` et
+`dev/tests/test_chat_documents.py`.
+**Raison** : ajouter `.txt` et `.sql` en texte à l’API d’upload, sans changer
+le parcours `.md`, l’interface ni le schéma.
+**Impact** : `.sql` reste admin-only; aucun CSV/JSON, worker ou dépendance.
+Suite complète : 402 tests; prochaine action : GO D.
+
+## [2026-11-27] GO 16-MULTIFORMAT-COMMIT-LOCAL — documentation et carte
 
 **Commit** : voir le message Git de sauvegarde documentaire.
-**Fichiers modifies** : `AGENTS.md`, `TODO.md`, `.memory/decisions.md`,
+**Fichiers modifiés** : `AGENTS.md`, `TODO.md`, `.memory/decisions.md`,
 `dev/docs/BACKLOG.md`, `dev/docs/ETAT-PROJET.md`,
 `dev/docs/JOURNALDEBORD.md`, `dev/docs/JOURNALDESMODIFS.md`,
 `dev/docs/PHASE16-RESTE.md` et `dev/docs/CARTE-DEPOT.md`.
@@ -13,17 +27,17 @@ Ce document résume les évolutions du produit et de sa distribution.
 dans un commit local distinct du code et des tests.
 **Impact** : documentation consolidée; aucun push ni changement de comportement.
 
-## [2026-11-27] GO 16-MULTIFORMAT-COMMIT-LOCAL - code et tests C0A
+## [2026-11-27] GO 16-MULTIFORMAT-COMMIT-LOCAL — code et tests C0A
 
 **Commit** : `f302789`.
-**Fichiers modifies** : `dev/tools/json_prescan_prototype.py`,
+**Fichiers modifiés** : `dev/tools/json_prescan_prototype.py`,
 `dev/tools/c0_multiformat_probe.py`,
 `dev/tests/test_json_prescan_prototype.py`,
 `dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
-**Raison** : sauvegarder localement le pre-scan, la sonde et leurs tests C0A
-valides, sans integration au produit.
+**Raison** : sauvegarder localement le pré-scan, la sonde et leurs tests C0A
+validés, sans intégration au produit.
 **Impact** : prototypes et preuves C0A conservés; aucun code de production ni
-format livre.
+format livré.
 
 ## [2026-11-27] GO 16-DEV-CARTE-DEPOT — carte et nettoyage du POC Graphify
 

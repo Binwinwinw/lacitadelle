@@ -40,9 +40,9 @@ GO, et ne sont pas comparables aux notes sur cinq critères de
 
 ## Tests et décisions
 
-- **Dernière suite complète enregistrée** : `396 passed in 114.25s` au GO
-  16-MULTIFORMAT-C0A-3 du 2026-11-27. Le total reste à 396; C0A-2 avait
-  enregistré `396 passed in 97.03s` le 2026-11-26.
+- **Dernière suite complète enregistrée** : `402 passed in 113.83s` au GO
+  16-MULTIFORMAT-C1 du 2026-11-27. C0A-3 avait enregistré `396 passed in
+  114.25s`; C0A-2 avait enregistré `396 passed in 97.03s`.
 - **Décisions datées** : 139 entrées, comptées dans
   [.memory/decisions.md](../../.memory/decisions.md) le 2026-11-27. Le comptage
   est calculé sur les titres `## [AAAA-MM-JJ]`; les décisions #134 et #135
@@ -85,18 +85,19 @@ Références : [lancer.py](../tools/lancer.py#L42), [login_server.py](../tools/l
   [décision #129](../../.memory/decisions.md#L2941)). Le test live a ensuite
   vérifié le parcours et les limites. La clôture finale des livrables centraux
   est consignée par la décision #132; les autres tâches restent des reports.
-- `16-MULTIFORMAT` reste ouvert après arbitrages A/B et décisions #137–#139 :
-  poursuite Windows-first, C0b Linux/macOS reporté jusqu’à disponibilité des
-  plateformes, sans résultat présumé. #139 permet la livraison de `.txt`/`.sql`
-  sur Linux/macOS sans attendre C0b, après vérification propre à ces formats;
-  CSV/JSON restent désactivés sur une plateforme avant validation de son C0b.
+- `16-MULTIFORMAT` reste ouvert après arbitrages A/B et décisions #137–#139.
+  C1 livre sous Windows l’upload API `.md`, `.txt` et `.sql` comme texte; `.sql`
+  reste réservé aux admins. L’interface n’a pas changé et propose `.md`
+  seulement. C0b Linux/macOS reste reporté, sans résultat présumé; CSV/JSON
+  restent désactivés sur chaque plateforme avant validation de son C0b. #139
+  permet `.txt`/`.sql` POSIX après vérification propre, sans attendre C0b.
   `.md`, `.txt`, `.csv`, `.json` et `.sql` sont approuvés comme périmètre futur;
   CSV/JSON seront lus structurellement et Markdown/TXT/SQL comme texte non
   exécuté. L’option C de contexte est retenue avec valeurs de départ révisables;
   C2 doit vérifier l’adéquation de FTS5 aux segments. Les README n'annoncent
-  aucun format non vérifié. Aucun paquet ni nouvelle capacité n’est livré. La
-  version cible reste à déterminer; l’upload chat disponible accepte `.md`
-  seulement et le bouton n’est pas renommé.
+  aucun format non vérifié. Aucun paquet, schéma ni changement d’interface
+  n’est livré; C1 ajoute les formats texte à l’API Windows. La version cible
+  reste à déterminer; la prochaine action est un GO D.
   Voir
   [BACKLOG 16-MULTIFORMAT](./BACKLOG.md#16-multiformat),
   [décision #135](../../.memory/decisions.md#2026-11-25-arbitrage-fonctionnel-du-premier-palier-multiformat),

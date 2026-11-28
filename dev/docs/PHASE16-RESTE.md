@@ -87,15 +87,16 @@ décisions et objectifs du projet.
 - **État** : arbitrages fonctionnels A et techniques B terminés et consignés
   le 2026-11-25 dans les décisions #135 et #136; décisions #137–#139 du
   2026-11-27 : poursuite Windows-first, arbitrage C1–C4 et stratégie de
-  contexte. C1 peut être demandé sous Windows par un GO distinct. C0a Windows
-  est validé par C0A-3; C0b Linux/macOS est reporté, sans résultat présumé.
-  L’implémentation C n’est pas commencée;
-  l’upload chat reste `.md` seulement.
+  contexte. C1 est livré sous Windows pour l’API : `.md`, `.txt` et `.sql`
+  sont lus comme texte, `.sql` reste réservé aux admins. L’interface propose
+  toujours `.md` seulement. C0a Windows est validé par C0A-3; C0b Linux/macOS
+  est reporté, sans résultat présumé. CSV/JSON restent bloqués par C0b.
+  Prochaine action : demander un GO D; C2–C4 restent à réaliser.
 - **Description** : réaliser ultérieurement l’allowlist approuvée `.md`, `.txt`,
   `.csv`, `.json`, `.sql`; cela ne décrit pas la disponibilité actuelle.
-- **Faits clés** : le chat accepte `.md`; le helper générique `.txt`/PDF et le
-  workflow admin PDF/SQL sont des parcours distincts, pas une preuve de support
-  d’upload multiformat dans le chat.
+- **Faits clés** : l’API chat accepte maintenant `.md`, `.txt` et `.sql` comme
+  texte sous Windows; `.sql` est admin-only. Le helper générique `.txt`/PDF et
+  le workflow admin PDF/SQL restent des parcours distincts.
 - **Contraintes décidées** : traitement local, fichier non fiable/non exécuté,
   permissions non issues du document et vérifications imposées côté serveur.
 - **Dépendances et arbitrages** : profondeur approuvée : CSV/JSON structurés,
@@ -104,8 +105,8 @@ décisions et objectifs du projet.
   (décision #137), sans prétendre valider ces plateformes. Selon #139, `.txt`
   et `.sql` peuvent être livrés sur Linux/macOS après leur vérification propre,
   sans attendre C0b; CSV/JSON restent bloqués sur chaque plateforme jusqu'à
-  validation de son C0b. C1 peut être demandé sous Windows; C1/C2 n'attendent
-  pas C0b et C3/C4 peuvent y être développés, preuves multiplateformes avant
+  validation de son C0b. C1 est terminé côté API Windows; le GO suivant est D.
+  C2/C3/C4 peuvent être développés sous Windows, preuves multiplateformes avant
   livraison. Les README n'annoncent aucun format non vérifié. Les décisions
   #138/#139 tranchent architecture, deadline totale, candidats CSV, validation
   serveur par plateforme, contrôles JSON décodés et option C de contexte. Les
@@ -118,16 +119,16 @@ décisions et objectifs du projet.
   [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat) et les
   [invariants #134](../../.memory/decisions.md#2026-11-24-cadrage-documentaire-du-chantier-16-multiformat) et la
   [spécification du premier incrément](./SPEC-FICHIERS-CHAT.md).
-- **Prochaine action** : demander un GO distinct pour C1 sous Windows.
+- **Prochaine action** : demander un GO D; C1 est terminé côté API Windows.
   C0b reste le verrou pour activer CSV/JSON et clore le multiformat POSIX;
   il ne bloque pas la livraison de `.txt`/`.sql` après vérification propre
   (#139).
-- **Proposition de découpage C1–C4** (à arbitrer; ne constitue pas une
-  autorisation d’implémentation) :
+- **Découpage C1–C4** (arbitrages consignés par #138; chaque lot requiert un
+  GO distinct) :
 
 | Lot | Objectif et fichiers visés | Tests à écrire en premier | Preuve, arrêt, dépendances et plateformes |
 |---|---|---|---|
-| **C1 — texte simple** | Ajouter un lecteur chat UTF-8 borné pour `.txt` et `.sql` texte; `.sql` demeure admin-only selon #136. Adapter le dispatch et la réponse d’upload dans [login_server.py](../tools/login_server.py) et ajouter un point d’entrée chat dédié dans [extract_text.py](../tools/nodes/extract_text.py). Réutiliser les contrôles d’ownership et de stockage existants; aucune migration prévue. | Étendre [test_chat_documents.py](../tests/test_chat_documents.py) avec UTF-8, BOM, vide/contrôles, limites, rôle `user`/`admin`, session non propriétaire, erreur et nettoyage. Étendre [test_nodes.py](../tests/test_nodes.py) si le lecteur partagé change. | API de test isolée avec DB/temporaire; `.md` inchangé et SQL refusé aux non-admins. Arrêt si le nettoyage, les droits ou les codes existants changent sans décision. Dépend de #135/#136, pas de C0b. Développement et preuve initiale sous Windows; selon #139, `.txt`/`.sql` POSIX peuvent être livrés après validation propre sans attendre C0b. |
+| **C1 — texte simple (livré, API Windows)** | L’API accepte `.txt` et `.sql` comme texte avec les limites de `.md`; `.sql` reste admin-only. Aucun worker, CSV/JSON, changement d’interface ni migration. | Tests ajoutés dans [test_chat_documents.py](../tests/test_chat_documents.py) : UTF-8 strict, BOM/contrôles comme `.md`, vides, limites exact/+1, droits, nom, ownership, refus des autres formats et nettoyage. | `.md` inchangé; ciblés `20 passed`, `test_nodes.py` `12 passed`, suite `402 passed`, Ruff propre. POSIX non vérifié; `.txt`/`.sql` y attendent une validation propre. Prochaine action : GO D. |
 | **C2 — parseurs structurés et contexte** | Implémenter les fonctions CSV/JSON pures et la fiche/segmentation Option C, sans activation avant C3. Nouveau module proposé : `dev/tools/nodes/extract_structured.py`; vérifier aussi [index_fts5.py](../tools/nodes/index_fts5.py). Le prototype [json_prescan_prototype.py](../tools/json_prescan_prototype.py) et ses [tests](../tests/test_json_prescan_prototype.py) restent une référence C0, pas une dépendance de production. | Nouveau `dev/tests/test_chat_structured_documents.py` : parsing, limites exact/+1, fiche complète, segments CSV avec en-tête répété, segments JSON avec Pointer, éléments volumineux divisés par enfants, contexte total et absence de troncature silencieuse. Étendre [test_nodes_fts5_improve.py](../tests/test_nodes_fts5_improve.py) pour vérifier l’adéquation de FTS5 aux segments/locators. | Option C #139 : fichier ≤≈6 000 tokens entier; sinon fiche toujours présente (≈1 000 tokens) + segments retrouvés selon la question. CSV : 3–10 lignes/segment (≈500–1 000 tokens), en-tête répété. JSON : élément de premier niveau avec Pointer, divisé par enfants s’il est trop gros. Budget de départ : 6–9 segments (≈8 000 tokens), fiche en plus, ≥12 000 tokens réservés à conversation/réponse; valeurs à réviser après mesures. Aucune troncature silencieuse. C2 n’attend pas C0b; arrêter si FTS5 ne préserve pas les locators/coverage. |
 | **C3 — worker borné et packaging** | Intégrer le module dédié `dev/tools/nodes/structured_worker.py` via [login_server.py](../tools/login_server.py). Orientation #138 : lancement par subprocess; spawn depuis le serveur seulement si une mesure du protocole réel le justifie. Pour l’EXE, dispatch frozen avant les imports lourds dans [lancer.py](../tools/lancer.py), imports de [build.spec](../tools/packaging/build.spec) et, si nécessaire, [build.py](../tools/packaging/build.py). | Nouveau `dev/tests/test_structured_worker.py` : protocole, requête/réponse bornées, enfant bloqué ou qui ne lit pas, délai couvrant l’envoi, parsing et retour, arrêt/cleanup sans orphelin. Étendre [test_chat_documents.py](../tests/test_chat_documents.py) pour les erreurs API; étendre [test_packaging.py](../tests/test_packaging.py) pour le dispatch gelé si le contrat le permet. | Tests ciblés puis smoke PyInstaller one-file Windows, sans installation implicite. Arrêt si l’envoi peut dépasser le délai, si un worker reste actif ou si le smoke échoue; pas de fallback in-process sans mesure réelle favorable. C3 dépend de C2. Développement/validation sous Windows seulement; aucune preuve Linux/macOS. |
 | **C4 — durcissement et disponibilité** | Rejeter les contrôles JSON décodés et substituts isolés selon #138, avec locators et erreurs finales dans `extract_structured.py` et [login_server.py](../tools/login_server.py). Capacités par plateforme déterminées/refusées côté serveur; [chat.html](../tools/web/chat.html) et [chat.js](../tools/web/chat.js) restent hors du lot C (D les reflète seulement). | Compléter `test_chat_structured_documents.py` avec échappements décodés dans valeurs et clés, NUL, C0 hors TAB/CR/LF, DEL, C1, substituts isolés, absence de persistance sur rejet, locators et frontières des limites. Compléter [test_chat_documents.py](../tests/test_chat_documents.py) pour l’échec API et le nettoyage. | Suite ciblée Windows et smoke empaqueté; toute capacité doit échouer fermée. Arrêt si une valeur interdite est acceptée ou si le client peut contourner la capacité serveur. Dépend de C2/C3. C3/C4 peuvent être développés sous Windows; CSV/JSON restent désactivés jusqu’à validation C0b de la plateforme. `.txt`/`.sql` POSIX ne l’attendent pas (#139). |
@@ -313,8 +314,8 @@ d’exécuter les GO suivants.
 8. `MODELE-NETTOYAGE` — réconcilier la liste historique avant tout changement.
 9. `16-FEATURE-MODEL-DRIFT-DETECTION`.
 10. `16-FEATURE-AUTO-MODEL-SELECTION` — après revalidation des seuils/modèles.
-11. `16-MULTIFORMAT` — arbitrer l’allowlist et le premier palier avant tout GO
-    technique.
+11. `16-MULTIFORMAT` — C1 API texte livré sous Windows; prochaine action GO D.
+    C2–C4 et les preuves multiplateformes restent à réaliser.
 12. `16-CHAT-RAG-LOCAL` — après définition de l’import et du stockage.
 13. `16-CHAT-WEB-ACCESS` — uniquement après décision explicite sur le mode hors
     ligne et mise à jour du périmètre.

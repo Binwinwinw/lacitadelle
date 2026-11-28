@@ -1,7 +1,9 @@
 # Spécification fonctionnelle — fichiers dans les conversations
 
-**Statut** : Fonctionnel validé et premier incrément implémenté (GO 25) ;
-paramètres techniques validés; limites de tokens approximatives.
+**Statut** : Premier incrément implémenté (GO 25); GO 16-MULTIFORMAT-C1 ajoute
+`.txt` et `.sql` comme texte à l’API sous Windows, avec `.sql` réservé aux
+admins. L’interface reste limitée à `.md`; CSV/JSON et les plateformes POSIX
+ne sont pas déclarés disponibles. Prochaine action : GO D.
 
 **Commit de référence** : `83305fe` (HEAD observé au préflight GO 25).
 
@@ -107,21 +109,22 @@ ils ne sont pas des exigences nouvelles.
    est refusé avec un état explicite; le document existant n’est pas remplacé.
    L’utilisateur doit le retirer avant d’en joindre un autre.
 
-## 4. Formats envisagés
+## 4. Formats et disponibilité
 
-Les types ci-dessous reflètent les souhaits exprimés, pas une promesse de
-prise en charge. La mention d’une extension dans
+Les formats prévus et leur disponibilité réelle sont distingués ci-dessous.
+La mention d’une extension dans
 [security_files.py](../tools/security_files.py#L15) indique une classification,
 pas l’existence d’un extracteur ou d’une capacité visuelle.
 
 | Famille | Usage attendu | Contenu à rendre disponible | Limite connue | Premier incrément / évolution |
 |---|---|---|---|---|
 | Markdown `.md` | Commenter, résumer, reformuler, expliquer ou analyser | Texte UTF-8 extrait, soumis aux limites appliquées | Le parcours AIWorkflow existant utilise un chemin serveur; il n’est pas un téléversement du chat. | **Premier incrément implémenté** : un document associé à une conversation. |
-| Texte `.txt` | Même usage textuel | Texte décodé | Encodage et extraction à définir pour ce format. | **Cible multiformat future**, pas un abandon. |
+| Texte `.txt` | Même usage textuel | Texte UTF-8 strict; limites identiques au lecteur `.md`. | C1 : API Windows livrée; interface `.md` inchangée. POSIX à vérifier proprement, sans attendre C0b (#139). |
 | PDF | Résumer et questionner le texte extrait | Texte extrait; les scans peuvent nécessiter OCR | L’extraction actuelle dépend de `pypdf` et n’assure pas l’OCR ([extract_text.py](../tools/nodes/extract_text.py#L14)). | **Cible multiformat future**. |
 | Bureautique `.docx`, `.xlsx`, `.pptx`, etc. | Lire et expliquer | Texte ou structures extraites | Une extension classée publique n’atteste pas l’existence d’un extracteur. | **Cible multiformat future**. |
 | Photos et images | Décrire ou analyser | Pixels, OCR ou représentation visuelle | Ni OCR ni capacité vision du modèle n’est établie par la classification d’extension. | **Cible multiformat future**, capacité à vérifier séparément. |
-| SQL, Dockerfiles et scripts | Expliquer le texte seulement | Texte; aucune exécution | AIWorkflow SQL est un autre parcours et peut interroger la base de l’application ([analyse_sql.py](../workflows/analyse_sql.py#L41)). | **Cible multiformat future**; contenu non exécuté. |
+| SQL `.sql` | Lire le texte source seulement | Texte UTF-8 strict, sans analyse ni exécution SQL; réservé aux admins. | AIWorkflow SQL est un autre parcours et peut interroger la base de l’application ([analyse_sql.py](../workflows/analyse_sql.py#L41)). | C1 : API Windows livrée; interface `.md` inchangée. POSIX à vérifier proprement, sans attendre C0b (#139). |
+| Dockerfiles et scripts | Expliquer le texte seulement | Texte; aucune exécution | Aucun lecteur chat n’est implémenté pour ces formats; ils restent hors allowlist. | **Cible multiformat future**; contenu non exécuté. |
 
 ## 5. Conservation et suppression — règles validées
 
@@ -276,14 +279,18 @@ suite existante; aucun code AIWorkflow n’a été modifié.
 Les choix techniques acceptés et l’implémentation de ce premier incrément sont
 consignés dans la [décision #129](../../.memory/decisions.md#L2941).
 
-## 14. Proposition de contrat multiformat — non implémentée
+## 14. Proposition de contrat multiformat — C1 partiellement implémenté
 
 **Statut** : cadrage B terminé et arbitré par la
 [décision #136](../../.memory/decisions.md#2026-11-25-arbitrage-des-conditions-techniques-multiformat),
-mais toujours non implémenté. Les sections 1–13 restent le contrat livré du
-`.md`; aucune dépendance ni valeur candidate de limite n’est approuvée.
+et C1 implémente sous Windows l’upload API `.txt`/`.sql` comme texte; `.sql`
+reste réservé aux admins. L’interface demeure `.md`; CSV/JSON et la validation
+POSIX restent à faire. C1 conserve la lecture UTF-8 stricte du `.md` : BOM
+conservé comme texte, contenu vide et NUL refusés; les autres contrôles gardent
+le comportement existant. Les règles proposées ci-dessous ne décrivent pas les
+comportements C1 lorsqu’elles diffèrent du lecteur `.md`.
 Vérifications ciblées du code au HEAD
-`b3da82ea5e32734953efc11c998a53ad91070f85`; l’upload chat accepte toujours
+`b3da82ea5e32734953efc11c998a53ad91070f85`, avant C1 : l’upload chat acceptait
 `.md` seulement.
 
 Le périmètre fonctionnel approuvé par la
@@ -296,20 +303,20 @@ disponible.
 | Format | Lecture proposée | Validation et résultat |
 |---|---|---|
 | `.md` | Conserver le lecteur UTF-8 et le texte du contrat courant. | Garder les limites, la classification, l’attachement et la récupération actuels. |
-| `.txt` | Lire du texte UTF-8 brut, sans interprétation. | Nouveau chemin d’upload chat; le helper générique existant ne vaut pas intégration. |
+| `.txt` | Lire du texte UTF-8 brut, sans interprétation. | C1 : API Windows livrée avec les limites et validations du lecteur `.md`; UI et validation POSIX restent à faire. |
 | `.csv` | Lire enregistrements et cellules avec leurs en-têtes et positions. Aucune conversion numérique ni formule exécutée. | Première ligne logique non vide comme en-tête; virgule, point-virgule et tabulation candidats. Une ambiguïté est refusée; mode sans en-tête hors premier palier. Valeurs conservées comme chaînes. |
 | `.json` | Lire objets, listes, clés, valeurs et racine structurée; localiser chaque fragment par JSON Pointer. | JSON strict, pas de `eval`; acceptation en implémentation conditionnée aux tests adverses du pré-scan avant `json.loads`. |
-| `.sql` | Lire le fichier comme texte source seulement. | Aucune analyse contre une base, exécution de requête ou ouverture de DB. `.sql` reste réservé aux administrateurs pour la première implémentation selon la classification actuelle; ouverture aux comptes `user` soumise à une décision ultérieure. |
+| `.sql` | Lire le fichier comme texte source seulement. | C1 : API Windows livrée, aucun parsing SQL, accès DB ni exécution; réservé aux administrateurs selon #136. UI et validation POSIX restent à faire. |
 
 ### Codes HTTP : comportement actuel et proposition
 
-Pour l’upload `.md` actuel, le handler renvoie 415 pour un `Content-Type` non
-multipart ou un suffixe autre que `.md`; 400 pour un multipart mal formé ou un
-Markdown invalide, y compris un encodage UTF-8 invalide; et 413 si le corps,
-le fichier ou le texte extrait dépasse sa limite. Les autres contrôles actuels
-renvoient notamment 401 (non authentifié), 403 (CSRF/droit), 404 (session
-absente ou non possédée), 409 (document déjà présent) et 500 (erreur interne
-ou de stockage).
+Depuis C1, l’API accepte `.md`, `.txt` et `.sql` comme texte; un `Content-Type`
+non multipart ou un autre suffixe renvoie 415. Un multipart mal formé, un
+encodage UTF-8 invalide, un contenu vide ou contenant NUL renvoie 400; un corps,
+fichier ou texte extrait dépassant sa limite renvoie 413. `.sql` est refusé aux
+comptes `user` (403). Les autres contrôles renvoient notamment 401
+(non authentifié), 403 (CSRF/droit), 404 (session absente ou non possédée), 409
+(document déjà présent) et 500 (erreur interne ou de stockage).
 
 Pour les formats futurs, 400 pour une syntaxe CSV/JSON invalide et 413 pour
 leurs limites sont des codes proposés, non des comportements déjà livrés.

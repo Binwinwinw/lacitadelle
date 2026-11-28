@@ -6,6 +6,7 @@ from pathlib import Path
 
 from security_files import can_read, classify_file
 
+CHAT_DOCUMENT_EXTENSIONS = {".md", ".txt", ".sql"}
 MAX_MARKDOWN_BYTES = 256 * 1024
 MAX_MARKDOWN_CHARS = 200_000
 
@@ -22,12 +23,15 @@ def extract_markdown_document(
     path: str | Path,
     user_role: str,
 ) -> tuple[str, dict[str, str | int]]:
-    """Lit un Markdown téléversé après contrôle des limites et de la politique."""
+    """Lit un document téléversé après contrôle des limites et des droits."""
     source = Path(path)
     if not source.is_file():
         raise FileNotFoundError(f"Fichier introuvable : {source}")
-    if source.suffix.lower() != ".md":
-        raise ExtractTextError("Seuls les fichiers .md sont pris en charge.")
+    suffix = source.suffix.lower()
+    if suffix not in CHAT_DOCUMENT_EXTENSIONS:
+        raise ExtractTextError(
+            "Seuls les fichiers .md, .txt et .sql sont pris en charge."
+        )
 
     size_bytes = source.stat().st_size
     if size_bytes > MAX_MARKDOWN_BYTES:
@@ -41,7 +45,12 @@ def extract_markdown_document(
     try:
         content = source.read_text(encoding="utf-8")
     except UnicodeDecodeError as exc:
-        raise ExtractTextError("Le fichier Markdown doit être encodé en UTF-8.") from exc
+        message = (
+            "Le fichier Markdown doit être encodé en UTF-8."
+            if suffix == ".md"
+            else "Le fichier doit être encodé en UTF-8."
+        )
+        raise ExtractTextError(message) from exc
     if not content.strip() or "\x00" in content:
         raise ExtractTextError("Le fichier est vide ou contient des données binaires.")
     if len(content) > MAX_MARKDOWN_CHARS:

@@ -87,6 +87,7 @@ from diagnostic import (
 )
 from model_health import CURRENT_MODEL_FILE, DEFAULT_MODEL_PATH
 from nodes.extract_text import (
+    CHAT_DOCUMENT_EXTENSIONS,
     MAX_MARKDOWN_BYTES,
     DocumentLimitError,
     ExtractTextError,
@@ -2327,12 +2328,12 @@ def _extract_chat_upload(
     if primary_error is not None:
         raise primary_error
     if result is None:
-        raise RuntimeError("L'extraction Markdown n'a produit aucun résultat.")
+        raise RuntimeError("L'extraction du document n'a produit aucun résultat.")
     return result
 
 
 def handle_post_chat_upload(handler: BaseHTTPRequestHandler) -> None:
-    """Attache un document Markdown à une conversation appartenant au compte."""
+    """Attache un document texte pris en charge à une conversation du compte."""
     user_id = get_authenticated_user_id(handler)
     if user_id is None:
         error_response(handler, "Non authentifié", HTTPStatus.UNAUTHORIZED)
@@ -2365,10 +2366,10 @@ def handle_post_chat_upload(handler: BaseHTTPRequestHandler) -> None:
     except ValueError as exc:
         error_response(handler, str(exc), HTTPStatus.BAD_REQUEST)
         return
-    if Path(filename).suffix.lower() != ".md":
+    if Path(filename).suffix.lower() not in CHAT_DOCUMENT_EXTENSIONS:
         error_response(
             handler,
-            "Seuls les fichiers .md sont pris en charge.",
+            "Seuls les fichiers .md, .txt et .sql sont pris en charge.",
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
         return
