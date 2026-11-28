@@ -2,6 +2,18 @@
 
 Ce document résume les évolutions du produit et de sa distribution.
 
+## [2026-11-27] GO 16-MULTIFORMAT-COMMIT-LOCAL - code et tests C0A
+
+**Commit** : hash a reporter dans le commit documentaire.
+**Fichiers modifies** : `dev/tools/json_prescan_prototype.py`,
+`dev/tools/c0_multiformat_probe.py`,
+`dev/tests/test_json_prescan_prototype.py`,
+`dev/docs/JOURNALDESMODIFS.md` et `dev/docs/JOURNALDEBORD.md`.
+**Raison** : sauvegarder localement le pre-scan, la sonde et leurs tests C0A
+valides, sans integration au produit.
+**Impact** : prototypes et preuves C0A conserves; aucun code de production ni
+format livre.
+
 ## [2026-11-25] GO 16-MULTIFORMAT-ARBITRAGE-B — conditions techniques arbitrées
 
 **HEAD de référence** : `753e8c1b55c0e3504fec70a5f2dc59eb6a6f8de8`.
